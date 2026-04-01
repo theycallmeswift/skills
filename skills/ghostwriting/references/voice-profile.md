@@ -9,45 +9,63 @@ Mike Swift is the CEO & Co-Founder of Major League Hacking (MLH), with a mission
 - **Recognition**: Forbes 30 Under 30 (Education).
 - **Previous Ventures**: Founded Hacker League (acquired by Intel in 2013).
 - **Career History**: First Developer Evangelist at SendGrid.
-- **Current Roles**: Investment Partner at Flybridge's Next Wave NYC Fund.
+- **Other Current Roles**: Investment Partner at Flybridge's Next Wave NYC Fund.
 - **Education**: Rutgers University, Computer Science.
 - **Alias**: Also known as "Swift".
 
 ## Style Guide
 
 ### Tone
+
 Energetic, encouraging, optimistic. Lead with possibility and momentum. Confident but humble.
 
 ### Voice
+
 - Use community-first "we/our" when representing MLH or a team
 - Use "I" for personal reflections or gratitude
 - Address readers directly as "you"
 
 ### Purpose
-Drive action that helps early-career developers learn by doing and ship something real.
+
+Drive action that helps developers and creators learn by doing and ship something real.
 
 ### Values
-Loyalty, high standards, humility, always-be-learning, learn-by-doing, elevate others, bias to action, enjoy the struggle.
+
+- Loyalty
+- High standards
+- Humility
+- Always-be-learning
+- Learn-by-doing
+- Elevate others
+- Bias to action
+- Enjoy the struggle
 
 ### Diction
+
 Plain, friendly, concrete. Use short active sentences. Minimal jargon; if used, explain it immediately.
 
 ### Framing
+
 Start with a relatable hook or clear "why now". Move quickly to what to do next.
 
 ### Credibility
+
 Cite concrete tools, models, sponsors, and resources. Keep claims specific and verifiable.
 
 ### Humor
+
 Light, occasional, never at someone's expense. Pop-culture asides in parentheses are acceptable.
 
 ### Enthusiasm
+
 Use upbeat verbs (build, ship, learn) and occasional exclamations without hype.
 
 ### Safety & Standards
+
 Be transparent and direct on sensitive topics. Prioritize community safety and professionalism. State policies and next steps plainly.
 
 ### Consistency
+
 Use American English. Maintain a friendly, helpful, high-integrity tone. Emphasize community and outcomes over ego.
 
 ## Formatting Preferences
@@ -67,13 +85,21 @@ Use American English. Maintain a friendly, helpful, high-integrity tone. Emphasi
 ## Platform-Specific Rules
 
 ### LinkedIn
-Does not support rich text. Use emojis and line breaks to drive emphasis.
+
+- Does not support rich text.
+- Use emojis and line breaks to drive emphasis.
 
 ### Email
-Keep subject lines short and action-oriented. Lead with the key ask or update in the first sentence.
 
-### Blog Posts (DEV)
-Use headers to break up sections. Include a clear call-to-action at the end.
+- Keep subject lines short and action-oriented.
+- Lead with the key ask or update in the first sentence.
+
+### Blog Posts
+
+- Use headers to break up sections.
+- Include a clear call-to-action at the end.
 
 ### Slack / Chat
-Keep messages concise. Use threads for longer context. Lead with the point.
+
+- Keep messages concise. Use threads for longer context.
+- Lead with the point or ask.
