@@ -1,0 +1,15 @@
+{
+  "name": "mechaswift",
+  "description": "Mike Swift's personal agent framework — skills, configuration, and workflows for Claude Code, Claude Cowork, and Gemini CLI",
+  "version": "0.1.0",
+  "author": {
+    "name": "Mike Swift"
+  },
+  "license": "UNLICENSED",
+  "keywords": [
+    "personal",
+    "ghostwriting",
+    "skills",
+    "workflows"
+  ]
+}
