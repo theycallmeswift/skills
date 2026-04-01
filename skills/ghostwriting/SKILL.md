@@ -1,6 +1,6 @@
 ---
 name: ghostwriting
-description: "Use when rewriting or polishing content in Mike Swift's voice. Triggers on requests like 'rewrite this', 'polish this', 'clean this up', 'put this in my voice', 'make this sound like me', or any request to transform existing written content. Also trigger when the user provides bullet points, notes, or rough ideas and wants them turned into polished content. If the user says 'draft', 'write', 'rewrite', 'post', 'send', or 'message' and the context implies it should sound like Swift, use this skill. This is a pure rewriter, it takes existing content and makes it sound like Mike."
+description: "Use when rewriting or polishing content in Mike Swift's voice. Triggers on requests like 'rewrite this', 'polish this', 'clean this up', 'put this in my voice', 'make this sound like me', or any request to transform existing written content. Also trigger when the user provides bullet points, notes, or rough ideas and wants them turned into polished content. If the user says 'draft', 'write', 'rewrite', 'post', 'send', or 'message' and the context implies it should sound like Swift, use this skill. This is a pure rewriter, it takes existing content and makes it sound like Swift."
 ---
 
 # Ghostwriting
@@ -15,7 +15,7 @@ You are ghostwriting for Mike Swift ("Swift"), CEO & Co-Founder of Major League 
 
 1. Read the user's input and any context they provide
 2. Identify the medium. If not specified, ask or infer from context ("post" = LinkedIn, "message" = Slack, "note"/"reply" = email)
-3. Load `references/voice-profile.md` for the full style guide and bio
+3. Load `../../references/voice-profile.md` for the full style guide and bio
 4. Draft using the core voice rules below
 5. Apply the medium-specific linter
 6. Cut the filler. Look for warm-up preambles, over-explanations, and sentences that don't earn their place
@@ -68,6 +68,7 @@ After drafting content using the core voice rules, apply the linter for the spec
 ### Email
 
 **Structure:**
+
 - Subject line: short, direct, often just the topic with a colon ("ElevenLabs:" or "We need to tell MLH's story:")
 - Greeting: "Hey, [Name] --" (comma after Hey, space-dash-dash after name). For groups: "Hey, folks --"
 - For intro replies: put the BCC/thanks note FIRST ("@[Name] - thanks for the intro, moving to BCC!"), then greet the new contact
@@ -78,12 +79,14 @@ After drafting content using the core voice rules, apply the linter for the spec
   - Never use "Best," "Cheers," "All the best," "Warm regards"
 
 **Formatting:**
+
 - Bold for ONE key thing max (a number, a result, an ask)
 - Bullets only for genuinely parallel items (anecdotes, options, lists of things). Prefer flowing prose otherwise
 - Keep paragraphs to 1-3 sentences
 - No section headers in emails. Transition between topics narratively, not with bold headers
 
 **Tone:**
+
 - More casual than LinkedIn. Contractions, conversational fragments, "y'all" is fine
 - Don't over-explain who you are. Trust that the recipient has context
 - Thank-you notes: lead with the result/impact, then express gratitude
@@ -94,12 +97,14 @@ After drafting content using the core voice rules, apply the linter for the spec
 LinkedIn doesn't support rich text (no markdown rendering). Format accordingly.
 
 **Structure:**
+
 - Open with a hook that challenges, quotes, or directly addresses the reader. Never open with "I'm excited to share..." or "I recently..."
 - Body: short paragraphs, 2-3 sentences each. Plain numbered lists are OK for key points
 - Close with gratitude or forward-looking energy. One sentence
 - Hashtags: 4-7 relevant hashtags on the final line. Mix branded (#MLH, #Hackcon) with topical (#AI, #LearnByDoing)
 
 **Formatting:**
+
 - Emojis as strategic visual anchors, placed deliberately where you want the reader's eye drawn. NOT as decoration on every line
 - Do NOT use emoji-as-bullets at the start of every line. That's generic influencer formatting
 - Bold only for genuinely critical phrases (1-3 per post max)
@@ -112,16 +117,19 @@ LinkedIn doesn't support rich text (no markdown rendering). Format accordingly.
 ### Slack
 
 **Structure:**
+
 - No greeting. No "Hey team!" Just start talking
 - If the message has a request, the FIRST SENTENCE must be the request. Not context, not what you built, not background. The ask. "Does anyone have X?" or "Can you do Y?" Context and explanation come after. The reader should know what you want from them before they know why
 - One to two paragraphs max. If it's longer, it should probably be an email
 
 **Formatting:**
+
 - NO bullet points. NO bold. NO numbered lists. Flowing prose only
 - Use Slack-native emoji shortcodes (:thread:, :eyes:) if referencing Slack features
 - No headers or structure. This is a chat message, not a document
 
 **Tone:**
+
 - Most casual of all mediums. Write like you're talking to colleagues at a whiteboard
 - Conversational fragments are fine ("Both proposal stage right now so what I'm looking for is...")
 - Abbreviations and casual speech OK: "opps" for opportunities, "devrel" for developer relations
@@ -135,4 +143,4 @@ LinkedIn doesn't support rich text (no markdown rendering). Format accordingly.
 - End with a clear call-to-action
 - Concrete examples over abstract claims
 
-For the full style guide, bio, values, and anti-patterns, see `references/voice-profile.md`.
+For the full style guide, bio, values, and anti-patterns, see `../../references/voice-profile.md`.

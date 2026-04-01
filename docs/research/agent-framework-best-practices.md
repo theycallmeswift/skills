@@ -58,7 +58,15 @@ This separation enables consistent identity with context-specific capabilities.
 
 ### Configuration Best Practices
 
-**Keep it lean.** CLAUDE.md loads every session and consumes context. For each line, ask: "Would removing this cause mistakes?" Only include conventions the agent would otherwise get wrong.
+**Keep it lean.** CLAUDE.md loads every session and consumes context. For each line, ask: "Would removing this cause mistakes?" Only include conventions the agent would otherwise get wrong. One practitioner reduced their config from 471 lines to 61 over 1000+ sessions, proving that lean consistently outperforms comprehensive. The goal is a routing layer, not a documentation dump.
+
+**Config as routing layer.** CLAUDE.md should contain identity, principles, and pointers to detailed docs. Don't inline reference material that's only needed in specific contexts. Point to it instead and let skills or workflows load it on demand. This applies the same progressive disclosure pattern used in skills to the config itself.
+
+**"Working With Me" section.** The most effective configs include a section about the human: who they are, what they do, how they prefer to work, and what their decision-making values are. This isn't decoration. It guides the agent's decisions about when to ask vs execute, how formal to be, and what context to prioritize. Think of it as a role definition for the human, not just the agent.
+
+**Principles over rules.** "Prefer reversible actions" outperforms any enumerated list of dangerous commands. Agents generalize from principles but can't extrapolate from incomplete rule sets. When writing config, state the principle and the reasoning behind it. An agent that understands *why* will handle edge cases a rule list can't anticipate.
+
+**Concrete behaviors over adjectives.** "Be thorough" is useless. "Before claiming completion, run it and show me output" is actionable. Every instruction in CLAUDE.md should describe an observable behavior, not a quality aspiration. If you can't tell whether the agent followed the instruction by looking at its output, the instruction needs to be rewritten.
 
 **Don't duplicate linters.** Formatting rules belong in deterministic tools (ESLint, Prettier, Ruff), not in CLAUDE.md. Linters are cheaper, faster, and more reliable than LLM-based enforcement.
 
@@ -614,6 +622,10 @@ Capture learned behaviors from corrections (`lessons.md`):
 
 Loaded at session start so patterns are reinforced. Built through consistent in-session logging.
 
+### Self-Extension in Config
+
+The most effective production configs include self-extension mechanisms directly in CLAUDE.md, not as a separate system. This means the global config itself instructs the agent on how to identify capability gaps, learn from corrections, and save preferences. When learning is a first-class concern of the config (not an afterthought in a separate lessons file), it happens more consistently.
+
 ### Session-End Protocol
 
 At the end of each session:
@@ -636,7 +648,7 @@ The compound-engineering framework's core thesis: **each unit of work should mak
 
 ### 1. Structure Over Prompts
 
-All systems provide structural context rather than relying on prompts alone: architectural constraints (CLAUDE.md), task decomposition (plans), skill libraries (reusable patterns), memory tiers (persistent context). Agents follow structure more reliably than vague guidance.
+All systems provide structural context rather than relying on prompts alone: architectural constraints (CLAUDE.md), task decomposition (plans), skill libraries (reusable patterns), memory tiers (persistent context). Agents follow structure more reliably than vague guidance. Within that structure, principles generalize better than rules. "Prefer reversible actions" handles more situations than an enumerated list of dangerous commands. And every instruction should describe a concrete, observable behavior, not a quality aspiration. "Be thorough" means nothing; "before claiming completion, run it and show me output" is actionable.
 
 ### 2. Fresh Context Per Major Task
 
@@ -691,3 +703,4 @@ Design every tool, skill, and workflow so that using it once makes it better for
 - Context engineering research (Manus agent architecture, KV-cache optimization)
 - Multi-agent orchestration patterns (OpenDev, ACM 2025 studies)
 - AGENTS.md specification (Linux Foundation)
+- "How I Structure CLAUDE.md After 1000+ Sessions" (Jock Samuels, 2025) — lean config, principles over rules, "Working With Me" pattern
