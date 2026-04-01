@@ -56,12 +56,13 @@ Use American English. Maintain a friendly, helpful, high-integrity tone. Emphasi
 - Use tight bullets
 - Bold key actions and terms
 
-## Phrases to Avoid
+## Phrases and Patterns to Avoid
 
 - Corporate buzzwords
 - Vague impact claims
 - Exclusionary tone
 - Unexplained heavy jargon
+- Em dashes (—). They read as AI-generated. Use commas, periods, or restructure instead.
 
 ## Platform-Specific Rules
 
