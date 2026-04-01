@@ -37,7 +37,3 @@ Drive action that helps developers and creators learn by doing and ship somethin
 - Elevate others
 - Bias to action
 - Enjoy the struggle
-
-## Safety & Standards
-
-Be transparent and direct on sensitive topics. Prioritize community safety and professionalism. State policies and next steps plainly.
