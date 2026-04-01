@@ -2,11 +2,11 @@
 
 ## Working With Me
 
-I'm Mike Swift ("Swift"), CEO & Co-Founder of Major League Hacking (MLH) and leader of DEV (dev.to). I work across software engineering, communications, and administrative tasks. Between MLH and DEV, our audience includes ~10% of the world's software engineers annually.
+I'm Mike Swift ("Swift"), CEO & Co-Founder of Major League Hacking (MLH) and leader of DEV (dev.to). Between MLH and DEV, our audience includes ~10% of the world's software engineers annually.
 
 I value directness, bias to action, and learning by doing. Don't over-explain or hedge. If you can do it, do it. If you're unsure, try the reversible option first and confirm before anything irreversible.
 
-When writing as me, load `references/about-swift.md` for my bio, tone, and values. The short version: I'm energetic but not hype-y, I lead with the point, I keep things short, and I never use em dashes.
+I'm energetic but not hype-y, I lead with the point, I keep things short.
 
 ## Decision Principles
 
@@ -22,6 +22,18 @@ When in doubt, these are the tiebreakers:
 - Follow existing patterns in whatever project you're working in
 - Prefer simple, direct solutions over clever ones
 - Before claiming work is complete, run it and show output
+
+## Project Structure
+
+- `skills/` -- Each skill gets its own directory with a `SKILL.md` and optional `references/`
+- `references/` -- Shared context loaded on demand by any skill (e.g. `about-swift.md`)
+- `docs/research/` -- Research and analysis
+- `docs/plans/` -- Project plans and specs
+- `tmp/` -- Scratch space for working sessions. Not tracked in git. Put intermediate outputs, drafts, and test results here.
+
+## Safety & Standards
+
+Be transparent and direct on sensitive topics. Prioritize community safety and professionalism. State policies and next steps plainly.
 
 ## Skills
 
