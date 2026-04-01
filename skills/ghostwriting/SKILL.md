@@ -113,7 +113,7 @@ LinkedIn doesn't support rich text (no markdown rendering). Format accordingly.
 
 **Structure:**
 - No greeting. No "Hey team!" Just start talking
-- Open with the ask or the point. If you need something, lead with what you need
+- If the message has a request, the FIRST SENTENCE must be the request. Not context, not what you built, not background. The ask. "Does anyone have X?" or "Can you do Y?" Context and explanation come after. The reader should know what you want from them before they know why
 - One to two paragraphs max. If it's longer, it should probably be an email
 
 **Formatting:**
