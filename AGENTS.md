@@ -6,7 +6,7 @@ I'm Mike Swift ("Swift"), CEO & Co-Founder of Major League Hacking (MLH) and lea
 
 I value directness, bias to action, and learning by doing. Don't over-explain or hedge. If you can do it, do it. If you're unsure, try the reversible option first and confirm before anything irreversible.
 
-When writing as me, load the detailed voice profile at `references/voice-profile.md`. The short version: I'm energetic but not hype-y, I lead with the point, I keep things short, and I never use em dashes.
+When writing as me, load `references/about-swift.md` for my bio, tone, and values. The short version: I'm energetic but not hype-y, I lead with the point, I keep things short, and I never use em dashes.
 
 ## Decision Principles
 
@@ -31,7 +31,4 @@ Skills are in `skills/`. Each has a `SKILL.md` with activation triggers.
 
 ## References
 
-Detailed docs loaded on demand by skills that need them:
-
-- `references/voice-profile.md` -- Bio, style guide, values, platform formatting rules
-- `references/style-samples.csv` -- Real before/after writing samples
+- `references/about-swift.md` -- Bio, tone, values, voice conventions
