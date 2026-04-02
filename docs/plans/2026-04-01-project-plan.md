@@ -6,7 +6,7 @@ Mike Swift's personal framework for working with coding agents (Claude Code, Cla
 
 ## Goals
 
-- Ship a working Claude Code plugin with one immediately useful skill (ghostwriting)
+- Ship a working Claude Code plugin with one immediately useful skill (ghostwrite)
 - Maintain Gemini CLI compatibility via AGENTS.md
 - Establish the project structure and conventions that future skills will follow
 - Keep it simple — no speculative features, no over-engineering
@@ -24,7 +24,7 @@ mechaswift/
   .claude-plugin/
     plugin.json              # Plugin manifest (name, version, skills list)
   skills/
-    ghostwriting/
+    ghostwrite/
       SKILL.md               # Skill definition and activation triggers
       references/
         voice-profile.md     # Bio, style guide, platform formatting rules
@@ -76,7 +76,7 @@ Contains:
 
 ### Skill creation
 
-The ghostwriting skill will be built using the `skill-creator` skill to ensure it follows best practices for activation rates, structure, and testing.
+The ghostwrite skill will be built using the `skill-creator` skill to ensure it follows best practices for activation rates, structure, and testing.
 
 ## Installation
 

@@ -21,9 +21,9 @@ If the user provides a URL, file, or content, use that. If they just say "summar
 1. **Fetch and read** the content
 2. **Write the title, TL;DR, and Cliff Notes** (see Output Format below)
 3. **Identify the most interesting takeaway** -- the one thing that would make someone want to click the link. Distill it into a sentence or two of raw content (not yet in anyone's voice).
-4. **Hand that takeaway to the `ghostwriting` skill** to rewrite as a Slack message. The ghostwriting skill handles voice and tone.
+4. **Hand that takeaway to the `ghostwrite` skill** to rewrite as a Slack message. The ghostwrite skill handles voice and tone.
 5. **Identify a discussion-worthy angle** -- something specific from the content that invites a real reply. Not a summary, but a point you'd react to as a builder.
-6. **Hand that angle to the `ghostwriting` skill** to rewrite as a forum comment.
+6. **Hand that angle to the `ghostwrite` skill** to rewrite as a forum comment.
 7. **Present the final output**: title, TL;DR, Cliff Notes, Share, and Comment sections.
 
 ## Output Format
@@ -64,7 +64,7 @@ https://example.com/the-article-url
 
 ## Comment
 
-A ready-to-paste reply for the post itself, or a Reddit/Hacker News discussion thread. Run it through the `ghostwriting` skill, then display in a code fence.
+A ready-to-paste reply for the post itself, or a Reddit/Hacker News discussion thread. Run it through the `ghostwrite` skill, then display in a code fence.
 
 Write like a veteran developer leaving a quick reply on a forum. Zero filler. Zero PR speak. No "email voice."
 

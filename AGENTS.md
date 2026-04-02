@@ -27,8 +27,7 @@ When in doubt, these are the tiebreakers:
 
 - `skills/` -- Each skill gets its own directory with a `SKILL.md` and optional `references/`
 - `references/` -- Shared context loaded on demand by any skill (e.g. `about-swift.md`)
-- `docs/research/` -- Research and analysis
-- `docs/plans/` -- Project plans and specs
+- `docs/` -- Project plans and specs
 - `tmp/` -- Scratch space for working sessions. Not tracked in git. Put intermediate outputs, drafts, and test results here.
 
 ## Safety & Standards
@@ -39,7 +38,9 @@ Be transparent and direct on sensitive topics. Prioritize community safety and p
 
 Skills are in `skills/`. Each has a `SKILL.md` with activation triggers.
 
-- **ghostwriting** -- Rewrite content in Swift's voice. See `skills/ghostwriting/SKILL.md`.
+- **ghostwrite** -- Rewrite content in Swift's voice. See `skills/ghostwrite/SKILL.md`.
+- **scope** -- Turn a vague idea into a structured spec through collaborative design. See `skills/scope/SKILL.md`.
+- **summarize** -- Produce skimmable summaries of web pages, PDFs, and articles. See `skills/summarize/SKILL.md`.
 
 ## References
 

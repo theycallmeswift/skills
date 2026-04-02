@@ -2,9 +2,9 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Ship MechaSwift as a working Claude Code plugin with a ghostwriting skill and Gemini CLI compatibility.
+**Goal:** Ship MechaSwift as a working Claude Code plugin with a ghostwrite skill and Gemini CLI compatibility.
 
-**Architecture:** Claude Code plugin (`.claude-plugin/plugin.json`) with skills discovered via `skills/` directory convention. AGENTS.md is the source of truth for cross-platform config; CLAUDE.md is a symlink. The ghostwriting skill uses a reference file for the voice profile.
+**Architecture:** Claude Code plugin (`.claude-plugin/plugin.json`) with skills discovered via `skills/` directory convention. AGENTS.md is the source of truth for cross-platform config; CLAUDE.md is a symlink. The ghostwrite skill uses a reference file for the voice profile.
 
 **Tech Stack:** Markdown, JSON (plugin manifest), no runtime dependencies.
 
@@ -30,7 +30,7 @@
   "license": "UNLICENSED",
   "keywords": [
     "personal",
-    "ghostwriting",
+    "ghostwrite",
     "skills",
     "workflows"
   ]
@@ -72,7 +72,7 @@ You are assisting Mike Swift, CEO & Co-Founder of Major League Hacking (MLH) and
 
 - Follow existing patterns in whatever project you're working in
 - Prefer simple, direct solutions over clever ones
-- When writing content as Mike, use the ghostwriting skill (Claude Code) or follow the voice profile in `skills/ghostwriting/references/voice-profile.md`
+- When writing content as Mike, use the ghostwrite skill (Claude Code) or follow the voice profile in `skills/ghostwrite/references/voice-profile.md`
 
 ## Skills
 
@@ -80,7 +80,7 @@ Skills are located in the `skills/` directory. Each skill has a `SKILL.md` with 
 
 ### Available Skills
 
-- **ghostwriting** — Rewrite or draft content in Mike Swift's voice. See `skills/ghostwriting/SKILL.md`.
+- **ghostwrite** — Rewrite or draft content in Mike Swift's voice. See `skills/ghostwrite/SKILL.md`.
 ```
 
 - [ ] **Step 2: Create CLAUDE.md as a symlink to AGENTS.md**
@@ -104,11 +104,11 @@ git commit -m "feat: add AGENTS.md config and CLAUDE.md symlink"
 ### Task 3: Voice Profile Reference File
 
 **Files:**
-- Create: `skills/ghostwriting/references/voice-profile.md`
+- Create: `skills/ghostwrite/references/voice-profile.md`
 
 - [ ] **Step 1: Create the voice profile**
 
-This file contains Mike's bio, style guide, values, and platform-specific formatting rules. It is loaded on-demand by the ghostwriting skill via backtick reference.
+This file contains Mike's bio, style guide, values, and platform-specific formatting rules. It is loaded on-demand by the ghostwrite skill via backtick reference.
 
 ```markdown
 # Mike Swift — Voice Profile
@@ -194,7 +194,7 @@ Keep messages concise. Use threads for longer context. Lead with the point.
 - [ ] **Step 2: Commit**
 
 ```bash
-git add skills/ghostwriting/references/voice-profile.md
+git add skills/ghostwrite/references/voice-profile.md
 git commit -m "feat: add Mike Swift voice profile reference file"
 ```
 
@@ -203,7 +203,7 @@ git commit -m "feat: add Mike Swift voice profile reference file"
 ### Task 4: Ghostwriting Skill Definition
 
 **Files:**
-- Create: `skills/ghostwriting/SKILL.md`
+- Create: `skills/ghostwrite/SKILL.md`
 
 **Note:** This task will use the `skill-creator` skill to build the SKILL.md, ensuring it follows best practices for activation rates and structure. The content below is the specification to provide to the skill-creator — the final SKILL.md may differ based on skill-creator guidance.
 
@@ -211,8 +211,8 @@ git commit -m "feat: add Mike Swift voice profile reference file"
 
 Provide the skill-creator with this specification:
 
-- **Skill name:** `ghostwriting`
-- **Skill location:** `skills/ghostwriting/SKILL.md`
+- **Skill name:** `ghostwrite`
+- **Skill location:** `skills/ghostwrite/SKILL.md`
 - **Description (for activation):** "Use when drafting, rewriting, or editing content as Mike Swift — emails, social posts, blog articles, announcements, messages."
 - **Reference file:** `references/voice-profile.md` (loaded on-demand via backtick reference)
 - **Hard constraints:**
@@ -228,8 +228,8 @@ Provide the skill-creator with this specification:
 
 - [ ] **Step 2: Review the generated SKILL.md**
 
-Read `skills/ghostwriting/SKILL.md` and verify:
-- Frontmatter has `name: ghostwriting` and a clear description
+Read `skills/ghostwrite/SKILL.md` and verify:
+- Frontmatter has `name: ghostwrite` and a clear description
 - Hard constraints (no external info, user-provided input only) are present
 - Voice profile is referenced via backtick path, not embedded
 - No placeholders or TODOs
@@ -237,8 +237,8 @@ Read `skills/ghostwriting/SKILL.md` and verify:
 - [ ] **Step 3: Commit**
 
 ```bash
-git add skills/ghostwriting/SKILL.md
-git commit -m "feat: add ghostwriting skill definition"
+git add skills/ghostwrite/SKILL.md
+git commit -m "feat: add ghostwrite skill definition"
 ```
 
 ---
@@ -289,10 +289,10 @@ Expected output:
 ./AGENTS.md
 ./CLAUDE.md
 ./skills
-./skills/ghostwriting
-./skills/ghostwriting/SKILL.md
-./skills/ghostwriting/references
-./skills/ghostwriting/references/voice-profile.md
+./skills/ghostwrite
+./skills/ghostwrite/SKILL.md
+./skills/ghostwrite/references
+./skills/ghostwrite/references/voice-profile.md
 ```
 
 - [ ] **Step 2: Verify CLAUDE.md symlink is valid**
@@ -307,8 +307,8 @@ Expected: `Valid JSON`
 
 - [ ] **Step 4: Verify skill frontmatter**
 
-Run: `head -5 skills/ghostwriting/SKILL.md`
-Expected: YAML frontmatter with `name: ghostwriting` and a description field.
+Run: `head -5 skills/ghostwrite/SKILL.md`
+Expected: YAML frontmatter with `name: ghostwrite` and a description field.
 
 - [ ] **Step 5: Final commit if any loose changes**
 

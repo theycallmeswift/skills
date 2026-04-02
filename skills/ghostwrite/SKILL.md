@@ -1,5 +1,5 @@
 ---
-name: ghostwriting
+name: ghostwrite
 description: "Use when rewriting or polishing content in Mike Swift's voice. Triggers on requests like 'rewrite this', 'polish this', 'clean this up', 'put this in my voice', 'make this sound like me', or any request to transform existing written content. Also trigger when the user provides bullet points, notes, or rough ideas and wants them turned into polished content. If the user says 'draft', 'write', 'rewrite', 'post', 'send', or 'message' and the context implies it should sound like Swift, use this skill. This is a pure rewriter, it takes existing content and makes it sound like Swift."
 ---
 
