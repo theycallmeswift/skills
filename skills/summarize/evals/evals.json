@@ -1,0 +1,76 @@
+{
+  "skill_name": "summarize",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Summarize the top article on dev.to that isn't a challenge or contest announcement",
+      "expected_output": "A structured summary with title, TL;DR, Cliff Notes, Share, and Comment sections",
+      "files": [],
+      "expectations": [
+        { "text": "Output contains an H1 title (line starting with '# ')", "type": "structural" },
+        { "text": "Output contains a clickable link to the source URL near the title", "type": "structural" },
+        { "text": "Output contains a '## TL;DR' section", "type": "structural" },
+        { "text": "TL;DR is 1-2 sentences of plain body text, not rendered as a heading or bold block", "type": "structural" },
+        { "text": "Output contains a '## Cliff Notes' section", "type": "structural" },
+        { "text": "Cliff Notes contains a bulleted list with 5-8 items", "type": "structural" },
+        { "text": "Output contains a '## Share' section", "type": "structural" },
+        { "text": "Share section contains a code fence with a bare URL on its own line", "type": "structural" },
+        { "text": "Output contains a '## Comment' section", "type": "structural" },
+        { "text": "Comment section contains a code fence with content of 20 words or fewer", "type": "structural" }
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Summarize this article: https://dev.to/tasenikol/when-chrome-ate-my-ram-designing-a-pressure-aware-tab-orchestrator-with-rust-1g05",
+      "expected_output": "A structured summary of the Rust tab orchestrator article with all required sections",
+      "files": [],
+      "expectations": [
+        { "text": "Output contains an H1 title (line starting with '# ')", "type": "structural" },
+        { "text": "Output contains a clickable link to the source URL near the title", "type": "structural" },
+        { "text": "Output contains a '## TL;DR' section", "type": "structural" },
+        { "text": "TL;DR is 1-2 sentences of plain body text, not rendered as a heading or bold block", "type": "structural" },
+        { "text": "Output contains a '## Cliff Notes' section", "type": "structural" },
+        { "text": "Cliff Notes contains a bulleted list with 5-8 items", "type": "structural" },
+        { "text": "Output contains a '## Share' section", "type": "structural" },
+        { "text": "Share section contains a code fence with a bare URL on its own line", "type": "structural" },
+        { "text": "Output contains a '## Comment' section", "type": "structural" },
+        { "text": "Comment section contains a code fence with content of 20 words or fewer", "type": "structural" }
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Summarize this page for me https://www.anthropic.com/research/claude-character",
+      "expected_output": "A structured summary of Anthropic's Claude character research page with all required sections",
+      "files": [],
+      "expectations": [
+        { "text": "Output contains an H1 title (line starting with '# ')", "type": "structural" },
+        { "text": "Output contains a clickable link to the source URL near the title", "type": "structural" },
+        { "text": "Output contains a '## TL;DR' section", "type": "structural" },
+        { "text": "TL;DR is 1-2 sentences of plain body text, not rendered as a heading or bold block", "type": "structural" },
+        { "text": "Output contains a '## Cliff Notes' section", "type": "structural" },
+        { "text": "Cliff Notes contains a bulleted list with 5-8 items", "type": "structural" },
+        { "text": "Output contains a '## Share' section", "type": "structural" },
+        { "text": "Share section contains a code fence with a bare URL on its own line", "type": "structural" },
+        { "text": "Output contains a '## Comment' section", "type": "structural" },
+        { "text": "Comment section contains a code fence with content of 20 words or fewer", "type": "structural" }
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "Summarize this PDF: /Users/theycallmeswift/dev/mechaswift/skills/summarize/evals/test-paper.pdf",
+      "expected_output": "A structured summary of an arxiv paper with all required sections. Title should use the document title or filename since there's no URL. Share section may omit URL or use a file reference.",
+      "files": ["/Users/theycallmeswift/dev/mechaswift/skills/summarize/evals/test-paper.pdf"],
+      "expectations": [
+        { "text": "Output contains an H1 title (line starting with '# ')", "type": "structural" },
+        { "text": "H1 title uses the document/paper title or filename, not a URL", "type": "structural" },
+        { "text": "Output contains a '## TL;DR' section", "type": "structural" },
+        { "text": "TL;DR is 1-2 sentences of plain body text, not rendered as a heading or bold block", "type": "structural" },
+        { "text": "Output contains a '## Cliff Notes' section", "type": "structural" },
+        { "text": "Cliff Notes contains a bulleted list with 5-8 items", "type": "structural" },
+        { "text": "Output contains a '## Share' section", "type": "structural" },
+        { "text": "Output contains a '## Comment' section", "type": "structural" },
+        { "text": "Comment section contains a code fence with content of 20 words or fewer", "type": "structural" }
+      ]
+    }
+  ]
+}
