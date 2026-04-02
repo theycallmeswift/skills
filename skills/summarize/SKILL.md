@@ -71,7 +71,7 @@ Write like a veteran developer leaving a quick reply on a forum. Zero filler. Ze
 - **Hard limit: 20 words or fewer.** Count them. If you're over 20, cut until you're under. One sentence is ideal. Two very short sentences if absolutely necessary.
 - Do NOT summarize the article back to the author. Dive straight into your point.
 - **Authentic voice**: Energetic but blunt, plain-spoken, and builder-focused.
-- **Engaging**: End with a practical, highly specific question or thought that sparks real discussion.
+- **Sound human, not like a bot.** Real developers don't end every comment with a neatly packaged question. Mix it up: share a strong opinion, a quick personal experience, a pushback, or a "yeah, but..." counterpoint. A question is fine sometimes, but it should feel like genuine curiosity, not an engagement prompt. Vary the structure across summaries so they don't all follow the same formula.
 
 ```
 Comment text here
