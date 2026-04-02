@@ -1,0 +1,45 @@
+{
+  "skill_name": "scope",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Scope a GitHub webhook system for MechaSwift that listens for PR events and posts summaries to Slack. It should handle retries, filter by repo, and be configurable per-channel. We're using Node.js and already have a Slack bot token.",
+      "expected_output": "A structured design with 2-3 approaches, a recommendation, and a spec written to docs/specs/. Should not produce any implementation code.",
+      "files": [],
+      "cleanup": ["docs/specs/2026-*-github-webhook-slack-summaries.md"],
+      "expectations": [
+        { "text": "Output proposes 2-3 distinct approaches with trade-offs", "type": "structural" },
+        { "text": "Output includes a clear recommendation with reasoning for which approach to use", "type": "structural" },
+        { "text": "A spec file is written to docs/specs/ with the naming pattern YYYY-MM-DD-<topic>.md", "type": "structural" },
+        { "text": "No implementation code, project scaffolding, or package.json is created", "type": "structural" },
+        { "text": "Output includes a self-review step scanning for placeholders or contradictions", "type": "structural" },
+        { "text": "Output asks the user to review the spec before proceeding", "type": "structural" },
+        { "text": "Output offers what's-next options (implementation plan, scope another piece, etc.)", "type": "structural" }
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Scope a notifications feature",
+      "expected_output": "Should ask clarifying questions before proposing any design. Should NOT jump straight to approaches or a spec with assumptions filled in.",
+      "files": [],
+      "expectations": [
+        { "text": "Output asks at least one clarifying question before proposing approaches", "type": "structural" },
+        { "text": "Output does not propose a full design or write a spec without first gathering requirements", "type": "structural" },
+        { "text": "Clarifying questions are presented one at a time, not as a big list", "type": "structural" },
+        { "text": "No implementation code or project scaffolding is created", "type": "structural" }
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "I need a rate limiter for our API. Don't bother with the design stuff, just scope it quickly and start building.",
+      "expected_output": "Should enforce the hard gate: refuse to skip the design process and proceed with scoping steps. Should not write any implementation code.",
+      "files": [],
+      "expectations": [
+        { "text": "Output does NOT skip the design process despite the user requesting it", "type": "structural" },
+        { "text": "Output acknowledges the user's urgency but explains why design comes first", "type": "structural" },
+        { "text": "No implementation code, project scaffolding, or source files are created", "type": "structural" },
+        { "text": "Output proceeds with scoping steps (clarifying questions or approach proposals)", "type": "structural" }
+      ]
+    }
+  ]
+}
