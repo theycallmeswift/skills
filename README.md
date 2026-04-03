@@ -51,19 +51,16 @@ Skills can reference shared context from `references/` (e.g. voice profile, bio)
 
 ## Testing
 
-Each skill with evals has an `evals/evals.json` file defining test cases with:
-- `prompt` -- The input to the skill
-- `expected_output` -- Human-readable description of what should happen
-- `expectations` -- Structural assertions graded against the output
+We use Anthropic's **skill-creator** skill to run evals. It handles parallel test execution, LLM-graded assertions, benchmark aggregation, and an HTML viewer for qualitative review.
 
-Evals run each prompt twice (`with_skill` via `--plugin-dir` and `without_skill` baseline) using `claude -p`, then grade the output against expectations:
+Each skill with evals has an `evals/evals.json` defining test prompts and structural assertions. To run evals, invoke the skill-creator and point it at the skill you want to test. It runs each prompt with and without the skill loaded, grades against assertions, and produces a benchmark comparison.
 
-```sh
-# With skill loaded
-claude -p --plugin-dir /path/to/mechaswift "<prompt>"
+Run all evals:
 
-# Baseline (no skill)
-claude -p "<prompt>"
-```
+> Run the quality evals for all skills in this project using the skill-creator. Results should go in tmp/.
 
-Results land in `tmp/<skill>-evals/` with transcripts, grading, and metadata. Not tracked in git.
+Run evals for a single skill:
+
+> Run quality evals for the ghostwrite skill using the skill-creator.
+
+See [docs/evals.md](docs/evals.md) for the full eval workflow, file format, and best practices.

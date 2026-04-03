@@ -45,3 +45,4 @@ Skills are in `skills/`. Each has a `SKILL.md` with activation triggers.
 ## References
 
 - `references/about-swift.md` -- Bio, tone, values, voice conventions
+- `docs/evals.md` -- How to run and write skill evals
