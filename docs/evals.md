@@ -82,6 +82,21 @@ Run after the skill itself is in good shape. The description is a hyperparameter
 
 **Trigger eval queries**: Make them realistic and detailed, not abstract. Include file paths, context, casual phrasing. The should-not-trigger cases should be near-misses, not obviously irrelevant prompts.
 
+## Quick eval run
+
+Use the `/eval` command for a fast pass/fail check:
+
+```
+/eval                        # All skills
+/eval ghostwrite summarize   # Specific skills
+/eval --no-baseline          # Skip baseline comparison
+/eval --verbose              # Show all evidence
+```
+
+Results print inline as a summary table. Full outputs go to `tmp/evals/<timestamp>/`.
+
+For the full eval lifecycle (iteration, visual review, description optimization), use the skill-creator skill instead.
+
 ## Current coverage
 
 | Skill | Evals | Notes |
