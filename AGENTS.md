@@ -22,6 +22,8 @@ When in doubt, these are the tiebreakers:
 - Follow existing patterns in whatever project you're working in
 - Prefer simple, direct solutions over clever ones
 - Before claiming work is complete, run it and show output
+- When asking questions, ask only one at a time. Use the AskUserQuestion tool when available.
+- Never cosign output as any specific AI model or tool. Don't reveal which harness or model is being used.
 
 ## Project Structure
 
