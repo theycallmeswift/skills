@@ -1,15 +1,8 @@
----
-name: eval
-description: "Run quality evals for MechaSwift skills. Use when the user says '/eval', 'run evals', 'test the skills', 'check skill quality', or 'run the benchmarks'. Accepts optional arguments to scope which skills to test and how to run them."
----
-
-# /eval
-
 Run quality evals for skills that have test cases defined in `evals/evals.json`.
 
 ## Arguments
 
-Parse the user's message after `/eval` for these options:
+Parse the following for options: $ARGUMENTS
 
 - **Skill names** (positional) -- Run only these skills. Example: `/eval ghostwrite summarize`
 - **`--no-baseline`** -- Skip the without-skill baseline runs. Faster, but no comparison data.
@@ -75,7 +68,7 @@ Launch ALL runs (across all skills) in a single message to maximize parallelism.
 Once runs complete, spawn grading subagents in parallel for each run directory.
 
 Each grader should:
-1. Read `references/grader.md` from this skill's directory for grading instructions
+1. Read the grader instructions below
 2. Read the `eval_metadata.json` for assertions
 3. Read the output files in `outputs/`
 4. Evaluate each assertion as PASS or FAIL with evidence
@@ -90,6 +83,14 @@ The grading.json must use this structure:
   "summary": { "passed": 2, "failed": 1, "total": 3, "pass_rate": 0.67 }
 }
 ```
+
+#### Grader instructions
+
+**PASS** -- Clear evidence the assertion is true. The evidence reflects genuine task completion, not surface-level compliance.
+
+**FAIL** -- No evidence found, evidence contradicts the assertion, or evidence is superficial (e.g., correct format but wrong content).
+
+When uncertain, fail. The burden of proof is on the assertion. Be objective, cite specific evidence, check all output files, no partial credit.
 
 ### 5. Collect and display results
 

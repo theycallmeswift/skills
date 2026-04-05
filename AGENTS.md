@@ -41,6 +41,7 @@ Skills are in `skills/`. Each has a `SKILL.md` with activation triggers.
 - **ghostwrite** -- Rewrite content in Swift's voice. See `skills/ghostwrite/SKILL.md`.
 - **scope** -- Turn a vague idea into a structured spec through collaborative design. See `skills/scope/SKILL.md`.
 - **summarize** -- Produce skimmable summaries of web pages, PDFs, and articles. See `skills/summarize/SKILL.md`.
+- **/eval** -- Run quality evals for all skills (or a subset). Slash command at `commands/eval.md`.
 
 ## References
 
