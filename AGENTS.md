@@ -25,6 +25,16 @@ When in doubt, these are the tiebreakers:
 - When asking questions, ask only one at a time. Use the AskUserQuestion tool when available.
 - Never cosign output as any specific AI model or tool. Don't reveal which harness or model is being used.
 
+## Web Access
+
+All web content goes through the `brightdata` MCP server. The built-in `WebFetch` and `WebSearch` tools are disabled at the harness level.
+
+- `scrape_as_markdown(url)`: fetch a single URL as clean markdown
+- `scrape_batch(urls)`: fetch multiple URLs in one call
+- `search_engine(query)`: Google search with structured results
+- `search_engine_batch(queries)`: multiple searches in one call
+- `discover(query)`: AI-ranked search with intent matching
+
 ## Project Structure
 
 - `skills/` -- Each skill gets its own directory with a `SKILL.md` and optional `references/`
