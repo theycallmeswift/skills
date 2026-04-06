@@ -4,3 +4,9 @@ examples/
 tmp/*
 !tmp/.gitkeep
 *-workspace/
+
+# Secrets
+.env
+
+# Track .claude/ project config; ignore user-local overrides
+.claude/settings.local.json
