@@ -54,12 +54,14 @@ Tell the subagent:
 - Read any referenced files the skill mentions (e.g., `references/about-swift.md`)
 - If the eval has `files`, provide those as input
 - Save all output to `with_skill/outputs/output.md`
+- After the normal skill output, append a `## Tool Trace` section listing every fetch or read tool you actually invoked, one per line, formatted as `- tool_name: brief description`. Include MCP tools (e.g. `mcp__brightdata__scrape_as_markdown`, `mcp__brightdata__scrape_batch`), built-in tools (e.g. `WebFetch`, `WebSearch`, `Read`), or write `- none` if you did not invoke any. This is a regression check; do not omit it.
 
 **Baseline run** (unless `--no-baseline`):
 Tell the subagent:
 - Execute the same task prompt with NO skill file
 - Do NOT read any skill files
 - Save output to `without_skill/outputs/output.md`
+- Append a `## Tool Trace` section using the same format as the with-skill run.
 
 Launch ALL runs (across all skills) in a single message to maximize parallelism.
 

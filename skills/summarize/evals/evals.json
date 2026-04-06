@@ -16,7 +16,10 @@
         { "text": "Output contains a '## Share' section", "type": "structural" },
         { "text": "Share section contains a code fence with a bare URL on its own line", "type": "structural" },
         { "text": "Output contains a '## Comment' section", "type": "structural" },
-        { "text": "Comment section contains a code fence with content of 20 words or fewer", "type": "structural" }
+        { "text": "Comment section contains a code fence with content of 20 words or fewer", "type": "structural" },
+        { "text": "Output contains a '## Tool Trace' section listing the fetch tools the agent used", "type": "structural" },
+        { "text": "Tool Trace shows the brightdata MCP was used to fetch the article (mentions `scrape_as_markdown` or `scrape_batch`)", "type": "structural" },
+        { "text": "Tool Trace does NOT mention `WebFetch` or `WebSearch`", "type": "structural" }
       ]
     },
     {
@@ -34,7 +37,10 @@
         { "text": "Output contains a '## Share' section", "type": "structural" },
         { "text": "Share section contains a code fence with a bare URL on its own line", "type": "structural" },
         { "text": "Output contains a '## Comment' section", "type": "structural" },
-        { "text": "Comment section contains a code fence with content of 20 words or fewer", "type": "structural" }
+        { "text": "Comment section contains a code fence with content of 20 words or fewer", "type": "structural" },
+        { "text": "Output contains a '## Tool Trace' section listing the fetch tools the agent used", "type": "structural" },
+        { "text": "Tool Trace shows the brightdata MCP was used to fetch the article (mentions `scrape_as_markdown` or `scrape_batch`)", "type": "structural" },
+        { "text": "Tool Trace does NOT mention `WebFetch` or `WebSearch`", "type": "structural" }
       ]
     },
     {
@@ -52,7 +58,10 @@
         { "text": "Output contains a '## Share' section", "type": "structural" },
         { "text": "Share section contains a code fence with a bare URL on its own line", "type": "structural" },
         { "text": "Output contains a '## Comment' section", "type": "structural" },
-        { "text": "Comment section contains a code fence with content of 20 words or fewer", "type": "structural" }
+        { "text": "Comment section contains a code fence with content of 20 words or fewer", "type": "structural" },
+        { "text": "Output contains a '## Tool Trace' section listing the fetch tools the agent used", "type": "structural" },
+        { "text": "Tool Trace shows the brightdata MCP was used to fetch the page (mentions `scrape_as_markdown` or `scrape_batch`)", "type": "structural" },
+        { "text": "Tool Trace does NOT mention `WebFetch` or `WebSearch`", "type": "structural" }
       ]
     },
     {
@@ -69,7 +78,10 @@
         { "text": "Cliff Notes contains a bulleted list with 5-8 items", "type": "structural" },
         { "text": "Output contains a '## Share' section", "type": "structural" },
         { "text": "Output contains a '## Comment' section", "type": "structural" },
-        { "text": "Comment section contains a code fence with content of 20 words or fewer", "type": "structural" }
+        { "text": "Comment section contains a code fence with content of 20 words or fewer", "type": "structural" },
+        { "text": "Output contains a '## Tool Trace' section listing the tools the agent used", "type": "structural" },
+        { "text": "Tool Trace shows the local PDF was read with the `Read` tool", "type": "structural" },
+        { "text": "Tool Trace does NOT mention `WebFetch`, `WebSearch`, or any brightdata MCP tool", "type": "structural" }
       ]
     }
   ]

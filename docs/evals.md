@@ -82,6 +82,8 @@ Run after the skill itself is in good shape. The description is a hyperparameter
 
 **Trigger eval queries**: Make them realistic and detailed, not abstract. Include file paths, context, casual phrasing. The should-not-trigger cases should be near-misses, not obviously irrelevant prompts.
 
+**Tool Trace**: Every with-skill and baseline run appends a `## Tool Trace` section to its output listing the fetch and read tools it actually invoked. This is enforced by the `/eval` workflow as a regression check. If your skill fetches web content, write assertions that confirm the brightdata MCP was used and `WebFetch` / `WebSearch` were not. The summarize evals are the reference example.
+
 ## Quick eval run
 
 Use the `/eval` command for a fast pass/fail check:
