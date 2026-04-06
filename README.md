@@ -19,6 +19,10 @@ claude plugins add /path/to/mechaswift
 
 Skills are available in every Claude Code session after install. Invoke them by name (e.g. `/ghostwrite`, `/scope`, `/summarize`).
 
+## Environment
+
+Set `BRIGHTDATA_API_TOKEN` in your environment. Get a token at [brightdata.com](https://brightdata.com/). Without it, the `brightdata` MCP server fails to load and skills that need web access will not work.
+
 ## Project Structure
 
 ```
