@@ -18,7 +18,7 @@ If the user provides a URL, file, or content, use that. If they just say "summar
 
 ## Steps
 
-1. **Fetch and read** the content
+1. **Fetch and read** the content. For a single URL, use `scrape_as_markdown` from the brightdata MCP. For multiple URLs in one request, use `scrape_batch`. For local files (PDFs, DOCX, etc.), use Read directly. If the brightdata MCP is unavailable, fail loudly with a message pointing the user at `BRIGHTDATA_API_TOKEN`. Do not fall back to any other fetch tool.
 2. **Write the title, TL;DR, and Cliff Notes** (see Output Format below)
 3. **Identify the most interesting takeaway** -- the one thing that would make someone want to click the link. Distill it into a sentence or two of raw content (not yet in anyone's voice).
 4. **Hand that takeaway to the `ghostwrite` skill** to rewrite as a Slack message. The ghostwrite skill handles voice and tone.
