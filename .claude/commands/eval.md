@@ -135,3 +135,9 @@ If `--verbose`, also print passing assertions with their evidence.
 ```
 Full results: tmp/evals/2026-04-03T14-30-00/
 ```
+
+### 8. Clean up artifact documents
+
+Delete any files created under `docs/` during this eval run. Skills like `scope` may produce spec documents there as part of their normal output. These are eval artifacts, not real project docs, and should not be committed.
+
+List each deleted file so the user can see what was removed. If nothing was created in `docs/`, skip silently.
