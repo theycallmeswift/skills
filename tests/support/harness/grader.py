@@ -14,6 +14,16 @@ Rules:
 - No partial credit.
 - Cite specific evidence from the output for each judgment.
 
+Return ONLY a JSON object matching this schema (no prose, no markdown fences):
+{{
+  "expectations": [
+    {{"text": "<assertion text>", "passed": true|false, "evidence": "<specific quote or observation>"}}
+  ]
+}}
+
+ORIGINAL PROMPT:
+{original_prompt}
+
 ASSERTIONS:
 {assertions_json}
 
@@ -29,39 +39,36 @@ TOOL TRACE:
 
 _OUTPUT_SCHEMA = {
     "type": "json_schema",
-    "json_schema": {
-        "name": "grading_result",
-        "strict": True,
-        "schema": {
-            "type": "object",
-            "properties": {
-                "expectations": {
-                    "type": "array",
-                    "items": {
-                        "type": "object",
-                        "properties": {
-                            "text": {"type": "string"},
-                            "passed": {"type": "boolean"},
-                            "evidence": {"type": "string"},
-                        },
-                        "required": ["text", "passed", "evidence"],
-                        "additionalProperties": False,
+    "schema": {
+        "type": "object",
+        "properties": {
+            "expectations": {
+                "type": "array",
+                "items": {
+                    "type": "object",
+                    "properties": {
+                        "text": {"type": "string"},
+                        "passed": {"type": "boolean"},
+                        "evidence": {"type": "string"},
                     },
-                }
-            },
-            "required": ["expectations"],
-            "additionalProperties": False,
+                    "required": ["text", "passed", "evidence"],
+                    "additionalProperties": False,
+                },
+            }
         },
+        "required": ["expectations"],
+        "additionalProperties": False,
     },
 }
 
 
-def _build_prompt(run: RunResult, assertions: list[dict]) -> str:
+def _build_prompt(run: RunResult, assertions: list[dict], original_prompt: str) -> str:
     files_block = (
         "\n\n".join(f"--- {p} ---\n{c}" for p, c in run.files_written.items())
         or "(none)"
     )
     return GRADER_PROMPT.format(
+        original_prompt=original_prompt or "(none)",
         assertions_json=json.dumps(assertions, indent=2),
         stdout=run.stdout or "(empty)",
         files_block=files_block,
@@ -73,6 +80,7 @@ async def grade(
     run: RunResult,
     assertions: list[dict],
     model: str | None = None,
+    original_prompt: str = "",
 ) -> Grading:
     from claude_agent_sdk import query, ClaudeAgentOptions, AssistantMessage
 
@@ -83,7 +91,7 @@ async def grade(
         model=model or DEFAULT_GRADER_MODEL,
         output_format=_OUTPUT_SCHEMA,
     )
-    prompt = _build_prompt(run, assertions)
+    prompt = _build_prompt(run, assertions, original_prompt)
 
     parts: list[str] = []
     async for message in query(prompt=prompt, options=options):
@@ -93,5 +101,12 @@ async def grade(
                     parts.append(block.text)
 
     raw = "".join(parts).strip()
+    if raw.startswith("```"):
+        raw = raw.split("```")[1]
+        if raw.startswith("json"):
+            raw = raw[4:]
+        raw = raw.strip().rstrip("`")
+    if not raw:
+        raise RuntimeError("grader returned empty response")
     data = json.loads(raw)
     return Grading.from_expectations(data["expectations"])

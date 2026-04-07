@@ -46,7 +46,7 @@ async def _run_one(
                 else:
                     match.unlink(missing_ok=True)
 
-        grading = await grade(run, plan.case.assertions, model=plan.case.grader_model)
+        grading = await grade(run, plan.case.assertions, model=plan.case.grader_model, original_prompt=plan.case.prompt)
 
         adir = _artifact_dir(artifact_root, plan, run_id)
         (adir / "outputs").mkdir(exist_ok=True)
