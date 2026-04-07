@@ -56,6 +56,7 @@ Be transparent and direct on sensitive topics. Prioritize community safety and p
 Skills are in `skills/`. Each has a `SKILL.md` with activation triggers.
 
 - **ghostwrite** -- Rewrite content in Swift's voice. See `skills/ghostwrite/SKILL.md`.
+- **research** -- Turn a topic into a cited markdown report at `references/research/`. See `skills/research/SKILL.md`.
 - **scope** -- Turn a vague idea into a structured spec through collaborative design. See `skills/scope/SKILL.md`.
 - **summarize** -- Produce skimmable summaries of web pages, PDFs, and articles. See `skills/summarize/SKILL.md`.
 
@@ -69,3 +70,4 @@ Slash commands are in `.claude/commands/`.
 
 - `docs/about-swift.md` -- Bio, tone, values, voice conventions
 - `docs/evals.md` -- How to run and write skill evals
+- `docs/plugin-structure.md` -- MechaSwift is a Claude Code plugin. Read before touching skills, agents, commands, hooks, or MCP config.
