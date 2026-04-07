@@ -1,0 +1,90 @@
+{
+  "skill_name": "research",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "research context engineering for AI agents",
+      "expected_output": "A cited markdown report written to references/research/ produced by exactly one researcher subagent",
+      "files": [],
+      "assertions": [
+        { "text": "Exactly one Agent tool call was made with subagent_type 'mechaswift:researcher'", "type": "structural" },
+        { "text": "A file matching references/research/\\d{4}-\\d{2}-\\d{2}-context-engineering[a-z0-9-]*\\.md was written", "type": "structural" },
+        { "text": "Tool trace shows brightdata MCP tools were used (search_engine, search_engine_batch, scrape_as_markdown, or scrape_batch)", "type": "structural" },
+        { "text": "Tool trace does NOT mention WebFetch or WebSearch", "type": "structural" },
+        { "text": "The orchestrator itself made zero direct brightdata calls — all brightdata calls happened inside the researcher subagent", "type": "structural" }
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "compare LangGraph vs CrewAI vs AutoGen for agent orchestration",
+      "expected_output": "A comparison report produced by three parallel researchers, one per framework",
+      "files": [],
+      "assertions": [
+        { "text": "Exactly three Agent tool calls were made with subagent_type 'mechaswift:researcher'", "type": "structural" },
+        { "text": "All three Agent calls were dispatched in a single assistant response (parallel dispatch)", "type": "structural" },
+        { "text": "The final report has a comparison structure with a dedicated section for LangGraph, CrewAI, and AutoGen", "type": "structural" },
+        { "text": "Tool trace shows brightdata MCP tools were used", "type": "structural" },
+        { "text": "Tool trace does NOT mention WebFetch or WebSearch", "type": "structural" }
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "research the current state of OSS vector databases",
+      "expected_output": "Output file path matches the canonical naming convention",
+      "files": [],
+      "assertions": [
+        { "text": "Output file path matches the regex references/research/\\d{4}-\\d{2}-\\d{2}-[a-z0-9-]+\\.md", "type": "structural" },
+        { "text": "The date in the filename is today's date", "type": "structural" },
+        { "text": "The slug portion of the filename is kebab-case and contains 3 to 5 hyphen-separated words", "type": "structural" }
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "compare Postgres vs MySQL vs SQLite for embedded analytics",
+      "expected_output": "Citations are globally renumbered with no gaps and no duplicates",
+      "files": [],
+      "assertions": [
+        { "text": "The final report contains a '### Sources' section", "type": "structural" },
+        { "text": "Source citations are numbered sequentially starting at [1] with no gaps", "type": "structural" },
+        { "text": "No two numbered Sources entries share the same URL", "type": "structural" },
+        { "text": "Every inline [N] citation in the report body resolves to an entry in the Sources section", "type": "structural" }
+      ]
+    },
+    {
+      "id": 5,
+      "prompt": "research the tradeoffs of monorepos vs polyrepos",
+      "expected_output": "Report contains no self-referential phrasing",
+      "files": [],
+      "assertions": [
+        { "text": "Report does not contain the phrase 'I found'", "type": "structural" },
+        { "text": "Report does not contain the phrase 'I researched'", "type": "structural" },
+        { "text": "Report does not contain the phrase 'In my research'", "type": "structural" },
+        { "text": "Report does not contain the phrase 'My findings'", "type": "structural" },
+        { "text": "Report does not contain the phrase 'We searched'", "type": "structural" },
+        { "text": "Report does not contain the phrase 'Based on my research'", "type": "structural" }
+      ]
+    },
+    {
+      "id": 6,
+      "prompt": "research best practices for prompt caching with Claude",
+      "expected_output": "Verify step ran: request was saved and re-read, coverage line printed",
+      "files": [],
+      "assertions": [
+        { "text": "A file matching tmp/research/<slug>/request.md was written before the report file", "type": "structural" },
+        { "text": "tmp/research/<slug>/request.md was read after being written and before the final assistant response", "type": "structural" },
+        { "text": "The final assistant response includes a line beginning with 'addressed:'", "type": "structural" }
+      ]
+    },
+    {
+      "id": 7,
+      "prompt": "--depth quick research the history of MCP",
+      "expected_output": "Quick depth dispatches one researcher with a search budget of 3",
+      "files": [],
+      "assertions": [
+        { "text": "Exactly one Agent tool call was made with subagent_type 'mechaswift:researcher'", "type": "structural" },
+        { "text": "The dispatch prompt passed to the researcher contains the substring 'Search budget: 3'", "type": "structural" },
+        { "text": "The '--depth quick' flag does not appear in the final report or in the topic passed to the researcher", "type": "structural" }
+      ]
+    }
+  ]
+}
