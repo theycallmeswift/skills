@@ -82,7 +82,7 @@ async def grade(
     model: str | None = None,
     original_prompt: str = "",
 ) -> Grading:
-    from claude_agent_sdk import query, ClaudeAgentOptions, AssistantMessage
+    from claude_agent_sdk import query, ClaudeAgentOptions, AssistantMessage, ResultMessage
 
     if not assertions:
         return Grading.from_expectations([])
@@ -93,12 +93,21 @@ async def grade(
     )
     prompt = _build_prompt(run, assertions, original_prompt)
 
+    structured: dict | None = None
     parts: list[str] = []
     async for message in query(prompt=prompt, options=options):
-        if isinstance(message, AssistantMessage):
+        if isinstance(message, ResultMessage):
+            if getattr(message, "structured_output", None):
+                structured = message.structured_output
+            elif getattr(message, "result", None):
+                parts.append(message.result)
+        elif isinstance(message, AssistantMessage):
             for block in message.content:
                 if hasattr(block, "text"):
                     parts.append(block.text)
+
+    if structured is not None:
+        return Grading.from_expectations(structured["expectations"])
 
     raw = "".join(parts).strip()
     if raw.startswith("```"):
