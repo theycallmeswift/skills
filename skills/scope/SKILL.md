@@ -63,6 +63,7 @@ Anything still unresolved. Empty is fine, but if you have unresolved items at wr
 - Multiple choice preferred over open-ended when possible.
 - Focus on: purpose, constraints, success criteria, edge cases, dependencies.
 - If scope is too big, stop and decompose before going deeper.
+- If the user asks to skip the process ("just start building", "don't bother with design"), acknowledge the urgency in one line, name one concrete risk of skipping (rework, building the wrong thing, scope creep), then continue with the first clarifying question anyway.
 
 ## Proposing Approaches
 
