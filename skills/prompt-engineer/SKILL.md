@@ -15,7 +15,7 @@ Tokens cost money, latency, and attention. A shorter prompt that hits the goal b
 
 1. **Read the input.** Diagnose what the user wants the target LLM to do. If they pasted an existing prompt, identify what's weak before rewriting.
 2. **Spot gaps.** Non-negotiables: goal, output format, hard constraints. If one is missing and you can't infer it, ask. Otherwise infer and proceed.
-3. **Ask only what you must.** Max 3 questions, one at a time, only when the answer would change the prompt. Action over asking.
+3. **Infer first, ask rarely.** Ask at most one question, and only when the answer would materially change the prompt. Never more than one at a time. Action over asking.
 4. **Pick a pattern.** Match the task to a framework (see `references/frameworks.md`). Use it silently, don't name it unless asked.
 5. **Draft self-contained.** The target LLM should need zero extra context.
 6. **Cut.** Run the Quality Bar. Delete anything that isn't pulling weight.
@@ -25,20 +25,21 @@ Tokens cost money, latency, and attention. A shorter prompt that hits the goal b
 
 Pick the lightest pattern that fits. Combine only when blending clearly improves the output. Full templates and examples in `references/frameworks.md`.
 
-| Task | Pattern |
-|---|---|
-| Simple, well-defined | Direct / Zero-shot |
-| Classification, extraction, formatting | Few-shot |
-| Multi-step reasoning, debugging | Chain of Thought |
-| Strategic problem with multiple paths | Tree of Thought |
-| Structured content (docs, marketing) | COSTAR |
-| Persona-driven content | CRISPE |
-| High-accuracy work needing self-correction | RACE (Reason/Act/Check/Explain) |
-| Persuasive copy | BAB |
-| Incident reports, post-mortems | Five S |
-| Stable agent behavior | System prompt |
-| Tool-using agent | ReAct |
-| Iterative summarization | Chain of Density |
+| Task | Pattern | Trigger symptom |
+|---|---|---|
+| Simple, well-defined | Direct / Zero-shot | Task fits in one sentence, no format ambiguity |
+| Classification, extraction, formatting | Few-shot | Output format varies run to run |
+| Multi-step reasoning, debugging | Chain of Thought | Model skips steps or jumps to wrong conclusion |
+| Strategic problem with multiple paths | Tree of Thought | Multiple viable approaches, trade-offs matter |
+| Structured content (docs, marketing) | COSTAR | Output needs locked structure and tone |
+| Persona-driven content | CRISPE | Voice is the deliverable |
+| High-accuracy work needing self-correction | RACE | Model confidently produces wrong answers |
+| Persuasive copy | BAB | Goal is action, not information |
+| Incident reports, post-mortems | Five S | Output must be objective and complete |
+| Stable agent behavior | System prompt | Same rules across many turns |
+| Tool-using agent | ReAct | Model has tools and needs to interleave thinking and calling |
+| Iterative summarization | Chain of Density | Summary needs to compress without losing key entities |
+| Machine-parseable output | Structured Output / JSON | Downstream code parses the result |
 
 ## Instruction Order
 
@@ -70,6 +71,10 @@ Every "no" is a fix.
 - ALL CAPS / stacked MUSTs (signals distrust; explain *why* instead)
 - No way to verify correctness
 - Long preamble before the actual instruction
+- Negative-only instructions ("don't do X, don't do Y") with no positive target
+- "Be creative" without constraints
+- Unfilled placeholders shipping to the model (`{topic}` left literal)
+- Mixing system and user voice inside one prompt
 
 ## Reviewing a Prompt
 
@@ -77,6 +82,31 @@ Every "no" is a fix.
 2. Patch if the bones are right, rewrite if structurally wrong
 3. Deliver in a code block
 4. 2-4 bullets explaining what changed and why
+
+## Worked Example
+
+**Bad input prompt:**
+
+````
+```
+You are a helpful assistant. Please write a really good summary of the article below. Make it concise but thorough and make sure to cover all the important points. Thanks!
+```
+````
+
+**Diagnosis:** Vague role, contradiction ("concise but thorough"), no format, no length, politeness padding, no testable success criterion.
+
+**Rewrite:**
+
+````
+```
+Summarize the article below in 3 bullets. Each bullet: one sentence, max 20 words, lead with the most important fact. Skip background the reader can infer from the headline.
+
+Article: {article}
+```
+````
+
+**Technique:** Direct + format constraint + per-bullet length cap.
+**Swap in:** `{article}`
 
 ## Delivery Format
 

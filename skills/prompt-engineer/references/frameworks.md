@@ -2,27 +2,7 @@
 
 Deeper detail on the patterns referenced in `SKILL.md`. Load this file when you need a template skeleton, want to remember a framework's exact components, or need to pick between two similar patterns.
 
-Frameworks are not magic. They are checklists that force you to be deliberate about role, context, format, and constraints. Pick the lightest one that fits the task. Combine only when blending genuinely improves the output.
-
-## Quick Comparison
-
-| Framework | Best for | Strength | Drawback |
-|---|---|---|---|
-| **Direct / Zero-shot** | Simple, well-defined tasks | Fast, low-effort | Unreliable for nuanced tasks |
-| **Few-shot** | Format consistency, classification, extraction | Examples beat descriptions | Token cost, examples must match |
-| **Chain of Thought** | Multi-step reasoning, debugging, math | Transparent logic, higher accuracy | Verbose, slower |
-| **Tree of Thought** | Strategic problems with multiple viable paths | Explores alternatives, avoids local maxima | Slow, expensive |
-| **COSTAR** | Structured content (docs, marketing, summaries) | Comprehensive, forces specificity | Verbose for simple tasks |
-| **CRISPE** | Persona-driven content with a strong voice | Detailed, context-rich | Overkill for factual queries |
-| **RACE** | High-accuracy work that needs self-correction | Built-in validation loop | Stifles creative tasks |
-| **BAB** | Persuasive writing, sales, UX copy | Simple, psychologically resonant | Wrong tone for objective work |
-| **Five S** | Incident reports, post-mortems, status updates | Structured, objective, blame-free | Rigid, not creative |
-| **Agile / Modular** | Reusable prompt systems across a team | Composable, collaborative | Setup overhead |
-| **ReAct** | Agents that interleave reasoning and tool use | Tight loop with observability | Only useful with tools |
-| **Chain of Density** | Iterative summarization | Compresses without losing info | Niche, summarization only |
-| **System Prompt** | Stable agent behavior across many turns | Persists rules, frees user tokens | Not a standalone technique |
-
----
+Pick the lightest pattern that fits. Combine only when blending clearly improves the output.
 
 ## Direct / Zero-shot
 
