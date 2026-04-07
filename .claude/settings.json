@@ -1,5 +1,12 @@
 {
   "permissions": {
+    "allow": [
+      "mcp__brightdata__scrape_as_markdown",
+      "mcp__brightdata__scrape_batch",
+      "mcp__brightdata__search_engine",
+      "mcp__brightdata__search_engine_batch",
+      "mcp__brightdata__discover"
+    ],
     "deny": ["WebFetch", "WebSearch"]
   }
 }
