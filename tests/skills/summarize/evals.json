@@ -16,9 +16,8 @@
         { "text": "Share section contains a code fence with a bare URL on its own line" },
         { "text": "Output contains a '## Comment' section" },
         { "text": "Comment section contains a code fence with content of 20 words or fewer" },
-        { "text": "Output contains a '## Tool Trace' section listing the fetch tools the agent used" },
-        { "text": "Tool Trace shows the brightdata MCP was used to fetch the article (mentions `scrape_as_markdown` or `scrape_batch`)" },
-        { "text": "Tool Trace does NOT mention `WebFetch` or `WebSearch`" }
+        { "text": "TOOL TRACE shows the brightdata MCP was used to fetch the article (a tool name containing `scrape_as_markdown` or `scrape_batch`)" },
+        { "text": "TOOL TRACE does NOT show any call to `WebFetch` or `WebSearch`" }
       ]
     },
     {
@@ -36,9 +35,8 @@
         { "text": "Share section contains a code fence with a bare URL on its own line" },
         { "text": "Output contains a '## Comment' section" },
         { "text": "Comment section contains a code fence with content of 20 words or fewer" },
-        { "text": "Output contains a '## Tool Trace' section listing the fetch tools the agent used" },
-        { "text": "Tool Trace shows the brightdata MCP was used to fetch the article (mentions `scrape_as_markdown` or `scrape_batch`)" },
-        { "text": "Tool Trace does NOT mention `WebFetch` or `WebSearch`" }
+        { "text": "TOOL TRACE shows the brightdata MCP was used to fetch the article (a tool name containing `scrape_as_markdown` or `scrape_batch`)" },
+        { "text": "TOOL TRACE does NOT show any call to `WebFetch` or `WebSearch`" }
       ]
     },
     {
@@ -56,9 +54,8 @@
         { "text": "Share section contains a code fence with a bare URL on its own line" },
         { "text": "Output contains a '## Comment' section" },
         { "text": "Comment section contains a code fence with content of 20 words or fewer" },
-        { "text": "Output contains a '## Tool Trace' section listing the fetch tools the agent used" },
-        { "text": "Tool Trace shows the brightdata MCP was used to fetch the page (mentions `scrape_as_markdown` or `scrape_batch`)" },
-        { "text": "Tool Trace does NOT mention `WebFetch` or `WebSearch`" }
+        { "text": "TOOL TRACE shows the brightdata MCP was used to fetch the page (a tool name containing `scrape_as_markdown` or `scrape_batch`)" },
+        { "text": "TOOL TRACE does NOT show any call to `WebFetch` or `WebSearch`" }
       ]
     },
     {
@@ -75,9 +72,8 @@
         { "text": "Output contains a '## Share' section" },
         { "text": "Output contains a '## Comment' section" },
         { "text": "Comment section contains a code fence with content of 20 words or fewer" },
-        { "text": "Output contains a '## Tool Trace' section listing the tools the agent used" },
-        { "text": "Tool Trace shows the local PDF was read with the `Read` tool" },
-        { "text": "Tool Trace does NOT mention `WebFetch`, `WebSearch`, or any brightdata MCP tool" }
+        { "text": "TOOL TRACE shows the local PDF was read with the `Read` tool" },
+        { "text": "TOOL TRACE does NOT show any call to `WebFetch`, `WebSearch`, or any brightdata MCP tool" }
       ]
     }
   ]

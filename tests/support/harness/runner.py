@@ -83,7 +83,13 @@ async def run_claude(
     error: str | None = None
     exit_code = 0
 
-    options = ClaudeAgentOptions(cwd=str(cwd))
+    options = ClaudeAgentOptions(
+        cwd=str(cwd),
+        plugins=[{"type": "local", "path": str(project_root)}],
+        setting_sources=["project"],
+        max_buffer_size=64 * 1024 * 1024,
+        permission_mode="bypassPermissions",
+    )
 
     start = time.monotonic()
     try:
