@@ -11,9 +11,7 @@ MechaSwift context (CLAUDE.md, about-swift.md) is already loaded, so you know th
 
 ## Hard Gate
 
-Do NOT write any files until the design has been presented and the user has approved it. This includes code, configs, specs, scaffolding, eval definitions, and any other artifacts. If it touches the filesystem, it happens after approval. The only exception is reading existing files to understand context.
-
-Every project goes through this process regardless of perceived simplicity. The design can be short for simple projects, but it must exist and be approved. "Present before persist" -- show the plan, get a yes, then write.
+Do not write any files (code, configs, specs, scaffolding, evals) until the user has explicitly approved a design. Reading existing files is fine. The spec in Step 6 is the first write, and only after Step 5 approval. "Present before persist", show the plan, get a yes, then write.
 
 ## Steps
 
@@ -22,10 +20,42 @@ Every project goes through this process regardless of perceived simplicity. The 
 3. **Propose 2-3 approaches** -- with trade-offs and your recommendation. Lead with the recommended option and explain why.
 4. **Present design** -- in sections scaled to their complexity. A few sentences if straightforward, more detail if nuanced. Ask after each section whether it looks right.
 5. **Get approval** -- explicitly ask the user to approve the design before writing anything. Do not proceed until they confirm.
-6. **Write spec** -- save to `docs/specs/YYYY-MM-DD-<topic>.md` and commit. This is the first point where files are created.
+6. **Write spec** -- save to `docs/specs/YYYY-MM-DD-<topic>.md` using the Spec Template above. This is the first point where files are created. Do not commit unless the user asks.
 7. **Spec self-review** -- scan for placeholders, contradictions, ambiguity, scope creep. Fix inline.
 8. **User reviews spec** -- ask the user to review before proceeding
 9. **Transition** -- offer the user options for what's next
+
+## Spec Template
+
+Use this skeleton for every spec. Scale each section to the project, short for simple work, longer for nuanced. Delete sections that genuinely don't apply, but default to keeping them.
+
+````markdown
+# <Topic>
+
+**Date:** YYYY-MM-DD
+**Status:** Draft | Approved | Implemented
+
+## Goal
+One or two sentences. What are we building and why does it matter now?
+
+## Non-Goals
+What is explicitly out of scope. Prevents scope creep during implementation.
+
+## Approach
+The recommended approach in 2-5 sentences. Reference alternatives only if the trade-off matters.
+
+## Components
+Bullet list of the pieces being built or changed. One line each. Include file paths where known.
+
+## Data / Interfaces
+Any data shapes, function signatures, or external interfaces the implementer needs. Skip if trivial.
+
+## Testing
+How we'll know it works. What gets an eval, what gets a manual check, what is left unverified and why.
+
+## Open Questions
+Anything still unresolved. Empty is fine, but if you have unresolved items at write time, list them so the implementer can flag them.
+````
 
 ## Clarifying Questions
 
@@ -54,7 +84,7 @@ Every project goes through this process regardless of perceived simplicity. The 
 
 ## Writing the Spec
 
-Save the validated design to `docs/specs/YYYY-MM-DD-<topic>.md` and commit it.
+Save the validated design to `docs/specs/YYYY-MM-DD-<topic>.md`. Do not commit unless the user asks.
 
 After writing, do a quick self-review:
 
