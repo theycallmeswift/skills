@@ -8,20 +8,22 @@ Personal agent framework for [Claude Code](https://docs.anthropic.com/en/docs/cl
 - **scope** -- Turns a vague idea into a structured spec through collaborative design. Enforces design-before-code.
 - **summarize** -- Produces skimmable summaries of web pages, PDFs, and articles with TL;DR, cliff notes, and ready-to-share messages.
 
+## MCP
+
+- **brightdata** -- Hosted MCP server for web access. Provides `scrape_as_markdown`, `scrape_batch`, `search_engine`, `search_engine_batch`, and `discover`. Requires `BRIGHTDATA_API_TOKEN` in `.env`.
+
 ## Install
 
 Clone the repo anywhere, then register it as a Claude Code plugin:
 
 ```sh
 git clone git@github.com:theycallmeswift/mechaswift.git
+cd mechaswift
+cp .env.example .env   # then fill in API keys
 claude plugins add /path/to/mechaswift
 ```
 
 Skills are available in every Claude Code session after install. Invoke them by name (e.g. `/ghostwrite`, `/scope`, `/summarize`).
-
-## Environment
-
-Set `BRIGHTDATA_API_TOKEN` in your environment. Get a token at [brightdata.com](https://brightdata.com/). Without it, the `brightdata` MCP server fails to load and skills that need web access will not work.
 
 ## Project Structure
 
