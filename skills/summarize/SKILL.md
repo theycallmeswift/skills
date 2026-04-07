@@ -24,7 +24,12 @@ If the user provides a URL, file, or content, use that. If they just say "summar
 4. **Hand that takeaway to the `ghostwrite` skill** to rewrite as a Slack message. The ghostwrite skill handles voice and tone.
 5. **Identify a discussion-worthy angle** -- something specific from the content that invites a real reply. Not a summary, but a point you'd react to as a builder.
 6. **Hand that angle to the `ghostwrite` skill** to rewrite as a forum comment.
-7. **Present the final output**: title, TL;DR, Cliff Notes, Share, and Comment sections.
+7. **Verify the hard limits before presenting.** Count, do not estimate.
+   - **Cliff Notes**: count the bullets. If there are more than 8, consolidate until 8 or fewer remain.
+   - **Share**: count the sentences before the URL. If there are more than 2, cut.
+   - **Comment**: count the words inside the code fence. If there are more than 20, trim the comment yourself (do not send it back to ghostwrite) until it is 20 words or fewer.
+   Do not skip this step. If any section is over its cap, fix it before moving to step 8.
+8. **Present the final output**: title, TL;DR, Cliff Notes, Share, and Comment sections.
 
 ## Output Format
 
