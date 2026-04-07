@@ -10,3 +10,10 @@ tmp/*
 
 # Track .claude/ project config; ignore user-local overrides
 .claude/settings.local.json
+
+# Python harness
+__pycache__/
+*.pyc
+.pytest_cache/
+.venv/
+uv.lock

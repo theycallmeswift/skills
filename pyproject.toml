@@ -1,0 +1,20 @@
+[project]
+name = "mechaswift-tests"
+version = "0.1.0"
+description = "Eval harness for MechaSwift skills"
+requires-python = ">=3.11"
+dependencies = [
+    "claude-agent-sdk>=0.1.0",
+    "rich>=13.7.0",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0.0",
+    "pytest-asyncio>=0.23.0",
+]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests/support"]
+python_files = ["test_*.py"]
