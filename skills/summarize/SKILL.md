@@ -23,7 +23,7 @@ If the user provides a URL, file, or content, use that. If they just say "summar
 3. **Identify the most interesting takeaway** -- the one thing that would make someone want to click the link. Distill it into a sentence or two of raw content (not yet in anyone's voice).
 4. **Hand that takeaway to the `ghostwrite` skill** to rewrite as a Slack message. The ghostwrite skill handles voice and tone.
 5. **Identify a discussion-worthy angle** -- something specific from the content that invites a real reply. Not a summary, but a point you'd react to as a builder.
-6. **Hand that angle to the `ghostwrite` skill** to rewrite as a forum comment.
+6. **Hand that angle to the `ghostwrite` skill** to rewrite as a forum comment. Ghostwrite is invoked exactly once. If the result is over 20 words, trim it yourself in step 7. Do not re-invoke ghostwrite.
 7. **Verify the hard limits before presenting.** Count, do not estimate.
    - **Cliff Notes**: count the bullets. If there are more than 8, consolidate until 8 or fewer remain.
    - **Share**: count the sentences before the URL. If there are more than 2, cut.
@@ -69,7 +69,7 @@ https://example.com/the-article-url
 
 ## Comment
 
-A ready-to-paste reply for the post itself, or a Reddit/Hacker News discussion thread. Run it through the `ghostwrite` skill, then display in a code fence.
+A ready-to-paste reply for the post itself, or a Reddit/Hacker News discussion thread. Display in a code fence. (Voice is handled by ghostwrite in step 6, with self-trim in step 7 if over the cap.)
 
 Write like a veteran developer leaving a quick reply on a forum. Zero filler. Zero PR speak. No "email voice."
 
@@ -84,7 +84,7 @@ Comment text here
 
 ## Style Rules
 
-- Use **bold**, *italics*, and __underline__ strategically to draw the eye, but don't overdo it.
+- Use **bold** and *italics* strategically to draw the eye, but don't overdo it. Bold and italic conventions are defined per-section above; do not introduce new emphasis styles.
 - Shorter is always better. Trim ruthlessly.
 - Do not editorialize or inject opinions in the TL;DR or Cliff Notes. Stick to what the content actually says.
 - Do not reproduce large verbatim passages from the source. Use your own concise wording.

@@ -11,7 +11,6 @@
         { "text": "The prompt inside the code block specifies a concrete JSON schema or output structure (parties, effective_date, termination)", "type": "structural" },
         { "text": "Output contains a 'Technique:' line after the code block briefly naming the pattern used", "type": "structural" },
         { "text": "Output does NOT begin with preamble like 'Here is your prompt' or 'Sure, I can help with that'", "type": "structural" },
-        { "text": "Output contains no em dashes (—)", "type": "structural" },
         { "text": "The prompt is self-contained (the target LLM could act on it without extra context)", "type": "structural" },
         { "text": "The prompt does NOT use vague role assignments like 'You are a helpful assistant'", "type": "structural" }
       ]
@@ -28,8 +27,7 @@
         { "text": "The rewritten prompt removes 'helpful AI assistant', 'please', and 'thank you' padding", "type": "structural" },
         { "text": "The rewritten prompt specifies a concrete output format (length, structure, fields, etc.)", "type": "structural" },
         { "text": "The rewritten prompt resolves the 'thorough but concise' contradiction (picks one or defines the trade-off)", "type": "structural" },
-        { "text": "The rewritten prompt is shorter than the original (leaner token count)", "type": "structural" },
-        { "text": "Output contains no em dashes (—)", "type": "structural" }
+        { "text": "The rewritten prompt is shorter than the original (leaner token count)", "type": "structural" }
       ]
     },
     {

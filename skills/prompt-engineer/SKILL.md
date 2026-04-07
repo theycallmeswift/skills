@@ -14,31 +14,38 @@ Tokens cost money, latency, and attention. A shorter prompt that hits the goal b
 ## Workflow
 
 1. **Read the input.** Diagnose what the user wants the target LLM to do. If they pasted an existing prompt, identify what's weak before rewriting.
-2. **Spot gaps.** Non-negotiables: goal, output format, hard constraints. If one is missing and you can't infer it, ask. Otherwise infer and proceed.
-3. **Ask only what you must.** Max 3 questions, one at a time, only when the answer would change the prompt. Action over asking.
-4. **Pick a pattern.** Match the task to a framework (see `references/frameworks.md`). Use it silently, don't name it unless asked.
-5. **Draft self-contained.** The target LLM should need zero extra context.
-6. **Cut.** Run the Quality Bar. Delete anything that isn't pulling weight.
-7. **Present.** Code block + one-line technique note. Nothing else.
+2. **Concrete enough? Draft. Vague? Ask.** Decide which mode you're in:
+
+   **Draft mode (no questions):** the user has given you a concrete target task AND either a sample input, an existing prompt to fix, or output fields/shape. Examples: "extract parties, dates, termination clauses as JSON", "fix this prompt: <pasted>", "classify these reviews as pos/neg/neutral". Reasonable defaults for unspecified items (model target, exact schema field names, edge cases) are fine. Draft it.
+
+   **Ask mode (one question, then stop):** the user has given you a topic with no shape. Examples: "I need a prompt for summarization", "write me something for customer support". Ask exactly ONE clarifying question that would most change the output. Do not draft, do not list 5 questions, do not invent a content type. Wait for the answer.
+
+   The minimum bar for draft mode: a clear target task plus at least one of {sample input, existing prompt, named output fields}. If you have all three, definitely draft. If you have none, definitely ask.
+
+3. **Pick a pattern.** Match the task to a framework (see `references/frameworks.md`). Use it silently, don't name it unless asked.
+4. **Draft self-contained.** The target LLM should need zero extra context.
+5. **Cut.** Run the Quality Bar. Delete anything that isn't pulling weight.
+6. **Present.** Code block + one-line technique note. Nothing else.
 
 ## Framework Picker
 
 Pick the lightest pattern that fits. Combine only when blending clearly improves the output. Full templates and examples in `references/frameworks.md`.
 
-| Task | Pattern |
-|---|---|
-| Simple, well-defined | Direct / Zero-shot |
-| Classification, extraction, formatting | Few-shot |
-| Multi-step reasoning, debugging | Chain of Thought |
-| Strategic problem with multiple paths | Tree of Thought |
-| Structured content (docs, marketing) | COSTAR |
-| Persona-driven content | CRISPE |
-| High-accuracy work needing self-correction | RACE (Reason/Act/Check/Explain) |
-| Persuasive copy | BAB |
-| Incident reports, post-mortems | Five S |
-| Stable agent behavior | System prompt |
-| Tool-using agent | ReAct |
-| Iterative summarization | Chain of Density |
+| Task | Pattern | Trigger symptom |
+|---|---|---|
+| Simple, well-defined | Direct / Zero-shot | Task fits in one sentence, no format ambiguity |
+| Classification, extraction, formatting | Few-shot | Output format varies run to run |
+| Multi-step reasoning, debugging | Chain of Thought | Model skips steps or jumps to wrong conclusion |
+| Strategic problem with multiple paths | Tree of Thought | Multiple viable approaches, trade-offs matter |
+| Structured content (docs, marketing) | COSTAR | Output needs locked structure and tone |
+| Persona-driven content | CRISPE | Voice is the deliverable |
+| High-accuracy work needing self-correction | RACE | Model confidently produces wrong answers |
+| Persuasive copy | BAB | Goal is action, not information |
+| Incident reports, post-mortems | Five S | Output must be objective and complete |
+| Stable agent behavior | System prompt | Same rules across many turns |
+| Tool-using agent | ReAct | Model has tools and needs to interleave thinking and calling |
+| Iterative summarization | Chain of Density | Summary needs to compress without losing key entities |
+| Machine-parseable output | Structured Output / JSON | Downstream code parses the result |
 
 ## Instruction Order
 
@@ -70,6 +77,10 @@ Every "no" is a fix.
 - ALL CAPS / stacked MUSTs (signals distrust; explain *why* instead)
 - No way to verify correctness
 - Long preamble before the actual instruction
+- Negative-only instructions ("don't do X, don't do Y") with no positive target
+- "Be creative" without constraints
+- Unfilled placeholders shipping to the model (`{topic}` left literal)
+- Mixing system and user voice inside one prompt
 
 ## Reviewing a Prompt
 
@@ -77,6 +88,37 @@ Every "no" is a fix.
 2. Patch if the bones are right, rewrite if structurally wrong
 3. Deliver in a code block
 4. 2-4 bullets explaining what changed and why
+
+## Worked Example
+
+The user pasted a broken sentiment classifier prompt and a sample input. They want it fixed, not a clarifying question, because the task and inputs are concrete.
+
+**Bad input prompt:**
+
+````
+```
+You are a helpful AI. Please carefully look at this customer review and tell me if it is positive or negative or maybe neutral. Be accurate but also fast. Thanks!
+
+Review: {review}
+```
+````
+
+**Diagnosis:** Vague role, contradiction ("accurate but fast"), three classes named in prose with no enum, no output format, politeness padding.
+
+**Rewrite:**
+
+````
+```
+Classify the sentiment of the review below as exactly one of: positive, negative, neutral.
+
+Output only the label, lowercase, no punctuation, no explanation.
+
+Review: {review}
+```
+````
+
+**Technique:** Direct + enum constraint + output-only format.
+**Swap in:** `{review}`
 
 ## Delivery Format
 
