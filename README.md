@@ -55,16 +55,17 @@ Skills can reference shared context from `references/` (e.g. voice profile, bio)
 
 ## Testing
 
-We use Anthropic's **skill-creator** skill to run evals. It handles parallel test execution, LLM-graded assertions, benchmark aggregation, and an HTML viewer for qualitative review.
+Each skill with evals has an `evals/evals.json` defining test prompts and structural assertions. The `/eval` slash command runs them in parallel: each prompt is executed with and without the skill loaded, graded by an LLM judge against the assertions, and printed as a pass/fail summary table.
 
-Each skill with evals has an `evals/evals.json` defining test prompts and structural assertions. To run evals, invoke the skill-creator and point it at the skill you want to test. It runs each prompt with and without the skill loaded, grades against assertions, and produces a benchmark comparison.
+```
+/eval                        # All skills + project evals
+/eval ghostwrite summarize   # Specific skills
+/eval --no-baseline          # Skip the without-skill comparison
+/eval --verbose              # Show full grading evidence
+```
 
-Run all evals:
+Results print inline. Full outputs land in `tmp/evals/<timestamp>/`.
 
-> Run the quality evals for all skills in this project using the skill-creator. Results should go in tmp/.
+For the full lifecycle (iteration, HTML viewer, trigger-eval description optimization), use Anthropic's **skill-creator** skill instead.
 
-Run evals for a single skill:
-
-> Run quality evals for the ghostwrite skill using the skill-creator.
-
-See [docs/evals.md](docs/evals.md) for the full eval workflow, file format, and best practices.
+See [docs/evals.md](docs/evals.md) for the eval file format, current coverage, and best practices.
