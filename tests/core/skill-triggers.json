@@ -4,7 +4,7 @@
     {
       "id": "ghostwrite-on-rewrite-request",
       "turns": [
-        "rewrite this in my voice: we're going to crush it this quarter and the team is fired up about the new launch"
+        "Rewrite this in my voice as a Slack message to the team:\n\nHey everyone, I wanted to share some quick thoughts on where we are heading into Q2. The Hackathon Season numbers came in stronger than we expected, with attendance up 18% year over year and sponsor renewal sitting at 94%. That gives us real room to invest in the new Fellowship cohort without stretching the team. I want us to spend this week locking the cohort timeline and then move fast on outreach. Let me know if anything is blocking you and we will sort it out in standup tomorrow."
       ],
       "files": [],
       "assertions": [
