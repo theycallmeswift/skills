@@ -61,9 +61,7 @@ Skills are in `skills/`. Each has a `SKILL.md` with activation triggers.
 
 ## Commands
 
-Slash commands are in `.claude/commands/`.
-
-- **/eval** -- Run quality evals for all skills (or a subset). See `.claude/commands/eval.md`.
+- **make test** -- Run all skill and core evals via the Python harness. See `docs/evals.md`.
 
 ## References
 

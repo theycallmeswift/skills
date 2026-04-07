@@ -1,110 +1,79 @@
 # Skill Evals
 
-How we test and improve skills in MechaSwift.
+How we test skills and project rules in MechaSwift.
 
-## Approach
+## Running
 
-We use Anthropic's **skill-creator** skill to run the full eval lifecycle. It handles running test cases, grading, benchmarking, and visual review in a single workflow. No custom scripts needed.
+```bash
+make test                              # all suites
+make test ARGS="ghostwrite"            # one suite
+make test ARGS="--no-baseline scope"   # skip baseline runs (faster)
+make test ARGS="--verbose"             # show passing assertion evidence too
+```
 
-There are two types of evals:
+The harness discovers eval files under `tests/`, runs each case in parallel through the Claude Agent SDK (concurrency cap 4), grades with an LLM judge, and prints a live table (TTY) or pytest dots (CI).
 
-- **Quality evals** -- Does the skill produce good output? Runs each test prompt with and without the skill loaded, grades against assertions, compares the results.
-- **Trigger evals** -- Does Claude actually activate the skill when it should (and not when it shouldn't)? Tests the skill description as a routing mechanism.
+## Layout
+
+- `tests/skills/<name>/evals.json` — skill quality evals. Each case runs twice: once with the skill loaded (preamble + skill dir copied into the temp cwd), once as a baseline. The summary reports both and the delta.
+- `tests/core/<name>.json` — core evals. Single run per case in a temp cwd seeded with `AGENTS.md`. The agent discovers skills on its own. Used for global rules (e.g. `no-ai-attribution`) and the `skill-triggers` discovery test.
+- `tests/support/harness/` — the Python harness itself. Has its own pytest unit tests (`uv run pytest tests/support`).
 
 ## Eval file format
 
-Each skill with evals has an `evals/evals.json`:
-
 ```json
 {
-  "skill_name": "ghostwrite",
+  "name": "ghostwrite",
   "evals": [
     {
-      "id": 1,
-      "prompt": "The user's task prompt",
-      "expected_output": "Description of expected result",
+      "id": "sponsor-email",
+      "prompt": "...",
       "files": [],
+      "grader_model": "claude-haiku-4-5-20251001",
       "assertions": [
-        { "text": "Output contains X", "type": "structural" }
-      ]
+        { "text": "Output preserves all factual claims" }
+      ],
+      "cleanup": []
     }
   ]
 }
 ```
 
-Key fields:
-- `prompt` -- The exact user message to test
-- `expected_output` -- Human-readable description of success
-- `files` -- Optional input files for the test
-- `expectations` -- Pass/fail assertions graded by an LLM judge. Use the fields `text`, `passed`, and `evidence` in grading output.
-- `cleanup` -- Optional glob patterns for files to remove after eval
+- `name` — used for filtering on the CLI.
+- `id` — slug, used in artifact paths and surfaced in the summary.
+- `files` — relative paths from the eval file dir; copied into the run's temp cwd.
+- `grader_model` — optional, defaults to Haiku. Override for subjective skills like ghostwrite.
+- `assertions` — graded by an LLM judge (one call per run). Be specific.
+- `cleanup` — optional glob patterns deleted after the run.
 
-## Running quality evals
+## Artifacts
 
-Invoke the skill-creator skill and tell it to run evals on an existing skill. It will:
+Every run writes to `tmp/evals/<ISO-timestamp>/`:
 
-1. Spawn parallel subagents for each test case (with-skill and without-skill baseline)
-2. Grade outputs against assertions using a dedicated grader agent
-3. Aggregate results into `benchmark.json` with pass rates, timing (mean +/- stddev), and token usage
-4. Launch an HTML viewer for qualitative review (Outputs tab + Benchmark tab)
-5. Collect your feedback and iterate
-
-Results land in `tmp/<skill>-evals/iteration-<N>/` organized by eval case, with transcripts, timing, and grading for each variant.
-
-Example:
 ```
-tmp/ghostwrite-evals/iteration-1/
-  eval-happy-path/
-    with_skill/
-      outputs/transcript.md
-      timing.json
-      grading.json
-    without_skill/
-      outputs/transcript.md
-      timing.json
-      grading.json
-    eval_metadata.json
-  benchmark.json
-  benchmark.md
+tmp/evals/2026-04-07T14-30-00/
+  ghostwrite/
+    eval-sponsor-email/
+      with_skill/outputs/output.md
+      with_skill/grading.json
+      without_skill/outputs/output.md
+      without_skill/grading.json
+      eval_metadata.json
+  _core/
+    no-ai-attribution/
+      eval-throwaway-commit/run/...
 ```
 
-## Running trigger evals
-
-Trigger evals test whether Claude routes prompts to your skill correctly. The skill-creator generates 20 realistic queries (mix of should-trigger and should-not-trigger), runs each 3x for reliability, then optimizes the skill description in a loop using a train/test split to prevent overfitting.
-
-Run after the skill itself is in good shape. The description is a hyperparameter to optimize, not just metadata.
+`tmp/` is gitignored.
 
 ## Writing good evals
 
-**Test cases**: Aim for at least 3 per skill. Include a happy path, an edge case, and an adversarial/negative case.
+- At least 3 cases per skill: happy path, edge case, adversarial/negative.
+- Assertions describe observable properties of the output, not subjective vibes. The grader is an LLM judge; "Output uses Swift's voice" is too soft. "Output contains no em dashes" is graded reliably.
+- Skill triggers: keep `tests/core/skill-triggers.json` updated when you add a skill.
 
-**Assertions**: Make them objectively verifiable. Use descriptive text that reads clearly in the benchmark viewer. Skip assertions for subjective qualities (tone, style) and rely on qualitative review for those.
+## Adding a new skill
 
-**Trigger eval queries**: Make them realistic and detailed, not abstract. Include file paths, context, casual phrasing. The should-not-trigger cases should be near-misses, not obviously irrelevant prompts.
-
-**Tool Trace**: Every with-skill and baseline run appends a `## Tool Trace` section to its output listing the fetch and read tools it actually invoked. This is enforced by the `/eval` workflow as a regression check. If your skill fetches web content, write assertions that confirm the brightdata MCP was used and `WebFetch` / `WebSearch` were not. The summarize evals are the reference example.
-
-## Quick eval run
-
-Use the `/eval` command for a fast pass/fail check:
-
-```
-/eval                        # All skills
-/eval ghostwrite summarize   # Specific skills
-/eval --no-baseline          # Skip baseline comparison
-/eval --verbose              # Show all evidence
-```
-
-Results print inline as a summary table. Full outputs go to `tmp/evals/<timestamp>/`.
-
-For the full eval lifecycle (iteration, visual review, description optimization), use the skill-creator skill instead.
-
-## Current coverage
-
-| Skill | Evals | Notes |
-|-------|-------|-------|
-| ghostwrite | 2 | Happy path + hard gate (refuses to create from scratch) |
-| scope | 3 | Happy path + vague prompt + adversarial |
-| summarize | 4 | dev.to article, specific URL, Anthropic page, PDF |
-| prompt-engineer | 3 | Happy path (JSON extractor) + review existing prompt + vague request |
-
+1. Create `tests/skills/<name>/evals.json` with at least 3 cases.
+2. Add a case to `tests/core/skill-triggers.json` that prompts a realistic trigger and asserts the Skill tool fires.
+3. `make test ARGS="<name>"` to verify.
