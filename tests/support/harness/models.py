@@ -31,3 +31,21 @@ class RunPlan:
     prompt: str
     context_paths: list[Path]
     case: EvalCase  # full case for grader/reporter access
+
+
+@dataclass
+class Grading:
+    expectations: list[dict]   # [{text, passed, evidence}]
+    passed: int
+    failed: int
+    total: int
+
+    @classmethod
+    def from_expectations(cls, expectations: list[dict]) -> "Grading":
+        passed = sum(1 for e in expectations if e.get("passed"))
+        return cls(
+            expectations=expectations,
+            passed=passed,
+            failed=len(expectations) - passed,
+            total=len(expectations),
+        )
