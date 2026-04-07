@@ -1,0 +1,40 @@
+{
+  "name": "skill-triggers",
+  "evals": [
+    {
+      "id": "ghostwrite-on-rewrite-request",
+      "prompt": "rewrite this in my voice: we're going to crush it this quarter and the team is fired up about the new launch",
+      "files": [],
+      "assertions": [
+        { "text": "The Skill tool was invoked with a skill name matching 'ghostwrite' (check the TOOL TRACE)" },
+        { "text": "The output is a rewritten version of the input, not a refusal or clarifying question" }
+      ]
+    },
+    {
+      "id": "scope-on-design-request",
+      "prompt": "help me scope a new feature where users can schedule recurring exports of their data",
+      "files": [],
+      "assertions": [
+        { "text": "The Skill tool was invoked with a skill name matching 'scope' (check the TOOL TRACE)" },
+        { "text": "The response engages with scoping the idea (asking clarifying questions or proposing approaches), not jumping to implementation" }
+      ]
+    },
+    {
+      "id": "summarize-on-tldr-request",
+      "prompt": "tl;dr this for me: https://www.anthropic.com/news/claude-4",
+      "files": [],
+      "assertions": [
+        { "text": "The Skill tool was invoked with a skill name matching 'summarize' (check the TOOL TRACE)" }
+      ]
+    },
+    {
+      "id": "prompt-engineer-on-prompt-request",
+      "prompt": "write me a prompt for an LLM that extracts structured JSON from invoices",
+      "files": [],
+      "assertions": [
+        { "text": "The Skill tool was invoked with a skill name matching 'prompt-engineer' (check the TOOL TRACE)" },
+        { "text": "The response produces or asks clarifying questions to produce a structured prompt, not a generic answer" }
+      ]
+    }
+  ]
+}
