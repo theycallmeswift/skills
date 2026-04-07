@@ -138,7 +138,9 @@ If there was only one researcher, `## Research Notes` still appears with one sub
 
 ### 9. Verify
 
-Re-read `tmp/research/<slug>/request.md` and the final report. In the chat (not in the report file), output a single coverage line of the form:
+Before writing the coverage line, you **MUST** invoke the Read tool on `tmp/research/<slug>/request.md` again — even if you remember its contents, even on the fallback path, even for a one-line request. This re-read is the only mechanism that grades the report against the *original ask* rather than against your own synthesized memory of it. Skipping it defeats the verify step. Then read the final report.
+
+In the chat (not in the report file), output a single coverage line of the form:
 
 ```
 addressed: <comma-separated list of the request's key asks>
