@@ -55,3 +55,64 @@ def test_discover_filters_by_name(tmp_path):
     suites = discover_suites(tmp_path / "tests", names=["ghostwrite"])
     assert len(suites) == 1
     assert suites[0].name == "ghostwrite"
+
+def test_build_run_plans_skill_with_baseline(tmp_path):
+    (tmp_path / "tests" / "skills" / "ghostwrite").mkdir(parents=True)
+    (tmp_path / "tests" / "skills" / "ghostwrite" / "evals.json").write_text(
+        (FIXTURES / "sample-skill-eval.json").read_text()
+    )
+    (tmp_path / "AGENTS.md").write_text("# project context")
+    (tmp_path / "skills" / "ghostwrite").mkdir(parents=True)
+    (tmp_path / "skills" / "ghostwrite" / "SKILL.md").write_text("# skill")
+
+    from tests.support.harness.discovery import discover_suites, build_run_plans
+    suites = discover_suites(tmp_path / "tests")
+    plans = build_run_plans(suites, project_root=tmp_path, baseline=True)
+
+    assert len(plans) == 2
+    by_variant = {p.variant: p for p in plans}
+    assert "with_skill" in by_variant and "baseline" in by_variant
+
+    with_skill = by_variant["with_skill"]
+    assert with_skill.suite_name == "ghostwrite"
+    assert with_skill.case_id == "sponsor-email"
+    assert with_skill.prompt.startswith("Before responding, read and follow skills/ghostwrite/SKILL.md.")
+    assert (tmp_path / "skills" / "ghostwrite") in with_skill.context_paths
+    assert (tmp_path / "AGENTS.md") in with_skill.context_paths
+
+    baseline = by_variant["baseline"]
+    assert baseline.prompt == "Rewrite this in Swift's voice: hello world"
+    assert (tmp_path / "skills" / "ghostwrite") not in baseline.context_paths
+    assert (tmp_path / "AGENTS.md") in baseline.context_paths
+
+def test_build_run_plans_skill_no_baseline(tmp_path):
+    (tmp_path / "tests" / "skills" / "ghostwrite").mkdir(parents=True)
+    (tmp_path / "tests" / "skills" / "ghostwrite" / "evals.json").write_text(
+        (FIXTURES / "sample-skill-eval.json").read_text()
+    )
+    (tmp_path / "AGENTS.md").write_text("# project context")
+    (tmp_path / "skills" / "ghostwrite").mkdir(parents=True)
+    (tmp_path / "skills" / "ghostwrite" / "SKILL.md").write_text("# skill")
+
+    from tests.support.harness.discovery import discover_suites, build_run_plans
+    suites = discover_suites(tmp_path / "tests")
+    plans = build_run_plans(suites, project_root=tmp_path, baseline=False)
+    assert len(plans) == 1
+    assert plans[0].variant == "with_skill"
+
+def test_build_run_plans_core(tmp_path):
+    (tmp_path / "tests" / "core").mkdir(parents=True)
+    (tmp_path / "tests" / "core" / "no-ai-attribution.json").write_text(
+        (FIXTURES / "sample-core-eval.json").read_text()
+    )
+    (tmp_path / "AGENTS.md").write_text("# project context")
+
+    from tests.support.harness.discovery import discover_suites, build_run_plans
+    suites = discover_suites(tmp_path / "tests")
+    plans = build_run_plans(suites, project_root=tmp_path, baseline=True)
+    assert len(plans) == 1
+    plan = plans[0]
+    assert plan.variant == "run"
+    assert plan.suite_name == "no-ai-attribution"
+    assert plan.case_id == "throwaway-commit"
+    assert (tmp_path / "AGENTS.md") in plan.context_paths

@@ -19,3 +19,15 @@ class EvalSuite:
     kind: EvalKind
     source_path: Path
     cases: list[EvalCase]
+
+RunVariant = Literal["with_skill", "baseline", "run"]
+
+@dataclass
+class RunPlan:
+    suite_name: str
+    suite_kind: EvalKind
+    case_id: str
+    variant: RunVariant
+    prompt: str
+    context_paths: list[Path]
+    case: EvalCase  # full case for grader/reporter access
