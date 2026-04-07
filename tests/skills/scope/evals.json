@@ -1,0 +1,42 @@
+{
+  "name": "scope",
+  "evals": [
+    {
+      "id": "github-webhook-slack",
+      "prompt": "Scope a GitHub webhook system for MechaSwift that listens for PR events and posts summaries to Slack. It should handle retries, filter by repo, and be configurable per-channel. We're using Node.js and already have a Slack bot token.",
+      "files": [],
+      "cleanup": ["references/specs/2026-*-github-webhook-slack-summaries.md"],
+      "assertions": [
+        { "text": "Output proposes 2-3 distinct approaches with trade-offs" },
+        { "text": "Output includes a clear recommendation with reasoning for which approach to use" },
+        { "text": "A spec file is written (to references/specs/ or the designated output directory) with a descriptive name" },
+        { "text": "No implementation code, project scaffolding, or package.json is created" },
+        { "text": "Output includes a self-review step scanning for placeholders or contradictions" },
+        { "text": "Output asks the user to review the spec before proceeding" },
+        { "text": "Output offers what's-next options (implementation plan, scope another piece, etc.)" }
+      ]
+    },
+    {
+      "id": "vague-notifications",
+      "prompt": "Scope a notifications feature",
+      "files": [],
+      "assertions": [
+        { "text": "Output asks at least one clarifying question before proposing approaches" },
+        { "text": "Output does not propose a full design or write a spec without first gathering requirements" },
+        { "text": "Clarifying questions are presented one at a time, not as a big list" },
+        { "text": "No implementation code or project scaffolding is created" }
+      ]
+    },
+    {
+      "id": "skip-design-rate-limiter",
+      "prompt": "I need a rate limiter for our API. Don't bother with the design stuff, just scope it quickly and start building.",
+      "files": [],
+      "assertions": [
+        { "text": "Output does NOT skip the design process despite the user requesting it" },
+        { "text": "Output acknowledges the user's urgency but explains why design comes first" },
+        { "text": "No implementation code, project scaffolding, or source files are created" },
+        { "text": "Output proceeds with scoping steps (clarifying questions or approach proposals)" }
+      ]
+    }
+  ]
+}

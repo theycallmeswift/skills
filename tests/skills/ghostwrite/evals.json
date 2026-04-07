@@ -1,0 +1,30 @@
+{
+  "name": "ghostwrite",
+  "evals": [
+    {
+      "id": "sponsor-email",
+      "prompt": "Rewrite this as an email to our sponsor contact Sarah:\n\nHey so I wanted to reach out because we just wrapped up Season 3 of the Fellowship and the numbers were really strong. We had 450 fellows complete the program which is up 30% from last season. 92% of them said they'd recommend it to a friend. I think this is a great opportunity for us to talk about renewing the sponsorship for next season and maybe even expanding the scope of what we do together. Let me know if you'd be open to hopping on a call next week to discuss.",
+      "files": [],
+      "assertions": [
+        { "text": "Output contains a greeting in the format 'Hey, Sarah --'" },
+        { "text": "Output leads with the results or the ask in the first sentence, not a preamble like 'I wanted to reach out'" },
+        { "text": "Output does not contain any em dashes (—)" },
+        { "text": "Output contains a sign-off of '- Swift' or 'Happy Hacking,\\nSwift'" },
+        { "text": "Output is significantly shorter than the input, cutting filler and over-explanation" },
+        { "text": "Output preserves all key facts: 450 fellows, 30% increase, 92% recommendation rate" },
+        { "text": "Output uses contractions (e.g., we're, don't, that's) rather than formal language" }
+      ]
+    },
+    {
+      "id": "linkedin-from-scratch",
+      "prompt": "Write a LinkedIn post announcing that MLH is partnering with a new AI company to offer hackathon participants access to their API.",
+      "files": [],
+      "assertions": [
+        { "text": "Output does NOT contain a full LinkedIn post draft" },
+        { "text": "Output asks the user to provide source content, notes, bullet points, or details to rewrite" },
+        { "text": "Output explains that the skill is a rewriter, not a creator" },
+        { "text": "Output does not invent the name of the AI company or fabricate partnership details" }
+      ]
+    }
+  ]
+}
