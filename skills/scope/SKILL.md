@@ -20,7 +20,7 @@ Do not write any files (code, configs, specs, scaffolding, evals) until the user
 3. **Propose 2-3 approaches** -- with trade-offs and your recommendation. Lead with the recommended option and explain why.
 4. **Present design** -- in sections scaled to their complexity. A few sentences if straightforward, more detail if nuanced. Ask after each section whether it looks right.
 5. **Get approval** -- explicitly ask the user to approve the design before writing anything. Do not proceed until they confirm.
-6. **Write spec** -- save to `docs/specs/YYYY-MM-DD-<topic>.md` using the Spec Template above. This is the first point where files are created. Do not commit unless the user asks.
+6. **Write spec** -- save to `references/specs/YYYY-MM-DD-<topic>.md` using the Spec Template above. This is the first point where files are created. Do not commit unless the user asks.
 7. **Spec self-review** -- scan for placeholders, contradictions, ambiguity, scope creep. Fix inline.
 8. **User reviews spec** -- ask the user to review before proceeding
 9. **Transition** -- offer the user options for what's next
@@ -84,7 +84,7 @@ Anything still unresolved. Empty is fine, but if you have unresolved items at wr
 
 ## Writing the Spec
 
-Save the validated design to `docs/specs/YYYY-MM-DD-<topic>.md`. Do not commit unless the user asks.
+Save the validated design to `references/specs/YYYY-MM-DD-<topic>.md`. Do not commit unless the user asks.
 
 After writing, do a quick self-review:
 

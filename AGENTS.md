@@ -43,8 +43,8 @@ All web content goes through the `brightdata` MCP server. The built-in `WebFetch
 ## Project Structure
 
 - `skills/` -- Each skill gets its own directory with a `SKILL.md` and optional `references/`
-- `references/` -- Shared context loaded on demand by any skill (e.g. `about-swift.md`)
-- `docs/` -- Project plans and specs
+- `docs/` -- Hand-authored documentation and prompt context (e.g. `about-swift.md`, `evals.md`)
+- `references/` -- Agent-generated context: `plans/`, `research/`, `specs/`, plus on-demand reference material loaded by skills
 - `tmp/` -- Scratch space for working sessions. Not tracked in git. Put intermediate outputs, drafts, and test results here.
 
 ## Safety & Standards
@@ -67,5 +67,5 @@ Slash commands are in `.claude/commands/`.
 
 ## References
 
-- `references/about-swift.md` -- Bio, tone, values, voice conventions
+- `docs/about-swift.md` -- Bio, tone, values, voice conventions
 - `docs/evals.md` -- How to run and write skill evals

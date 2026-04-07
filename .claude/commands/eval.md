@@ -72,7 +72,7 @@ For each eval case, spawn subagents in the background.
 Tell the subagent:
 - Read the skill at `skills/<name>/SKILL.md`
 - Execute the task from the eval prompt
-- Read any referenced files the skill mentions (e.g., `references/about-swift.md`)
+- Read any referenced files the skill mentions (e.g., `docs/about-swift.md`)
 - If the eval has `files`, provide those as input
 - Save all output to `with_skill/outputs/output.md`
 - After the normal skill output, append a `## Tool Trace` section listing every fetch or read tool you actually invoked, one per line, formatted as `- tool_name: brief description`. Include MCP tools (e.g. `mcp__brightdata__scrape_as_markdown`, `mcp__brightdata__scrape_batch`), built-in tools (e.g. `WebFetch`, `WebSearch`, `Read`), or write `- none` if you did not invoke any. This is a regression check; do not omit it.

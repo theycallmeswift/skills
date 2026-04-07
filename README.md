@@ -30,7 +30,7 @@ Skills are available in every Claude Code session after install. Invoke them by 
 ```
 mechaswift/
 ├── skills/                  # On-demand capability modules
-│   ├── ghostwrite/        # Content rewriter
+│   ├── ghostwrite/          # Content rewriter
 │   │   ├── SKILL.md
 │   │   └── references/      # Style samples
 │   ├── scope/               # Design & ideation
@@ -39,10 +39,12 @@ mechaswift/
 │   └── summarize/           # Content summarization
 │       ├── SKILL.md
 │       └── evals/           # Eval definitions
-├── references/              # Shared context (bio, voice profile)
-├── docs/
-│   ├── research/            # Best practices research
-│   ├── plans/               # Project plans
+├── docs/                    # Hand-authored docs and prompt context
+│   ├── about-swift.md       # Bio, tone, voice
+│   └── evals.md             # How to run and write skill evals
+├── references/              # Agent-generated context
+│   ├── plans/               # Implementation plans
+│   ├── research/            # Best-practices research
 │   └── specs/               # Detailed specifications
 ├── AGENTS.md                # Universal agent config (source of truth)
 ├── CLAUDE.md                # Symlink to AGENTS.md
@@ -53,7 +55,7 @@ mechaswift/
 
 Each skill lives in `skills/<name>/` with a `SKILL.md` that defines activation triggers, behavior rules, and output format. Skills are loaded on-demand to keep context lean.
 
-Skills can reference shared context from `references/` (e.g. voice profile, bio) and write outputs to `docs/specs/` or `tmp/`.
+Skills can reference hand-authored prompt context from `docs/` (e.g. `about-swift.md`) and skill-local `references/`, and write outputs to `references/specs/`, `references/plans/`, or `tmp/`.
 
 ## Testing
 

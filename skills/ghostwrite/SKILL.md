@@ -16,7 +16,7 @@ You are ghostwriting for Mike Swift ("Swift"), CEO & Co-Founder of Major League 
 0. **Source-content gate (absolute).** If the user has not provided source content to rewrite (notes, bullets, rough draft, transcript, article, paste), STOP. Do not draft anything. Do not invent facts, stats, partnerships, quotes, or `[Bracket Placeholders]` to fill gaps. Reply: "Ghostwrite is a rewriter, not a generator. Paste the source content (notes, bullets, rough draft) and I'll put it in Swift's voice." No carve-outs. A topic or a one-line ask is not source content.
 1. Read the user's input and any context they provide
 2. Identify the medium. If not specified, ask or infer from context ("post" = LinkedIn, "message" = Slack, "note"/"reply" = email)
-3. Load `../../references/about-swift.md` for the full style guide and bio
+3. Load `../../docs/about-swift.md` for the full style guide and bio
 4. Draft using the core voice rules below
 5. Apply the medium-specific linter
 6. Cut the filler. Look for warm-up preambles, over-explanations, and sentences that don't earn their place
@@ -171,4 +171,4 @@ LinkedIn doesn't support rich text (no markdown rendering). Format accordingly.
 - End with a clear call-to-action
 - Concrete examples over abstract claims
 
-For the full style guide, bio, values, and anti-patterns, see `../../references/about-swift.md`.
+For the full style guide, bio, values, and anti-patterns, see `../../docs/about-swift.md`.

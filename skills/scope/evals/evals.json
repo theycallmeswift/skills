@@ -4,13 +4,13 @@
     {
       "id": 1,
       "prompt": "Scope a GitHub webhook system for MechaSwift that listens for PR events and posts summaries to Slack. It should handle retries, filter by repo, and be configurable per-channel. We're using Node.js and already have a Slack bot token.",
-      "expected_output": "A structured design with 2-3 approaches, a recommendation, and a spec written to docs/specs/. Should not produce any implementation code.",
+      "expected_output": "A structured design with 2-3 approaches, a recommendation, and a spec written to references/specs/. Should not produce any implementation code.",
       "files": [],
-      "cleanup": ["docs/specs/2026-*-github-webhook-slack-summaries.md"],
+      "cleanup": ["references/specs/2026-*-github-webhook-slack-summaries.md"],
       "assertions": [
         { "text": "Output proposes 2-3 distinct approaches with trade-offs", "type": "structural" },
         { "text": "Output includes a clear recommendation with reasoning for which approach to use", "type": "structural" },
-        { "text": "A spec file is written (to docs/specs/ or the designated output directory) with a descriptive name", "type": "structural" },
+        { "text": "A spec file is written (to references/specs/ or the designated output directory) with a descriptive name", "type": "structural" },
         { "text": "No implementation code, project scaffolding, or package.json is created", "type": "structural" },
         { "text": "Output includes a self-review step scanning for placeholders or contradictions", "type": "structural" },
         { "text": "Output asks the user to review the spec before proceeding", "type": "structural" },
