@@ -69,3 +69,4 @@ Slash commands are in `.claude/commands/`.
 
 - `docs/about-swift.md` -- Bio, tone, values, voice conventions
 - `docs/evals.md` -- How to run and write skill evals
+- `docs/plugin-structure.md` -- MechaSwift is a Claude Code plugin. Read before touching skills, agents, commands, hooks, or MCP config.
