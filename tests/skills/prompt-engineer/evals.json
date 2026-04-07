@@ -9,7 +9,7 @@
       "files": [],
       "assertions": [
         {
-          "text": "Output contains a fenced code block (triple backticks) wrapping the final prompt"
+          "text": "The final prompt is presented as a distinct fenced code block, not inline prose"
         },
         {
           "text": "The prompt inside the code block specifies a concrete JSON schema or output structure (parties, effective_date, termination)"
