@@ -33,7 +33,7 @@ async def _run_one(
         with tempfile.TemporaryDirectory(prefix="eval-cwd-") as tmp:
             cwd = Path(tmp)
             run = await run_claude(
-                prompt=plan.prompt,
+                turns=plan.turns,
                 cwd=cwd,
                 context_paths=plan.context_paths,
                 project_root=project_root,
@@ -46,14 +46,18 @@ async def _run_one(
                 else:
                     match.unlink(missing_ok=True)
 
-        grading = await grade(run, plan.case.assertions, model=plan.case.grader_model, original_prompt=plan.case.prompt)
+        original_prompt = "\n\n".join(
+            f"[turn {i}] {t}" for i, t in enumerate(plan.case.turns, start=1)
+        )
+        grading = await grade(run, plan.case.assertions, model=plan.case.grader_model, original_prompt=original_prompt)
 
         adir = _artifact_dir(artifact_root, plan, run_id)
         (adir / "outputs").mkdir(exist_ok=True)
         (adir / "outputs" / "output.md").write_text(run.stdout)
         (adir.parent / "eval_metadata.json").write_text(json.dumps({
             "id": plan.case_id,
-            "prompt": plan.case.prompt,
+            "turns": plan.case.turns,
+            "turn_count": len(plan.case.turns),
             "assertions": plan.case.assertions,
         }, indent=2))
         (adir / "grading.json").write_text(json.dumps({

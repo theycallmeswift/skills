@@ -4,10 +4,10 @@ from tests.support.harness.runner import RunResult
 from tests.support.harness.reporter import DotsReporter, CaseResult
 
 def _mk_result(suite, case_id, variant, kind, passed, failed, exit_code=0):
-    case = EvalCase(id=case_id, prompt="x", assertions=[])
+    case = EvalCase(id=case_id, turns=["x"], assertions=[])
     plan = RunPlan(
         suite_name=suite, suite_kind=kind, case_id=case_id, variant=variant,
-        prompt="x", context_paths=[], case=case,
+        turns=["x"], context_paths=[], case=case,
     )
     run = RunResult(stdout="", files_written={}, input_tokens=10, output_tokens=10, duration_s=1.0, exit_code=exit_code)
     grading = Grading.from_expectations(

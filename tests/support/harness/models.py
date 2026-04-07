@@ -7,7 +7,7 @@ EvalKind = Literal["skill", "core"]
 @dataclass
 class EvalCase:
     id: str
-    prompt: str
+    turns: list[str]
     files: list[str] = field(default_factory=list)
     assertions: list[dict] = field(default_factory=list)
     grader_model: str | None = None
@@ -28,7 +28,7 @@ class RunPlan:
     suite_kind: EvalKind
     case_id: str
     variant: RunVariant
-    prompt: str
+    turns: list[str]
     context_paths: list[Path]
     case: EvalCase  # full case for grader/reporter access
 

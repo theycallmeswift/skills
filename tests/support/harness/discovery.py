@@ -2,12 +2,26 @@ import json
 from pathlib import Path
 from .models import EvalCase, EvalSuite, EvalKind, RunPlan
 
+def _load_turns(case: dict, source: Path) -> list[str]:
+    turns = case.get("turns")
+    if turns is None:
+        raise ValueError(
+            f"eval case '{case.get('id', '?')}' in {source} is missing 'turns'. "
+            f"Use a list of strings, e.g. \"turns\": [\"first message\"]."
+        )
+    if not isinstance(turns, list) or not turns or not all(isinstance(t, str) for t in turns):
+        raise ValueError(
+            f"eval case '{case.get('id', '?')}' in {source}: 'turns' must be a non-empty list of strings."
+        )
+    return turns
+
+
 def load_eval_file(path: Path, kind: EvalKind) -> EvalSuite:
     data = json.loads(path.read_text())
     cases = [
         EvalCase(
             id=str(c["id"]),
-            prompt=c["prompt"],
+            turns=_load_turns(c, path),
             files=c.get("files", []),
             assertions=c.get("assertions", []),
             grader_model=c.get("grader_model"),
@@ -47,6 +61,12 @@ def discover_suites(tests_root: Path, names: list[str] | None = None) -> list[Ev
 
 SKILL_PREAMBLE = "Before responding, read and follow skills/{name}/SKILL.md.\n\n"
 
+
+def _with_preamble(turns: list[str], suite_name: str) -> list[str]:
+    preamble = SKILL_PREAMBLE.format(name=suite_name)
+    return [preamble + turns[0], *turns[1:]]
+
+
 def build_run_plans(
     suites: list[EvalSuite],
     project_root: Path,
@@ -63,13 +83,12 @@ def build_run_plans(
             if suite.kind == "skill":
                 skill_dir = project_root / "skills" / suite.name
                 with_skill_paths = [skill_dir, agents_md, *case_files]
-                with_skill_prompt = SKILL_PREAMBLE.format(name=suite.name) + case.prompt
                 plans.append(RunPlan(
                     suite_name=suite.name,
                     suite_kind=suite.kind,
                     case_id=case.id,
                     variant="with_skill",
-                    prompt=with_skill_prompt,
+                    turns=_with_preamble(case.turns, suite.name),
                     context_paths=with_skill_paths,
                     case=case,
                 ))
@@ -79,7 +98,7 @@ def build_run_plans(
                         suite_kind=suite.kind,
                         case_id=case.id,
                         variant="baseline",
-                        prompt=case.prompt,
+                        turns=list(case.turns),
                         context_paths=[agents_md, *case_files],
                         case=case,
                     ))
@@ -89,7 +108,7 @@ def build_run_plans(
                     suite_kind=suite.kind,
                     case_id=case.id,
                     variant="run",
-                    prompt=case.prompt,
+                    turns=list(case.turns),
                     context_paths=[agents_md, *case_files],
                     case=case,
                 ))

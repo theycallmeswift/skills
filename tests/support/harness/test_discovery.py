@@ -11,7 +11,7 @@ def test_load_skill_eval_file():
     assert len(suite.cases) == 1
     case = suite.cases[0]
     assert case.id == "sponsor-email"
-    assert case.prompt.startswith("Rewrite this")
+    assert case.turns == ["Rewrite this in Swift's voice: hello world"]
     assert case.files == []
     assert case.assertions == [{"text": "Output is short"}]
     assert case.grader_model is None
@@ -76,12 +76,14 @@ def test_build_run_plans_skill_with_baseline(tmp_path):
     with_skill = by_variant["with_skill"]
     assert with_skill.suite_name == "ghostwrite"
     assert with_skill.case_id == "sponsor-email"
-    assert with_skill.prompt.startswith("Before responding, read and follow skills/ghostwrite/SKILL.md.")
+    assert with_skill.turns[0].startswith("Before responding, read and follow skills/ghostwrite/SKILL.md.")
+    assert "Rewrite this" in with_skill.turns[0]
+    assert len(with_skill.turns) == 1
     assert (tmp_path / "skills" / "ghostwrite") in with_skill.context_paths
     assert (tmp_path / "AGENTS.md") in with_skill.context_paths
 
     baseline = by_variant["baseline"]
-    assert baseline.prompt == "Rewrite this in Swift's voice: hello world"
+    assert baseline.turns == ["Rewrite this in Swift's voice: hello world"]
     assert (tmp_path / "skills" / "ghostwrite") not in baseline.context_paths
     assert (tmp_path / "AGENTS.md") in baseline.context_paths
 

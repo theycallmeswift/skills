@@ -73,7 +73,7 @@ def test_snapshot_captures_only_new_or_modified(tmp_path):
 async def test_run_claude_smoke(tmp_path):
     from tests.support.harness.runner import run_claude
     result = await run_claude(
-        prompt="Reply with exactly the word 'pong' and nothing else.",
+        turns=["Reply with exactly the word 'pong' and nothing else."],
         cwd=tmp_path,
         context_paths=[],
         project_root=tmp_path,

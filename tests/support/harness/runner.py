@@ -1,10 +1,10 @@
 import asyncio
-import os
 import shutil
-import tempfile
 import time
 from dataclasses import dataclass, field
 from pathlib import Path
+
+TURN_SEPARATOR = "\n\n--- turn {n} ---\n\n"
 
 
 def copy_context_paths(paths: list[Path], project_root: Path, cwd: Path) -> None:
@@ -60,18 +60,33 @@ class RunResult:
     duration_s: float
     exit_code: int  # 0 = success, 1 = error, 124 = timeout
     tool_trace: list[dict] = field(default_factory=list)
+    turn_count: int = 1
     error: str | None = None
 
 
 async def run_claude(
-    prompt: str,
+    turns: list[str],
     cwd: Path,
     context_paths: list[Path],
     project_root: Path,
     timeout_s: float = 300,
 ) -> RunResult:
-    """Run a single prompt through Claude Agent SDK in an isolated cwd."""
-    from claude_agent_sdk import query, ClaudeAgentOptions, AssistantMessage, ToolUseBlock, ResultMessage
+    """Run a scripted multi-turn conversation through the Claude Agent SDK.
+
+    `turns` is a list of user messages sent sequentially. The agent's responses
+    between turns are collected and concatenated into `stdout` with visible
+    separators. The entire session shares one timeout.
+    """
+    from claude_agent_sdk import (
+        ClaudeSDKClient,
+        ClaudeAgentOptions,
+        AssistantMessage,
+        ToolUseBlock,
+        ResultMessage,
+    )
+
+    if not turns:
+        raise ValueError("run_claude requires at least one turn")
 
     copy_context_paths(context_paths, project_root=project_root, cwd=cwd)
     before = snapshot_files(cwd)
@@ -82,6 +97,7 @@ async def run_claude(
     output_tokens = 0
     error: str | None = None
     exit_code = 0
+    turns_sent = 0
 
     options = ClaudeAgentOptions(
         cwd=str(cwd),
@@ -94,23 +110,30 @@ async def run_claude(
     start = time.monotonic()
     try:
         async with asyncio.timeout(timeout_s):
-            async for message in query(prompt=prompt, options=options):
-                if isinstance(message, AssistantMessage):
-                    for block in message.content:
-                        if isinstance(block, ToolUseBlock):
-                            tool_trace.append({
-                                "name": block.name,
-                                "input": block.input,
-                            })
-                        elif hasattr(block, "text"):
-                            stdout_parts.append(block.text)
-                elif isinstance(message, ResultMessage):
-                    usage = getattr(message, "usage", None) or {}
-                    input_tokens = usage.get("input_tokens", 0)
-                    output_tokens = usage.get("output_tokens", 0)
+            async with ClaudeSDKClient(options=options) as client:
+                for i, turn in enumerate(turns, start=1):
+                    if len(turns) > 1:
+                        stdout_parts.append(TURN_SEPARATOR.format(n=i))
+                    await client.query(turn)
+                    turns_sent = i
+                    async for message in client.receive_response():
+                        if isinstance(message, AssistantMessage):
+                            for block in message.content:
+                                if isinstance(block, ToolUseBlock):
+                                    tool_trace.append({
+                                        "name": block.name,
+                                        "input": block.input,
+                                        "turn": i,
+                                    })
+                                elif hasattr(block, "text"):
+                                    stdout_parts.append(block.text)
+                        elif isinstance(message, ResultMessage):
+                            usage = getattr(message, "usage", None) or {}
+                            input_tokens += usage.get("input_tokens", 0)
+                            output_tokens += usage.get("output_tokens", 0)
     except TimeoutError:
         exit_code = 124
-        error = f"timed out after {timeout_s}s"
+        error = f"timed out after {timeout_s}s (on turn {turns_sent or 1}/{len(turns)})"
     except Exception as e:  # noqa: BLE001
         exit_code = 1
         error = f"{type(e).__name__}: {e}"
@@ -126,6 +149,7 @@ async def run_claude(
         duration_s=duration,
         exit_code=exit_code,
         tool_trace=tool_trace,
+        turn_count=len(turns),
         error=error,
     )
 

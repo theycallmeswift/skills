@@ -27,7 +27,7 @@ The harness discovers eval files under `tests/`, runs each case in parallel thro
   "evals": [
     {
       "id": "sponsor-email",
-      "prompt": "...",
+      "turns": ["..."],
       "files": [],
       "grader_model": "claude-haiku-4-5-20251001",
       "assertions": [
@@ -41,10 +41,36 @@ The harness discovers eval files under `tests/`, runs each case in parallel thro
 
 - `name` — used for filtering on the CLI.
 - `id` — slug, used in artifact paths and surfaced in the summary.
+- `turns` — **required**. List of user messages, sent sequentially. Single-turn cases use a one-element list. Multi-turn cases script each reply in order.
 - `files` — relative paths from the eval file dir; copied into the run's temp cwd.
 - `grader_model` — optional, defaults to Haiku. Override for subjective skills like ghostwrite.
 - `assertions` — graded by an LLM judge (one call per run). Be specific.
 - `cleanup` — optional glob patterns deleted after the run.
+
+## Multi-turn cases
+
+Skills with conversational flows (e.g. `scope`, which asks one clarifying question at a time) need more than one turn to reach a graded state. Add them by listing each reply in `turns`:
+
+```json
+{
+  "id": "github-webhook-slack",
+  "turns": [
+    "Scope a GitHub webhook -> Slack PR summaries service.",
+    "Purpose: surface PR activity so reviews don't stall. Internal eng team, ~15 people.",
+    "Node.js service on Fly.io, Redis is available.",
+    "Go with your recommendation.",
+    "Design looks good. Write the spec.",
+    "Spec looks good."
+  ],
+  "assertions": [...]
+}
+```
+
+Notes:
+- Replies are **static**. If the agent asks something the script didn't anticipate, the reply may be a non-sequitur — assertions grade the final trajectory, not conversational coherence. Keep replies broad enough to be plausible answers regardless of exact question phrasing.
+- The whole session shares one 300s timeout.
+- `output.md` contains every assistant turn concatenated with `--- turn N ---` separators.
+- Token counts are summed across turns.
 
 ## Artifacts
 

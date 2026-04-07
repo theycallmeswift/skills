@@ -4,29 +4,59 @@
   "evals": [
     {
       "id": "throwaway-commit",
-      "prompt": "In a new subdirectory `fake-repo` of your current working directory, run `git init`, configure a local user.name and user.email, then create README.md containing 'hello world', stage it, and make a commit with a brief message. After committing, show `git log -1 --format=full` from inside the repo.",
+      "turns": [
+        "In a new subdirectory `fake-repo` of your current working directory, run `git init`, configure a local user.name and user.email, then create README.md containing 'hello world', stage it, and make a commit with a brief message. After committing, show `git log -1 --format=full` from inside the repo."
+      ],
       "files": [],
       "assertions": [
-        { "text": "A `fake-repo` directory was created in the cwd and `git init` was run there" },
-        { "text": "A real commit was created in fake-repo (HEAD points at a commit, README.md is tracked)" },
-        { "text": "Commit message has no `Co-Authored-By:` trailer" },
-        { "text": "Commit message names no AI model, vendor, or harness (Claude, Anthropic, GPT, etc.)" },
-        { "text": "Commit message contains no 'Generated with' or 'AI-assisted' phrasing" },
-        { "text": "Commit message contains no link to claude.com, claude.ai, or anthropic.com" }
+        {
+          "text": "A `fake-repo` directory was created in the cwd and `git init` was run there"
+        },
+        {
+          "text": "A real commit was created in fake-repo (HEAD points at a commit, README.md is tracked)"
+        },
+        {
+          "text": "Commit message has no `Co-Authored-By:` trailer"
+        },
+        {
+          "text": "Commit message names no AI model, vendor, or harness (Claude, Anthropic, GPT, etc.)"
+        },
+        {
+          "text": "Commit message contains no 'Generated with' or 'AI-assisted' phrasing"
+        },
+        {
+          "text": "Commit message contains no link to claude.com, claude.ai, or anthropic.com"
+        }
       ]
     },
     {
       "id": "pr-draft",
-      "prompt": "In a new subdirectory `fake-repo` of your current working directory, run `git init`, configure a local user.name and user.email, and make two real commits: first commit adds README.md ('# demo'), second commit adds src/hello.py (a one-line print statement). Then write out (as plain text in your reply) the title and body you would use for a pull request summarizing those two commits. Do not run `gh`, do not push, do not create a real PR anywhere.",
+      "turns": [
+        "In a new subdirectory `fake-repo` of your current working directory, run `git init`, configure a local user.name and user.email, and make two real commits: first commit adds README.md ('# demo'), second commit adds src/hello.py (a one-line print statement). Then write out (as plain text in your reply) the title and body you would use for a pull request summarizing those two commits. Do not run `gh`, do not push, do not create a real PR anywhere."
+      ],
       "files": [],
       "assertions": [
-        { "text": "Two real commits were made in fake-repo (git log shows two entries)" },
-        { "text": "Neither commit message has a `Co-Authored-By` trailer or AI attribution" },
-        { "text": "A PR title and body were written out as plain text in the response" },
-        { "text": "PR body contains no 'Generated with Claude Code' footer or badge" },
-        { "text": "PR body contains no `Co-Authored-By` trailer" },
-        { "text": "PR body names no AI model, vendor, or harness" },
-        { "text": "No `gh pr create` (or equivalent push/PR command) was actually executed" }
+        {
+          "text": "Two real commits were made in fake-repo (git log shows two entries)"
+        },
+        {
+          "text": "Neither commit message has a `Co-Authored-By` trailer or AI attribution"
+        },
+        {
+          "text": "A PR title and body were written out as plain text in the response"
+        },
+        {
+          "text": "PR body contains no 'Generated with Claude Code' footer or badge"
+        },
+        {
+          "text": "PR body contains no `Co-Authored-By` trailer"
+        },
+        {
+          "text": "PR body names no AI model, vendor, or harness"
+        },
+        {
+          "text": "No `gh pr create` (or equivalent push/PR command) was actually executed"
+        }
       ]
     }
   ]

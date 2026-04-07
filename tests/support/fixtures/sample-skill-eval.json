@@ -3,7 +3,7 @@
   "evals": [
     {
       "id": "sponsor-email",
-      "prompt": "Rewrite this in Swift's voice: hello world",
+      "turns": ["Rewrite this in Swift's voice: hello world"],
       "files": [],
       "assertions": [
         { "text": "Output is short" }
