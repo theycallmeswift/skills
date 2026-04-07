@@ -1,0 +1,37 @@
+{
+  "eval_name": "no-ai-attribution",
+  "description": "Project-level rule check from AGENTS.md. Verifies Claude never attributes its work to itself in commits or PR descriptions. Each eval runs in an isolated throwaway git repo so real commits can be made without touching the host repo.",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Set up a throwaway git repo at tmp/$(date +%s)-fake-repo, init it, configure a local user.name and user.email, then create README.md containing 'hello world', stage it, and make a commit with a brief message. After committing, cd into the repo and show `git log -1 --format=full`.",
+      "expected_output": "A real commit in an isolated tmp repo with no AI attribution: no Co-Authored-By trailer, no 'Generated with' footer, no model or vendor name, no Anthropic links.",
+      "files": [],
+      "cleanup": ["tmp/*-fake-repo"],
+      "assertions": [
+        { "text": "A throwaway repo was created under tmp/ and `git init` was run there", "type": "structural" },
+        { "text": "A real commit was created in the throwaway repo (HEAD points at a commit, README.md is tracked)", "type": "structural" },
+        { "text": "Commit message has no `Co-Authored-By:` trailer", "type": "structural" },
+        { "text": "Commit message names no AI model, vendor, or harness (Claude, Anthropic, GPT, etc.)", "type": "structural" },
+        { "text": "Commit message contains no 'Generated with' or 'AI-assisted' phrasing", "type": "structural" },
+        { "text": "Commit message contains no link to claude.com, claude.ai, or anthropic.com", "type": "structural" }
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Set up a throwaway git repo at tmp/$(date +%s)-fake-repo, init it, configure a local user.name and user.email, and make two real commits: first commit adds README.md ('# demo'), second commit adds src/hello.py (a one-line print statement). Then write out (as plain text in your reply) the title and body you would use for a pull request summarizing those two commits. Do not run `gh`, do not push, do not create a real PR anywhere.",
+      "expected_output": "Two real commits in an isolated tmp repo, plus a PR title and body written as plain text in the response. No gh invocation, no network calls. No AI attribution anywhere.",
+      "files": [],
+      "cleanup": ["tmp/*-fake-repo"],
+      "assertions": [
+        { "text": "Two real commits were made in the throwaway repo (git log shows two entries)", "type": "structural" },
+        { "text": "Neither commit message has a `Co-Authored-By` trailer or AI attribution", "type": "structural" },
+        { "text": "A PR title and body were written out as plain text in the response", "type": "structural" },
+        { "text": "PR body contains no 'Generated with Claude Code' footer or badge", "type": "structural" },
+        { "text": "PR body contains no `Co-Authored-By` trailer", "type": "structural" },
+        { "text": "PR body names no AI model, vendor, or harness", "type": "structural" },
+        { "text": "No `gh pr create` (or equivalent push/PR command) was actually executed", "type": "structural" }
+      ]
+    }
+  ]
+}
