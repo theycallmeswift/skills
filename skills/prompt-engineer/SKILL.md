@@ -14,12 +14,18 @@ Tokens cost money, latency, and attention. A shorter prompt that hits the goal b
 ## Workflow
 
 1. **Read the input.** Diagnose what the user wants the target LLM to do. If they pasted an existing prompt, identify what's weak before rewriting.
-2. **Spot gaps.** Non-negotiables: goal, output format, hard constraints. If one is missing and you can't infer it, ask. Otherwise infer and proceed.
-3. **Infer first, ask rarely.** Ask at most one question, and only when the answer would materially change the prompt. Never more than one at a time. Action over asking.
-4. **Pick a pattern.** Match the task to a framework (see `references/frameworks.md`). Use it silently, don't name it unless asked.
-5. **Draft self-contained.** The target LLM should need zero extra context.
-6. **Cut.** Run the Quality Bar. Delete anything that isn't pulling weight.
-7. **Present.** Code block + one-line technique note. Nothing else.
+2. **Concrete enough? Draft. Vague? Ask.** Decide which mode you're in:
+
+   **Draft mode (no questions):** the user has given you a concrete target task AND either a sample input, an existing prompt to fix, or output fields/shape. Examples: "extract parties, dates, termination clauses as JSON", "fix this prompt: <pasted>", "classify these reviews as pos/neg/neutral". Reasonable defaults for unspecified items (model target, exact schema field names, edge cases) are fine. Draft it.
+
+   **Ask mode (one question, then stop):** the user has given you a topic with no shape. Examples: "I need a prompt for summarization", "write me something for customer support". Ask exactly ONE clarifying question that would most change the output. Do not draft, do not list 5 questions, do not invent a content type. Wait for the answer.
+
+   The minimum bar for draft mode: a clear target task plus at least one of {sample input, existing prompt, named output fields}. If you have all three, definitely draft. If you have none, definitely ask.
+
+3. **Pick a pattern.** Match the task to a framework (see `references/frameworks.md`). Use it silently, don't name it unless asked.
+4. **Draft self-contained.** The target LLM should need zero extra context.
+5. **Cut.** Run the Quality Bar. Delete anything that isn't pulling weight.
+6. **Present.** Code block + one-line technique note. Nothing else.
 
 ## Framework Picker
 
@@ -85,28 +91,34 @@ Every "no" is a fix.
 
 ## Worked Example
 
+The user pasted a broken sentiment classifier prompt and a sample input. They want it fixed, not a clarifying question, because the task and inputs are concrete.
+
 **Bad input prompt:**
 
 ````
 ```
-You are a helpful assistant. Please write a really good summary of the article below. Make it concise but thorough and make sure to cover all the important points. Thanks!
+You are a helpful AI. Please carefully look at this customer review and tell me if it is positive or negative or maybe neutral. Be accurate but also fast. Thanks!
+
+Review: {review}
 ```
 ````
 
-**Diagnosis:** Vague role, contradiction ("concise but thorough"), no format, no length, politeness padding, no testable success criterion.
+**Diagnosis:** Vague role, contradiction ("accurate but fast"), three classes named in prose with no enum, no output format, politeness padding.
 
 **Rewrite:**
 
 ````
 ```
-Summarize the article below in 3 bullets. Each bullet: one sentence, max 20 words, lead with the most important fact. Skip background the reader can infer from the headline.
+Classify the sentiment of the review below as exactly one of: positive, negative, neutral.
 
-Article: {article}
+Output only the label, lowercase, no punctuation, no explanation.
+
+Review: {review}
 ```
 ````
 
-**Technique:** Direct + format constraint + per-bullet length cap.
-**Swap in:** `{article}`
+**Technique:** Direct + enum constraint + output-only format.
+**Swap in:** `{review}`
 
 ## Delivery Format
 
