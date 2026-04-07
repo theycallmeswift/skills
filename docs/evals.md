@@ -106,4 +106,5 @@ For the full eval lifecycle (iteration, visual review, description optimization)
 | ghostwrite | 2 | Happy path + hard gate (refuses to create from scratch) |
 | scope | 3 | Happy path + vague prompt + adversarial |
 | summarize | 4 | dev.to article, specific URL, Anthropic page, PDF |
+| prompt-engineer | 3 | Happy path (JSON extractor) + review existing prompt + vague request |
 

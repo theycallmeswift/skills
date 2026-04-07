@@ -1,0 +1,49 @@
+{
+  "skill_name": "prompt-engineer",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Write me a prompt for an LLM that extracts the parties, effective date, and termination clauses from a contract PDF. The output should be JSON so we can stick it in a database.",
+      "expected_output": "A structured extraction prompt delivered in a fenced code block with a one-line technique note. Should specify the JSON schema explicitly, include at least one few-shot example, and not pad with preamble.",
+      "files": [],
+      "assertions": [
+        { "text": "Output contains a fenced code block (triple backticks) wrapping the final prompt", "type": "structural" },
+        { "text": "The prompt inside the code block specifies a concrete JSON schema or output structure (parties, effective_date, termination)", "type": "structural" },
+        { "text": "Output contains a 'Technique:' line after the code block briefly naming the pattern used", "type": "structural" },
+        { "text": "Output does NOT begin with preamble like 'Here is your prompt' or 'Sure, I can help with that'", "type": "structural" },
+        { "text": "Output contains no em dashes (—)", "type": "structural" },
+        { "text": "The prompt is self-contained (the target LLM could act on it without extra context)", "type": "structural" },
+        { "text": "The prompt does NOT use vague role assignments like 'You are a helpful assistant'", "type": "structural" }
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "This prompt isn't working, can you fix it?\n\n```\nYou are a helpful AI assistant that helps users. Please be very thorough but also concise. I would really appreciate it if you could analyze the following customer feedback and tell me what you think about it. Make sure to consider all aspects and provide a detailed yet brief summary. Thank you so much!\n\n{feedback}\n```",
+      "expected_output": "A diagnosis of the problems (vague role, contradictions, politeness padding, no output format), a rewritten prompt in a code block, and 2-4 bullets explaining the changes.",
+      "files": [],
+      "assertions": [
+        { "text": "Output contains a fenced code block wrapping a rewritten version of the prompt", "type": "structural" },
+        { "text": "Output contains a 'Changes:' section (or equivalent) with bullets explaining what was fixed and why", "type": "structural" },
+        { "text": "The diagnosis identifies at least two of: vague role, contradictory instructions ('thorough but concise'), politeness padding, missing output format", "type": "structural" },
+        { "text": "The rewritten prompt removes 'helpful AI assistant', 'please', and 'thank you' padding", "type": "structural" },
+        { "text": "The rewritten prompt specifies a concrete output format (length, structure, fields, etc.)", "type": "structural" },
+        { "text": "The rewritten prompt resolves the 'thorough but concise' contradiction (picks one or defines the trade-off)", "type": "structural" },
+        { "text": "The rewritten prompt is shorter than the original (leaner token count)", "type": "structural" },
+        { "text": "Output contains no em dashes (—)", "type": "structural" }
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "I need a prompt for summarization.",
+      "expected_output": "Should ask 1-3 clarifying questions before drafting (target content type, length, audience, format) rather than inventing assumptions. Should NOT produce a full prompt with fabricated specifics.",
+      "files": [],
+      "assertions": [
+        { "text": "Output asks at least one clarifying question before drafting a final prompt", "type": "structural" },
+        { "text": "Output asks no more than 3 clarifying questions", "type": "structural" },
+        { "text": "Questions are presented one at a time, not as a numbered list of 5+ questions", "type": "structural" },
+        { "text": "Output does NOT deliver a finished prompt in a code block on this turn (it waits for answers first)", "type": "structural" },
+        { "text": "Output does not fabricate specifics the user did not provide (e.g. inventing 'news articles' or 'academic papers' as the content type)", "type": "structural" }
+      ]
+    }
+  ]
+}
