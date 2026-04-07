@@ -1,3 +1,6 @@
+import os
+
+import pytest
 from pathlib import Path
 
 
@@ -61,3 +64,22 @@ def test_snapshot_captures_only_new_or_modified(tmp_path):
     assert after["existing.md"] == "modified"
     assert after["new.md"] == "brand new"
     assert after["subdir/deep.md"] == "deep"
+
+
+@pytest.mark.skipif(
+    not os.environ.get("ANTHROPIC_API_KEY") and not os.environ.get("CLAUDE_CODE_OAUTH_TOKEN"),
+    reason="requires Claude credentials",
+)
+async def test_run_claude_smoke(tmp_path):
+    from tests.support.harness.runner import run_claude
+    result = await run_claude(
+        prompt="Reply with exactly the word 'pong' and nothing else.",
+        cwd=tmp_path,
+        context_paths=[],
+        project_root=tmp_path,
+        timeout_s=60,
+    )
+    assert result.exit_code == 0
+    assert "pong" in result.stdout.lower()
+    assert result.duration_s > 0
+    assert result.input_tokens > 0
