@@ -146,7 +146,7 @@ LinkedIn doesn't support rich text (no markdown rendering). Format accordingly.
 
 - No greeting. No "Hey team!" Just start talking
 - If the message has a request, the FIRST SENTENCE must be the request. Not context, not what you built, not background. The ask. "Does anyone have X?" or "Can you do Y?" Context and explanation come after. The reader should know what you want from them before they know why
-- One to three sentences. If it needs a second paragraph, it should probably be an email.
+- One to three sentences. If it needs a second paragraph, it's too long.
 
 **Formatting:**
 
@@ -161,7 +161,7 @@ LinkedIn doesn't support rich text (no markdown rendering). Format accordingly.
 - Abbreviations and casual speech OK: "opps" for opportunities, "devrel" for developer relations
 - Don't sign Slack messages
 
-**Length:** Under 60 words. One to three sentences. If you can't fit it, it's an email.
+**Length:** Under 60 words. One to three sentences. If you can't fit it, cut scope.
 
 ### Blog Posts (DEV)
 
