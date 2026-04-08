@@ -36,7 +36,13 @@
         },
         {
           "text": "Output offers what's-next options (implementation plan, scope another piece, etc.)"
-        }
+        },
+        {"text": "The written spec file mentions per-repo to channel routing (terms like 'allowlist', 'routing table', 'repo -> channel', or equivalent)"},
+        {"text": "The written spec file specifies a durable queue or retry mechanism — Redis, BullMQ, persistent queue, or similar — NOT an in-memory-only queue"},
+        {"text": "The written spec file lists all three event types the user named: opened, ready_for_review, closed"},
+        {"text": "The written spec file marks the user-stated non-goals as out of scope: two-way interaction, review assignment, backfill, and config UI"},
+        {"text": "The written spec file's deployment target is Fly.io and the runtime is Node.js (matches the user's stated stack)"},
+        {"text": "The written spec file mentions YAML config loaded at startup (no hot reload)"}
       ]
     },
     {
