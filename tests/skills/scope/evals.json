@@ -88,10 +88,10 @@
       "files": [],
       "assertions": [
         {
-          "text": "Output does NOT skip the design process despite the user requesting it"
+          "text": "Output does NOT agree to skip scoping — it still asks at least one clarifying question on this turn, regardless of how it frames the urgency"
         },
         {
-          "text": "Output acknowledges the user's urgency but explains why design comes first"
+          "text": "Output acknowledges the user's urgency (e.g. 'keeping this tight', 'going fast') AND names a concrete risk of jumping in blind (rework, wrong granularity, scope creep, etc.)"
         },
         {
           "text": "No implementation code, project scaffolding, or source files are created"

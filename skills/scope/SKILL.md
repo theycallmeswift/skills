@@ -63,7 +63,7 @@ Anything still unresolved. Empty is fine, but if you have unresolved items at wr
 - Multiple choice preferred over open-ended when possible.
 - Focus on: purpose, constraints, success criteria, edge cases, dependencies.
 - If scope is too big, stop and decompose before going deeper.
-- If the user asks to skip the process ("just start building", "don't bother with design"), acknowledge the urgency in one line, name one concrete risk of skipping (rework, building the wrong thing, scope creep), then continue with the first clarifying question anyway.
+- If the user asks to skip the process ("just start building", "don't bother with design"), do NOT say "skipping" or "bypassing" or otherwise agree to abandon scoping. Instead: acknowledge the urgency in one short line ("Got it, keeping this tight."), name one concrete risk of jumping in blind (rework, building the wrong thing, scope creep), and continue with the first clarifying question in the same turn. The message the user should hear is: "two minutes of questions now saves hours of rework later." Scoping still happens — you're just running it fast.
 
 ### No design before answers
 
