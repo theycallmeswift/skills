@@ -1,6 +1,7 @@
 import json
 from pathlib import Path
-from .models import EvalCase, EvalSuite, EvalKind, RunPlan
+
+from .models import EvalCase, EvalKind, EvalSuite, RunPlan
 
 _CLEANUP_ALLOWED_ROOTS = ("references/specs/", "tmp/")
 

@@ -1,7 +1,6 @@
 import os
 
 import pytest
-from pathlib import Path
 
 
 def test_copy_context_files_and_dirs(tmp_path):
@@ -51,7 +50,7 @@ def test_snapshot_captures_only_new_or_modified(tmp_path):
     cwd.mkdir()
     (cwd / "existing.md").write_text("original")
 
-    from tests.support.harness.runner import snapshot_files, capture_changes
+    from tests.support.harness.runner import capture_changes, snapshot_files
     before = snapshot_files(cwd)
 
     (cwd / "existing.md").write_text("modified")

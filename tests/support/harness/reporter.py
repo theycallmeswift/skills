@@ -1,8 +1,10 @@
 import sys
 from dataclasses import dataclass
 from typing import Protocol
+
 from .models import Grading, RunPlan
 from .runner import RunResult
+
 
 @dataclass
 class CaseResult:
@@ -134,7 +136,7 @@ class RichReporter:
         t.add_column("Duration", justify="right")
         t.add_column("Tokens", justify="right")
         t.add_column("Pass Rate", justify="right")
-        for key, row in self._rows.items():
+        for _key, row in self._rows.items():
             t.add_row(*row["cells"])
         return t
 

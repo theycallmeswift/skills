@@ -1,7 +1,7 @@
-from pathlib import Path
 from tests.support.harness.models import EvalCase, Grading, RunPlan
+from tests.support.harness.reporter import CaseResult, DotsReporter
 from tests.support.harness.runner import RunResult
-from tests.support.harness.reporter import DotsReporter, CaseResult
+
 
 def _mk_result(suite, case_id, variant, kind, passed, failed, exit_code=0):
     case = EvalCase(id=case_id, turns=["x"], assertions=[])

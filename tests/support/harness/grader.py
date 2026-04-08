@@ -1,4 +1,7 @@
 import json
+
+from claude_agent_sdk import AssistantMessage, ClaudeAgentOptions, ResultMessage, query
+
 from .models import Grading
 from .runner import RunResult
 
@@ -197,8 +200,6 @@ async def _grade_text_llm(
     original_prompt: str,
     input_limit: int | None = None,
 ) -> list[dict]:
-    from claude_agent_sdk import query, ClaudeAgentOptions, AssistantMessage, ResultMessage
-
     if not assertions:
         return []
 
@@ -234,6 +235,15 @@ async def _grade_text_llm(
         return structured["expectations"]
 
     raw = "".join(parts).strip()
+    return _parse_grader_fallback(raw)["expectations"]
+
+
+def _parse_grader_fallback(raw: str) -> dict:
+    """Parse a grader response that didn't come back as structured output.
+
+    Strips markdown code fences if present, then JSON-decodes. Raises
+    RuntimeError on empty input.
+    """
     if raw.startswith("```"):
         raw = raw.split("```")[1]
         if raw.startswith("json"):
@@ -241,8 +251,7 @@ async def _grade_text_llm(
         raw = raw.strip().rstrip("`")
     if not raw:
         raise RuntimeError("grader returned empty response")
-    data = json.loads(raw)
-    return data["expectations"]
+    return json.loads(raw)
 
 
 async def grade(

@@ -1,11 +1,11 @@
 import asyncio
 import json
-import os
 import shutil
 import tempfile
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
-from .discovery import discover_suites, build_run_plans
+
+from .discovery import build_run_plans, discover_suites
 from .grader import grade
 from .models import RunPlan
 from .reporter import CaseResult, Reporter
@@ -102,7 +102,7 @@ async def run_evals(
     plans = build_run_plans(suites, project_root=project_root, baseline=baseline)
     artifact_root = project_root / "tmp" / "evals"
     artifact_root.mkdir(parents=True, exist_ok=True)
-    run_id = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H-%M-%S")
+    run_id = datetime.now(UTC).strftime("%Y-%m-%dT%H-%M-%S")
 
     reporter.start(len(plans))
     sem = asyncio.Semaphore(CONCURRENCY)

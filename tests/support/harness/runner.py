@@ -4,6 +4,14 @@ import time
 from dataclasses import dataclass, field
 from pathlib import Path
 
+from claude_agent_sdk import (
+    AssistantMessage,
+    ClaudeAgentOptions,
+    ClaudeSDKClient,
+    ResultMessage,
+    ToolUseBlock,
+)
+
 TURN_SEPARATOR = "\n\n--- turn {n} ---\n\n"
 
 
@@ -77,14 +85,6 @@ async def run_claude(
     between turns are collected and concatenated into `stdout` with visible
     separators. The entire session shares one timeout.
     """
-    from claude_agent_sdk import (
-        ClaudeSDKClient,
-        ClaudeAgentOptions,
-        AssistantMessage,
-        ToolUseBlock,
-        ResultMessage,
-    )
-
     if not turns:
         raise ValueError("run_claude requires at least one turn")
 
@@ -154,9 +154,3 @@ async def run_claude(
     )
 
 
-async def run_codex(*args, **kwargs) -> RunResult:
-    raise NotImplementedError("Codex runner not implemented yet")
-
-
-async def run_gemini(*args, **kwargs) -> RunResult:
-    raise NotImplementedError("Gemini runner not implemented yet")

@@ -1,7 +1,9 @@
 import json
-import pytest
 from pathlib import Path
-from tests.support.harness.discovery import load_eval_file, EvalSuite, EvalCase
+
+import pytest
+
+from tests.support.harness.discovery import EvalSuite, load_eval_file
 
 
 def _write_suite(tmp_path: Path, cleanup: list[str]) -> Path:
@@ -203,7 +205,7 @@ def test_build_run_plans_skill_with_baseline(tmp_path):
     (tmp_path / "skills" / "ghostwrite").mkdir(parents=True)
     (tmp_path / "skills" / "ghostwrite" / "SKILL.md").write_text("# skill")
 
-    from tests.support.harness.discovery import discover_suites, build_run_plans
+    from tests.support.harness.discovery import build_run_plans, discover_suites
     suites = discover_suites(tmp_path / "tests")
     plans = build_run_plans(suites, project_root=tmp_path, baseline=True)
 
@@ -234,7 +236,7 @@ def test_build_run_plans_skill_no_baseline(tmp_path):
     (tmp_path / "skills" / "ghostwrite").mkdir(parents=True)
     (tmp_path / "skills" / "ghostwrite" / "SKILL.md").write_text("# skill")
 
-    from tests.support.harness.discovery import discover_suites, build_run_plans
+    from tests.support.harness.discovery import build_run_plans, discover_suites
     suites = discover_suites(tmp_path / "tests")
     plans = build_run_plans(suites, project_root=tmp_path, baseline=False)
     assert len(plans) == 1
@@ -247,7 +249,7 @@ def test_build_run_plans_core(tmp_path):
     )
     (tmp_path / "AGENTS.md").write_text("# project context")
 
-    from tests.support.harness.discovery import discover_suites, build_run_plans
+    from tests.support.harness.discovery import build_run_plans, discover_suites
     suites = discover_suites(tmp_path / "tests")
     plans = build_run_plans(suites, project_root=tmp_path, baseline=True)
     assert len(plans) == 1

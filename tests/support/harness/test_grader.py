@@ -1,7 +1,18 @@
+import asyncio
 import os
+
 import pytest
+
+from tests.support.harness.grader import (
+    DEFAULT_STDOUT_LIMIT,
+    _build_prompt,
+    _grade_deterministic,
+    _parse_grader_fallback,
+    _truncate_tail,
+    grade,
+)
+from tests.support.harness.models import Grading
 from tests.support.harness.runner import RunResult
-from tests.support.harness.grader import grade, _grade_deterministic, _truncate_tail, _build_prompt, DEFAULT_STDOUT_LIMIT
 
 
 def test_truncate_tail_keeps_end_and_adds_marker():
@@ -110,10 +121,6 @@ def test_skill_invoked_fails_when_no_skill_tool_at_all():
     assert "no Skill tool" in exps[0]["evidence"]
 
 
-import asyncio
-from tests.support.harness.models import Grading
-
-
 def test_grade_merges_deterministic_and_text_in_order(monkeypatch):
     run = _run_with_trace([
         {"name": "Skill", "input": {"skill": "ghostwrite"}, "turn": 1},
@@ -178,3 +185,19 @@ async def test_grader_fails_obviously_false_assertion():
     g = await grade(run, assertions)
     assert g.passed == 0
     assert g.failed == 1
+
+
+def test_parse_grader_fallback_strips_json_fence():
+    raw = '```json\n{"expectations": [{"text": "x", "passed": true, "evidence": "y"}]}\n```'
+    data = _parse_grader_fallback(raw)
+    assert data["expectations"][0]["text"] == "x"
+
+
+def test_parse_grader_fallback_plain_json():
+    data = _parse_grader_fallback('{"expectations": []}')
+    assert data == {"expectations": []}
+
+
+def test_parse_grader_fallback_empty_raises():
+    with pytest.raises(RuntimeError, match="empty"):
+        _parse_grader_fallback("")
