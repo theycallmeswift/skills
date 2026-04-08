@@ -104,6 +104,7 @@
     },
     {
       "id": "ambiguous-reference",
+      "tier": "regression",
       "turns": [
         "summarize that thing I sent you yesterday"
       ],

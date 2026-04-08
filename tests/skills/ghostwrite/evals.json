@@ -3,6 +3,7 @@
   "evals": [
     {
       "id": "sponsor-email",
+      "tier": "lift",
       "turns": [
         "Rewrite this as an email to our sponsor contact Sarah:\n\nHey so I wanted to reach out because we just wrapped up Season 3 of the Fellowship and the numbers were really strong. We had 450 fellows complete the program which is up 30% from last season. 92% of them said they'd recommend it to a friend. I think this is a great opportunity for us to talk about renewing the sponsorship for next season and maybe even expanding the scope of what we do together. Let me know if you'd be open to hopping on a call next week to discuss."
       ],
@@ -33,6 +34,7 @@
     },
     {
       "id": "linkedin-from-scratch",
+      "tier": "lift",
       "turns": [
         "Write a LinkedIn post announcing that MLH is partnering with a new AI company to offer hackathon participants access to their API."
       ],
@@ -54,6 +56,7 @@
     },
     {
       "id": "preserve-link-and-quote",
+      "tier": "regression",
       "turns": [
         "Rewrite this as a short blog post intro in my voice:\n\nI was reading through Julia Evans' latest post the other day — she made a point that really stuck with me: \"the best debugging tool you have is the ability to notice when your mental model of the system is wrong.\" The full post is over at https://jvns.ca/blog/2023/11/06/debugging-tools/ and it's genuinely one of the clearest things I've read about how senior engineers actually debug stuff in the wild. I wanted to share it because I think a lot of what we tell junior engineers about debugging misses this point entirely."
       ],

@@ -3,6 +3,7 @@
   "evals": [
     {
       "id": "contract-extraction-json",
+      "tier": "regression",
       "turns": [
         "Write me a prompt for an LLM that extracts the parties, effective date, and termination clauses from a contract PDF. The output should be JSON so we can stick it in a database."
       ],
@@ -20,6 +21,7 @@
     },
     {
       "id": "fix-bad-prompt",
+      "tier": "lift",
       "turns": [
         "This prompt isn't working, can you fix it?\n\n```\nYou are a helpful AI assistant that helps users. Please be very thorough but also concise. I would really appreciate it if you could analyze the following customer feedback and tell me what you think about it. Make sure to consider all aspects and provide a detailed yet brief summary. Thank you so much!\n\n{feedback}\n```"
       ],
@@ -50,6 +52,7 @@
     },
     {
       "id": "vague-summarization-request",
+      "tier": "regression",
       "turns": [
         "I need a prompt for summarization."
       ],
