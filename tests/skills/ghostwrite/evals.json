@@ -51,6 +51,22 @@
           "text": "Output does not invent the name of the AI company or fabricate partnership details"
         }
       ]
+    },
+    {
+      "id": "preserve-link-and-quote",
+      "turns": [
+        "Rewrite this as a short blog post intro in my voice:\n\nI was reading through Julia Evans' latest post the other day — she made a point that really stuck with me: \"the best debugging tool you have is the ability to notice when your mental model of the system is wrong.\" The full post is over at https://jvns.ca/blog/2023/11/06/debugging-tools/ and it's genuinely one of the clearest things I've read about how senior engineers actually debug stuff in the wild. I wanted to share it because I think a lot of what we tell junior engineers about debugging misses this point entirely."
+      ],
+      "files": [],
+      "assertions": [
+        {"text": "Output does not contain any em dashes (\u2014)"},
+        {"text": "Output preserves the URL https://jvns.ca/blog/2023/11/06/debugging-tools/ verbatim (character-for-character)"},
+        {"text": "Output preserves the direct quote 'the best debugging tool you have is the ability to notice when your mental model of the system is wrong' verbatim — no paraphrasing inside the quotation marks"},
+        {"text": "Output attributes the quote to Julia Evans (the attribution survives the rewrite)"},
+        {"text": "Output uses contractions (e.g., it's, we're, that's)"},
+        {"text": "Output does not begin with preamble like 'Here is your rewritten post' or 'I rewrote this'"},
+        {"text": "Output is a rewrite, not a refusal — actual prose is produced, not a clarifying question"}
+      ]
     }
   ]
 }
