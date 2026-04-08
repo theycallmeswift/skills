@@ -71,6 +71,39 @@ def test_skill_invoked_fails_when_no_skill_tool_at_all():
     assert exps[0]["passed"] is False
     assert "no Skill tool" in exps[0]["evidence"]
 
+
+import asyncio
+from tests.support.harness.models import Grading
+
+
+def test_grade_merges_deterministic_and_text_in_order(monkeypatch):
+    run = _run_with_trace([
+        {"name": "Skill", "input": {"skill": "ghostwrite"}, "turn": 1},
+    ])
+    assertions = [
+        {"text": "output is a rewrite"},
+        {"skill_invoked": "ghostwrite"},
+        {"text": "tone is friendly"},
+    ]
+
+    async def fake_llm_grade(run_, text_assertions, model, original_prompt):
+        return [
+            {"text": a["text"], "passed": True, "evidence": "ok"}
+            for a in text_assertions
+        ]
+
+    monkeypatch.setattr("tests.support.harness.grader._grade_text_llm", fake_llm_grade)
+
+    result: Grading = asyncio.run(grade(run, assertions))
+    assert [e["text"] for e in result.expectations] == [
+        "output is a rewrite",
+        "skill_invoked: ghostwrite",
+        "tone is friendly",
+    ]
+    assert all(e["passed"] for e in result.expectations)
+    assert result.passed == 3
+    assert result.total == 3
+
 @pytest.mark.skipif(
     not os.environ.get("ANTHROPIC_API_KEY") and not os.environ.get("CLAUDE_CODE_OAUTH_TOKEN"),
     reason="requires Claude credentials",

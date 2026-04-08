@@ -156,16 +156,23 @@ def _build_prompt(run: RunResult, assertions: list[dict], original_prompt: str) 
     )
 
 
-async def grade(
+_DETERMINISTIC_KEYS = ("tool_called", "tool_not_called", "skill_invoked")
+
+
+def _is_deterministic(assertion: dict) -> bool:
+    return any(k in assertion for k in _DETERMINISTIC_KEYS)
+
+
+async def _grade_text_llm(
     run: RunResult,
     assertions: list[dict],
-    model: str | None = None,
-    original_prompt: str = "",
-) -> Grading:
+    model: str | None,
+    original_prompt: str,
+) -> list[dict]:
     from claude_agent_sdk import query, ClaudeAgentOptions, AssistantMessage, ResultMessage
 
     if not assertions:
-        return Grading.from_expectations([])
+        return []
 
     options = ClaudeAgentOptions(
         model=model or DEFAULT_GRADER_MODEL,
@@ -187,7 +194,7 @@ async def grade(
                     parts.append(block.text)
 
     if structured is not None:
-        return Grading.from_expectations(structured["expectations"])
+        return structured["expectations"]
 
     raw = "".join(parts).strip()
     if raw.startswith("```"):
@@ -198,4 +205,27 @@ async def grade(
     if not raw:
         raise RuntimeError("grader returned empty response")
     data = json.loads(raw)
-    return Grading.from_expectations(data["expectations"])
+    return data["expectations"]
+
+
+async def grade(
+    run: RunResult,
+    assertions: list[dict],
+    model: str | None = None,
+    original_prompt: str = "",
+) -> Grading:
+    if not assertions:
+        return Grading.from_expectations([])
+
+    text_assertions = [a for a in assertions if not _is_deterministic(a)]
+    llm_expectations = await _grade_text_llm(run, text_assertions, model, original_prompt)
+
+    llm_iter = iter(llm_expectations)
+    merged: list[dict] = []
+    for a in assertions:
+        if _is_deterministic(a):
+            merged.extend(_grade_deterministic([a], run))
+        else:
+            merged.append(next(llm_iter))
+
+    return Grading.from_expectations(merged)
