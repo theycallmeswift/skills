@@ -8,24 +8,14 @@
       ],
       "files": [],
       "assertions": [
-        {
-          "text": "The final prompt is presented as a distinct fenced code block, not inline prose"
-        },
-        {
-          "text": "The prompt inside the code block specifies a concrete JSON schema or output structure (parties, effective_date, termination)"
-        },
-        {
-          "text": "Output contains a 'Technique:' line after the code block briefly naming the pattern used"
-        },
-        {
-          "text": "Output does NOT begin with preamble like 'Here is your prompt' or 'Sure, I can help with that'"
-        },
-        {
-          "text": "The prompt is self-contained (the target LLM could act on it without extra context)"
-        },
-        {
-          "text": "The prompt does NOT use vague role assignments like 'You are a helpful assistant'"
-        }
+        {"text": "The final prompt is presented as a distinct fenced code block"},
+        {"text": "Output contains a 'Technique:' line briefly naming the pattern used"},
+        {"text": "Output does NOT begin with preamble like 'Here is your prompt' or 'Sure, I can help with that'"},
+        {"text": "The prompt inside the code block names all three required fields — parties, effective_date, termination — inside the schema itself, not just in surrounding prose"},
+        {"text": "The prompt explicitly instructs the LLM to return only JSON with no prose wrapper, markdown fences, or commentary"},
+        {"text": "The prompt specifies behavior when a required field is missing from the contract (null vs omit vs explicit error) — a real extraction failure mode"},
+        {"text": "The prompt addresses handling of long or multi-page input (chunking, truncation, or an explicit instruction to process the full document)"},
+        {"text": "The prompt does NOT use vague role assignments like 'You are a helpful assistant'"}
       ]
     },
     {
