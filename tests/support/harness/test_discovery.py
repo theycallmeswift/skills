@@ -272,3 +272,28 @@ def test_missing_evals_raises_clear_error(tmp_path):
     f.write_text(json.dumps({"name": "demo"}))
     with pytest.raises(ValueError, match="missing 'evals'"):
         load_eval_file(f, kind="skill")
+
+
+def test_schema_rejects_unknown_top_level_key(tmp_path):
+    f = tmp_path / "evals.json"
+    f.write_text(json.dumps({
+        "name": "demo",
+        "evals": [{"id": "c1", "turns": ["hi"]}],
+        "random_typo_key": 42,
+    }))
+    with pytest.raises(ValueError, match="schema validation failed"):
+        load_eval_file(f, kind="skill")
+
+
+def test_schema_rejects_assertion_with_multiple_keys(tmp_path):
+    f = tmp_path / "evals.json"
+    f.write_text(json.dumps({
+        "name": "demo",
+        "evals": [{
+            "id": "c1",
+            "turns": ["hi"],
+            "assertions": [{"text": "x", "tool_called": "y"}],
+        }],
+    }))
+    with pytest.raises(ValueError, match="schema validation failed"):
+        load_eval_file(f, kind="skill")

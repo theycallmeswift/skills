@@ -1,9 +1,21 @@
 import json
 from pathlib import Path
 
+from jsonschema import ValidationError, validate
+
 from .models import EvalCase, EvalKind, EvalSuite, RunPlan
 
 _CLEANUP_ALLOWED_ROOTS = ("references/specs/", "tmp/")
+
+_SCHEMA_PATH = Path(__file__).parent / "eval.schema.json"
+_SCHEMA: dict | None = None
+
+
+def _get_schema() -> dict:
+    global _SCHEMA
+    if _SCHEMA is None:
+        _SCHEMA = json.loads(_SCHEMA_PATH.read_text())
+    return _SCHEMA
 
 
 def _validate_cleanup(patterns: list[str], source: Path) -> list[str]:
@@ -61,6 +73,12 @@ def load_eval_file(path: Path, kind: EvalKind) -> EvalSuite:
         raise ValueError(
             f"{path}: missing 'evals' at top level (should be a list of cases)."
         )
+    try:
+        validate(instance=data, schema=_get_schema())
+    except ValidationError as e:
+        raise ValueError(
+            f"{path}: schema validation failed: {e.message} (at {list(e.absolute_path)})"
+        ) from e
     shared = data.get("shared_assertions", [])
     if not isinstance(shared, list):
         raise ValueError(
