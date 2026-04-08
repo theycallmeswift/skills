@@ -47,7 +47,7 @@ def fake_run_and_grade(monkeypatch):
             turn_count=len(turns),
         )
 
-    async def fake_grade(run, assertions, model=None, original_prompt=""):
+    async def fake_grade(run, assertions, model=None, original_prompt="", input_limit=None):
         exps = [{"text": a["text"], "passed": True, "evidence": "ok"} for a in assertions]
         return Grading.from_expectations(exps)
 
@@ -91,7 +91,7 @@ def test_run_evals_returns_1_when_assertion_fails(tmp_path, monkeypatch):
             duration_s=0.0, exit_code=0, tool_trace=[], turn_count=1,
         )
 
-    async def fake_grade(run, assertions, model=None, original_prompt=""):
+    async def fake_grade(run, assertions, model=None, original_prompt="", input_limit=None):
         exps = [{"text": a["text"], "passed": False, "evidence": "no"} for a in assertions]
         return Grading.from_expectations(exps)
 

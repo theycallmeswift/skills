@@ -4,6 +4,18 @@ from .runner import RunResult
 
 DEFAULT_GRADER_MODEL = "claude-haiku-4-5-20251001"
 
+DEFAULT_STDOUT_LIMIT = 40_000
+DEFAULT_FILE_LIMIT = 10_000
+DEFAULT_TRACE_LIMIT = 50
+
+
+def _truncate_tail(s: str, limit: int) -> str:
+    """Keep the last `limit` characters of `s`, prepending a truncation marker."""
+    if len(s) <= limit:
+        return s
+    dropped = len(s) - limit
+    return f"[... truncated {dropped} chars ...]\n{s[-limit:]}"
+
 GRADER_PROMPT = """\
 You are a strict eval grader. Read the AGENT OUTPUT below and grade each ASSERTION as PASS or FAIL.
 
@@ -142,17 +154,32 @@ def _grade_deterministic(assertions: list[dict], run: RunResult) -> list[dict]:
     return out
 
 
-def _build_prompt(run: RunResult, assertions: list[dict], original_prompt: str) -> str:
+def _build_prompt(
+    run: RunResult,
+    assertions: list[dict],
+    original_prompt: str,
+    stdout_limit: int = DEFAULT_STDOUT_LIMIT,
+    file_limit: int = DEFAULT_FILE_LIMIT,
+    trace_limit: int = DEFAULT_TRACE_LIMIT,
+) -> str:
+    stdout = _truncate_tail(run.stdout or "(empty)", stdout_limit)
     files_block = (
-        "\n\n".join(f"--- {p} ---\n{c}" for p, c in run.files_written.items())
+        "\n\n".join(
+            f"--- {p} ---\n{_truncate_tail(c, file_limit)}"
+            for p, c in run.files_written.items()
+        )
         or "(none)"
     )
+    trace = run.tool_trace[-trace_limit:] if len(run.tool_trace) > trace_limit else run.tool_trace
+    trace_note = ""
+    if len(run.tool_trace) > trace_limit:
+        trace_note = f"[... {len(run.tool_trace) - trace_limit} earlier entries truncated ...]\n"
     return GRADER_PROMPT.format(
         original_prompt=original_prompt or "(none)",
         assertions_json=json.dumps(assertions, indent=2),
-        stdout=run.stdout or "(empty)",
+        stdout=stdout,
         files_block=files_block,
-        tool_trace_json=json.dumps(run.tool_trace, indent=2),
+        tool_trace_json=trace_note + json.dumps(trace, indent=2),
     )
 
 
@@ -168,6 +195,7 @@ async def _grade_text_llm(
     assertions: list[dict],
     model: str | None,
     original_prompt: str,
+    input_limit: int | None = None,
 ) -> list[dict]:
     from claude_agent_sdk import query, ClaudeAgentOptions, AssistantMessage, ResultMessage
 
@@ -178,7 +206,16 @@ async def _grade_text_llm(
         model=model or DEFAULT_GRADER_MODEL,
         output_format=_OUTPUT_SCHEMA,
     )
-    prompt = _build_prompt(run, assertions, original_prompt)
+    if input_limit is None:
+        prompt = _build_prompt(run, assertions, original_prompt)
+    else:
+        scale = input_limit / DEFAULT_STDOUT_LIMIT
+        prompt = _build_prompt(
+            run, assertions, original_prompt,
+            stdout_limit=input_limit,
+            file_limit=int(DEFAULT_FILE_LIMIT * scale),
+            trace_limit=max(DEFAULT_TRACE_LIMIT, int(DEFAULT_TRACE_LIMIT * scale)),
+        )
 
     structured: dict | None = None
     parts: list[str] = []
@@ -213,12 +250,15 @@ async def grade(
     assertions: list[dict],
     model: str | None = None,
     original_prompt: str = "",
+    input_limit: int | None = None,
 ) -> Grading:
     if not assertions:
         return Grading.from_expectations([])
 
     text_assertions = [a for a in assertions if not _is_deterministic(a)]
-    llm_expectations = await _grade_text_llm(run, text_assertions, model, original_prompt)
+    llm_expectations = await _grade_text_llm(
+        run, text_assertions, model, original_prompt, input_limit=input_limit
+    )
 
     llm_iter = iter(llm_expectations)
     merged: list[dict] = []

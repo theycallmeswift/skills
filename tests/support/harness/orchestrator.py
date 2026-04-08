@@ -48,6 +48,7 @@ async def _run_one(
                 plan.case.assertions,
                 model=plan.case.grader_model,
                 original_prompt=original_prompt,
+                input_limit=plan.case.grader_input_limit,
             )
 
             adir = _artifact_dir(artifact_root, plan, run_id)

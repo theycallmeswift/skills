@@ -1,7 +1,45 @@
 import os
 import pytest
 from tests.support.harness.runner import RunResult
-from tests.support.harness.grader import grade, _grade_deterministic
+from tests.support.harness.grader import grade, _grade_deterministic, _truncate_tail, _build_prompt, DEFAULT_STDOUT_LIMIT
+
+
+def test_truncate_tail_keeps_end_and_adds_marker():
+    s = "a" * 100
+    out = _truncate_tail(s, limit=30)
+    assert out.endswith("a" * 30)
+    assert "truncated" in out
+    assert "70" in out
+
+
+def test_truncate_tail_noop_when_under_limit():
+    s = "short"
+    assert _truncate_tail(s, limit=100) == "short"
+
+
+def test_build_prompt_truncates_long_stdout():
+    run = RunResult(
+        stdout="x" * (DEFAULT_STDOUT_LIMIT + 5000),
+        files_written={},
+        input_tokens=0, output_tokens=0, duration_s=0.0,
+        exit_code=0, tool_trace=[], turn_count=1,
+    )
+    prompt = _build_prompt(run, [{"text": "y"}], original_prompt="p", stdout_limit=DEFAULT_STDOUT_LIMIT)
+    assert "truncated" in prompt
+    assert len(prompt) < DEFAULT_STDOUT_LIMIT + 5000
+
+
+def test_build_prompt_truncates_tool_trace_to_last_n():
+    run = RunResult(
+        stdout="x", files_written={},
+        input_tokens=0, output_tokens=0, duration_s=0.0,
+        exit_code=0,
+        tool_trace=[{"name": f"t{i}", "input": {}, "turn": 1} for i in range(200)],
+        turn_count=1,
+    )
+    prompt = _build_prompt(run, [{"text": "y"}], original_prompt="p", trace_limit=50)
+    assert '"t199"' in prompt
+    assert '"t0"' not in prompt
 
 
 def _run_with_trace(trace):
@@ -86,7 +124,7 @@ def test_grade_merges_deterministic_and_text_in_order(monkeypatch):
         {"text": "tone is friendly"},
     ]
 
-    async def fake_llm_grade(run_, text_assertions, model, original_prompt):
+    async def fake_llm_grade(run_, text_assertions, model, original_prompt, input_limit=None):
         return [
             {"text": a["text"], "passed": True, "evidence": "ok"}
             for a in text_assertions
