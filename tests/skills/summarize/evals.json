@@ -38,12 +38,9 @@
         {
           "text": "Comment section contains a code fence with content of 20 words or fewer"
         },
-        {
-          "text": "TOOL TRACE shows the brightdata MCP was used to fetch the article (a tool name containing `scrape_as_markdown` or `scrape_batch`)"
-        },
-        {
-          "text": "TOOL TRACE does NOT show any call to `WebFetch` or `WebSearch`"
-        }
+        {"tool_called": "scrape_as_markdown"},
+        {"tool_not_called": "WebFetch"},
+        {"tool_not_called": "WebSearch"}
       ]
     },
     {
@@ -83,12 +80,9 @@
         {
           "text": "Comment section contains a code fence with content of 20 words or fewer"
         },
-        {
-          "text": "TOOL TRACE shows the brightdata MCP was used to fetch the article (a tool name containing `scrape_as_markdown` or `scrape_batch`)"
-        },
-        {
-          "text": "TOOL TRACE does NOT show any call to `WebFetch` or `WebSearch`"
-        }
+        {"tool_called": "scrape_as_markdown"},
+        {"tool_not_called": "WebFetch"},
+        {"tool_not_called": "WebSearch"}
       ]
     },
     {
@@ -128,12 +122,9 @@
         {
           "text": "Comment section contains a code fence with content of 20 words or fewer"
         },
-        {
-          "text": "TOOL TRACE shows the brightdata MCP was used to fetch the page (a tool name containing `scrape_as_markdown` or `scrape_batch`)"
-        },
-        {
-          "text": "TOOL TRACE does NOT show any call to `WebFetch` or `WebSearch`"
-        }
+        {"tool_called": "scrape_as_markdown"},
+        {"tool_not_called": "WebFetch"},
+        {"tool_not_called": "WebSearch"}
       ]
     },
     {
@@ -172,12 +163,10 @@
         {
           "text": "Comment section contains a code fence with content of 20 words or fewer"
         },
-        {
-          "text": "TOOL TRACE shows the local PDF was read with the `Read` tool"
-        },
-        {
-          "text": "TOOL TRACE does NOT show any call to `WebFetch`, `WebSearch`, or any brightdata MCP tool"
-        }
+        {"tool_called": "Read"},
+        {"tool_not_called": "WebFetch"},
+        {"tool_not_called": "WebSearch"},
+        {"tool_not_called": "brightdata"}
       ]
     }
   ]
