@@ -14,7 +14,7 @@
       ],
       "files": [],
       "cleanup": [
-        "references/specs/2026-*-github-webhook-slack*.md"
+        "references/specs/2026-*-github-webhook*.md"
       ],
       "assertions": [
         {
