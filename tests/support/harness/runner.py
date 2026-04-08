@@ -72,12 +72,32 @@ class RunResult:
     error: str | None = None
 
 
+def build_agent_options(
+    cwd: Path,
+    project_root: Path,
+    model: str | None = None,
+) -> ClaudeAgentOptions:
+    """Build ClaudeAgentOptions, only setting `model` when explicitly provided
+    so the SDK default (session model) is preserved otherwise."""
+    kwargs: dict = dict(
+        cwd=str(cwd),
+        plugins=[{"type": "local", "path": str(project_root)}],
+        setting_sources=["project"],
+        max_buffer_size=64 * 1024 * 1024,
+        permission_mode="bypassPermissions",
+    )
+    if model is not None:
+        kwargs["model"] = model
+    return ClaudeAgentOptions(**kwargs)
+
+
 async def run_claude(
     turns: list[str],
     cwd: Path,
     context_paths: list[Path],
     project_root: Path,
     timeout_s: float = 300,
+    model: str | None = None,
 ) -> RunResult:
     """Run a scripted multi-turn conversation through the Claude Agent SDK.
 
@@ -99,13 +119,7 @@ async def run_claude(
     exit_code = 0
     turns_sent = 0
 
-    options = ClaudeAgentOptions(
-        cwd=str(cwd),
-        plugins=[{"type": "local", "path": str(project_root)}],
-        setting_sources=["project"],
-        max_buffer_size=64 * 1024 * 1024,
-        permission_mode="bypassPermissions",
-    )
+    options = build_agent_options(cwd=cwd, project_root=project_root, model=model)
 
     start = time.monotonic()
     try:

@@ -100,6 +100,7 @@ def load_eval_file(path: Path, kind: EvalKind) -> EvalSuite:
             grader_model=c.get("grader_model"),
             grader_input_limit=c.get("grader_input_limit"),
             cleanup=_validate_cleanup(c.get("cleanup", []), path),
+            tier=c.get("tier", "regression"),
         ))
     return EvalSuite(
         name=data["name"],
@@ -164,7 +165,7 @@ def build_run_plans(
                     context_paths=with_skill_paths,
                     case=case,
                 ))
-                if baseline:
+                if baseline and case.tier == "lift":
                     plans.append(RunPlan(
                         suite_name=suite.name,
                         suite_kind=suite.kind,

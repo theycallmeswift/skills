@@ -28,6 +28,7 @@ async def _run_one(
     run_id: str,
     reporter: Reporter,
     sem: asyncio.Semaphore,
+    model: str | None = None,
 ) -> CaseResult:
     async with sem:
         reporter.case_started(plan)
@@ -38,6 +39,7 @@ async def _run_one(
                 cwd=cwd,
                 context_paths=plan.context_paths,
                 project_root=project_root,
+                model=model,
             )
 
             original_prompt = "\n\n".join(
@@ -92,6 +94,7 @@ async def run_evals(
     baseline: bool,
     verbose: bool,
     reporter: Reporter,
+    model: str | None = None,
 ) -> int:
     tests_root = project_root / "tests"
     suites = discover_suites(tests_root, names=names)
@@ -106,7 +109,7 @@ async def run_evals(
 
     reporter.start(len(plans))
     sem = asyncio.Semaphore(CONCURRENCY)
-    tasks = [_run_one(p, project_root, artifact_root, run_id, reporter, sem) for p in plans]
+    tasks = [_run_one(p, project_root, artifact_root, run_id, reporter, sem, model=model) for p in plans]
     results = await asyncio.gather(*tasks)
     exit_code = reporter.finish(list(results), verbose=verbose)
     print(f"\nFull results: tmp/evals/{run_id}/")

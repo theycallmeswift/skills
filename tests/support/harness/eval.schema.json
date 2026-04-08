@@ -27,7 +27,8 @@
           "use_shared_assertions": {"type": "boolean"},
           "grader_model": {"type": "string"},
           "grader_input_limit": {"type": "integer", "minimum": 1000},
-          "cleanup": {"type": "array", "items": {"type": "string"}}
+          "cleanup": {"type": "array", "items": {"type": "string"}},
+          "tier": {"type": "string", "enum": ["lift", "regression"]}
         },
         "additionalProperties": false
       }

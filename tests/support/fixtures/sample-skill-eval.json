@@ -5,6 +5,7 @@
       "id": "sponsor-email",
       "turns": ["Rewrite this in Swift's voice: hello world"],
       "files": [],
+      "tier": "lift",
       "assertions": [
         { "text": "Output is short" }
       ]

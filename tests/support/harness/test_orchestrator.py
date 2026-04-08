@@ -35,7 +35,7 @@ def _make_project(tmp_path: Path) -> Path:
 
 @pytest.fixture
 def fake_run_and_grade(monkeypatch):
-    async def fake_run_claude(turns, cwd, context_paths, project_root, timeout_s=300):
+    async def fake_run_claude(turns, cwd, context_paths, project_root, timeout_s=300, model=None):
         return RunResult(
             stdout="hello world",
             files_written={},
@@ -85,7 +85,7 @@ def test_run_evals_writes_artifacts_and_honors_cleanup(tmp_path, fake_run_and_gr
 def test_run_evals_returns_1_when_assertion_fails(tmp_path, monkeypatch):
     root = _make_project(tmp_path)
 
-    async def fake_run_claude(turns, cwd, context_paths, project_root, timeout_s=300):
+    async def fake_run_claude(turns, cwd, context_paths, project_root, timeout_s=300, model=None):
         return RunResult(
             stdout="nope", files_written={}, input_tokens=0, output_tokens=0,
             duration_s=0.0, exit_code=0, tool_trace=[], turn_count=1,

@@ -156,6 +156,7 @@ def test_load_skill_eval_file():
     assert case.assertions == [{"text": "Output is short"}]
     assert case.grader_model is None
     assert case.cleanup == []
+    assert case.tier == "lift"
 
 def test_load_core_eval_file():
     suite = load_eval_file(FIXTURES / "sample-core-eval.json", kind="core")
@@ -226,6 +227,54 @@ def test_build_run_plans_skill_with_baseline(tmp_path):
     assert baseline.turns == ["Rewrite this in Swift's voice: hello world"]
     assert (tmp_path / "skills" / "ghostwrite") not in baseline.context_paths
     assert (tmp_path / "AGENTS.md") in baseline.context_paths
+
+def test_regression_tier_emits_only_with_skill(tmp_path):
+    """A case with tier=regression must produce only the with_skill plan,
+    even when baseline=True is requested at the suite level."""
+    (tmp_path / "tests" / "skills" / "ghostwrite").mkdir(parents=True)
+    (tmp_path / "tests" / "skills" / "ghostwrite" / "evals.json").write_text(json.dumps({
+        "name": "ghostwrite",
+        "evals": [{
+            "id": "preserve-link",
+            "turns": ["hi"],
+            "tier": "regression",
+            "assertions": [{"text": "x"}],
+        }],
+    }))
+    (tmp_path / "AGENTS.md").write_text("# project context")
+    (tmp_path / "skills" / "ghostwrite").mkdir(parents=True)
+    (tmp_path / "skills" / "ghostwrite" / "SKILL.md").write_text("# skill")
+
+    from tests.support.harness.discovery import build_run_plans, discover_suites
+    suites = discover_suites(tmp_path / "tests")
+    plans = build_run_plans(suites, project_root=tmp_path, baseline=True)
+    assert len(plans) == 1
+    assert plans[0].variant == "with_skill"
+
+
+def test_tier_defaults_to_regression_when_omitted(tmp_path):
+    """If a case omits the tier field, it defaults to regression (safer default
+    — opt in to the stricter lift bar, never emit baseline accidentally)."""
+    (tmp_path / "tests" / "skills" / "ghostwrite").mkdir(parents=True)
+    (tmp_path / "tests" / "skills" / "ghostwrite" / "evals.json").write_text(json.dumps({
+        "name": "ghostwrite",
+        "evals": [{
+            "id": "untiered",
+            "turns": ["hi"],
+            "assertions": [{"text": "x"}],
+        }],
+    }))
+    (tmp_path / "AGENTS.md").write_text("# project context")
+    (tmp_path / "skills" / "ghostwrite").mkdir(parents=True)
+    (tmp_path / "skills" / "ghostwrite" / "SKILL.md").write_text("# skill")
+
+    from tests.support.harness.discovery import build_run_plans, discover_suites
+    suites = discover_suites(tmp_path / "tests")
+    assert suites[0].cases[0].tier == "regression"
+    plans = build_run_plans(suites, project_root=tmp_path, baseline=True)
+    assert len(plans) == 1
+    assert plans[0].variant == "with_skill"
+
 
 def test_build_run_plans_skill_no_baseline(tmp_path):
     (tmp_path / "tests" / "skills" / "ghostwrite").mkdir(parents=True)

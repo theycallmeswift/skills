@@ -65,6 +65,23 @@ def test_snapshot_captures_only_new_or_modified(tmp_path):
     assert after["subdir/deep.md"] == "deep"
 
 
+def test_build_agent_options_omits_model_by_default(tmp_path):
+    from tests.support.harness.runner import build_agent_options
+    opts = build_agent_options(cwd=tmp_path, project_root=tmp_path)
+    # When not specified, model should not be set (SDK default applies).
+    assert getattr(opts, "model", None) in (None, "")
+
+
+def test_build_agent_options_passes_model_when_given(tmp_path):
+    from tests.support.harness.runner import build_agent_options
+    opts = build_agent_options(
+        cwd=tmp_path,
+        project_root=tmp_path,
+        model="claude-haiku-4-5-20251001",
+    )
+    assert opts.model == "claude-haiku-4-5-20251001"
+
+
 @pytest.mark.skipif(
     not os.environ.get("ANTHROPIC_API_KEY") and not os.environ.get("CLAUDE_CODE_OAUTH_TOKEN"),
     reason="requires Claude credentials",
