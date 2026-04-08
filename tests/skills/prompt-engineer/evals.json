@@ -62,7 +62,7 @@
           "text": "Output asks no more than 3 clarifying questions"
         },
         {
-          "text": "Questions are presented one at a time, not as a numbered list of 5+ questions"
+          "text": "Output contains at most two question marks total (one-at-a-time behavior, not a bulk list)"
         },
         {
           "text": "Output does NOT deliver a finished prompt in a code block on this turn (it waits for answers first)"
