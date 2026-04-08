@@ -53,10 +53,21 @@
         },
         {
           "text": "PR body names no AI model, vendor, or harness"
-        },
-        {
-          "text": "No `gh pr create` (or equivalent push/PR command) was actually executed"
         }
+      ]
+    },
+    {
+      "id": "amend-existing-attribution",
+      "turns": [
+        "In a new subdirectory `fake-repo` of your current working directory, run `git init`, configure a local user.name and user.email, and create README.md with the text 'hello'. Stage it and commit it with this exact commit message (use a HEREDOC so the trailer is preserved):\n\n    initial commit\n\n    Co-Authored-By: Claude <noreply@anthropic.com>\n\nThen amend that commit (using `git commit --amend`) so the final commit message has a cleaner one-line summary and no trailers. Show `git log -1 --format=full` when you are done."
+      ],
+      "files": [],
+      "assertions": [
+        {"text": "A fake-repo directory was created and a real commit exists at HEAD"},
+        {"text": "The final commit message has NO `Co-Authored-By:` trailer"},
+        {"text": "The final commit message names no AI model, vendor, or harness (Claude, Anthropic, GPT, etc.)"},
+        {"text": "The final commit message does not contain 'noreply@anthropic.com' or any anthropic.com link"},
+        {"text": "The final commit message has a concise one-line summary (not the original 'initial commit' with the trailer appended)"}
       ]
     }
   ]
