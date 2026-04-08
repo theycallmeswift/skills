@@ -1,110 +1,193 @@
 # Skill Evals
 
-How we test and improve skills in MechaSwift.
+How we test skills and project rules in MechaSwift.
 
-## Approach
+## Running
 
-We use Anthropic's **skill-creator** skill to run the full eval lifecycle. It handles running test cases, grading, benchmarking, and visual review in a single workflow. No custom scripts needed.
+```bash
+make test                                                        # all suites
+make test ARGS="ghostwrite"                                      # one suite
+make test ARGS="--no-baseline scope"                             # skip baseline runs (faster)
+make test ARGS="--verbose"                                       # show passing assertion evidence too
+make test ARGS="--model claude-haiku-4-5-20251001"               # run the agent on a specific model
+```
 
-There are two types of evals:
+The harness discovers eval files under `tests/`, runs each case in parallel through the Claude Agent SDK (concurrency cap 8), grades with an LLM judge, and prints a live table (TTY) or pytest dots (CI).
 
-- **Quality evals** -- Does the skill produce good output? Runs each test prompt with and without the skill loaded, grades against assertions, compares the results.
-- **Trigger evals** -- Does Claude actually activate the skill when it should (and not when it shouldn't)? Tests the skill description as a routing mechanism.
+`--model` overrides the model the agent uses for the run. Useful for baselining against a cheaper/weaker model (e.g. Haiku) to separate real skill value from model-capability freebies — if a case passes on both the with-skill and baseline variants on a weak model, the skill isn't doing any work.
+
+## Layout
+
+- `tests/skills/<name>/evals.json` — skill quality evals. Each case is tagged `lift` or `regression` (see Intents below). Lift cases run twice (with-skill and baseline) so the suite can measure delta; regression cases run only with-skill.
+- `tests/core/<name>.json` — core evals. Single run per case in a temp cwd seeded with `AGENTS.md`. The agent discovers skills on its own. Used for global rules (e.g. `no-ai-attribution`) and the `skill-triggers` discovery test.
+- `tests/support/harness/` — the Python harness itself. Its own unit tests live in `tests/support/harness/tests/` (`make test-harness`).
 
 ## Eval file format
 
-Each skill with evals has an `evals/evals.json`:
-
 ```json
 {
-  "skill_name": "ghostwrite",
+  "name": "ghostwrite",
   "evals": [
     {
-      "id": 1,
-      "prompt": "The user's task prompt",
-      "expected_output": "Description of expected result",
+      "id": "sponsor-email",
+      "intent": "lift",
+      "turns": ["..."],
       "files": [],
+      "grader_model": "claude-haiku-4-5-20251001",
       "assertions": [
-        { "text": "Output contains X", "type": "structural" }
-      ]
+        { "text": "Output preserves all factual claims" }
+      ],
+      "cleanup": []
     }
   ]
 }
 ```
 
-Key fields:
-- `prompt` -- The exact user message to test
-- `expected_output` -- Human-readable description of success
-- `files` -- Optional input files for the test
-- `expectations` -- Pass/fail assertions graded by an LLM judge. Use the fields `text`, `passed`, and `evidence` in grading output.
-- `cleanup` -- Optional glob patterns for files to remove after eval
+- `name` — used for filtering on the CLI.
+- `id` — slug, used in artifact paths and surfaced in the summary.
+- `intent` — `lift` or `regression` (default `regression`). See Intents below.
+- `turns` — **required**. List of user messages, sent sequentially. Single-turn cases use a one-element list. Multi-turn cases script each reply in order.
+- `files` — relative paths from the eval file dir; copied into the run's temp cwd.
+- `grader_model` — optional, defaults to Haiku. Override for subjective skills like ghostwrite.
+- `assertions` — graded by an LLM judge (one call per run). Be specific.
+- `cleanup` — optional glob patterns deleted after the run.
 
-## Running quality evals
+## Intents
 
-Invoke the skill-creator skill and tell it to run evals on an existing skill. It will:
+Every skill case declares an `intent` of `lift` or `regression`. These intents answer different questions and have different pass bars. (This mirrors the capability/regression split Anthropic recommends in "Demystifying evals for AI agents" and the Agent Skills evaluating-skills guide.)
 
-1. Spawn parallel subagents for each test case (with-skill and without-skill baseline)
-2. Grade outputs against assertions using a dedicated grader agent
-3. Aggregate results into `benchmark.json` with pass rates, timing (mean +/- stddev), and token usage
-4. Launch an HTML viewer for qualitative review (Outputs tab + Benchmark tab)
-5. Collect your feedback and iterate
+**Lift intent — does this skill still do useful work?**
+- Runs the case twice: once with the skill loaded, once as a baseline.
+- Reports with-skill, baseline, delta, and a status column (`OK` / `WARN` / `FAIL`).
+- Fails the suite only if the with-skill rate drops below 75% or the run errors. A flat or negative delta emits `WARN` but does not fail — single runs have variance, and a saturated case (where even the baseline passes) is informational, not a regression.
+- Use for cases where a weaker model fails without the skill and the skill visibly changes behavior. Baseline against Haiku is the fastest way to find real lift: `make test ARGS="--model claude-haiku-4-5-20251001"`.
 
-Results land in `tmp/<skill>-evals/iteration-<N>/` organized by eval case, with transcripts, timing, and grading for each variant.
+**Regression intent — did we break anything?**
+- Runs the case only with the skill loaded.
+- Must hit 100%. Any failed assertion fails the suite.
+- Use for cases where the skill encodes a rule the model might drift from (format, tool use, safety rules) but where the base model also currently gets it right. Catches skill edits that silently break format, drift from model upgrades, and anything that matters even if both variants would pass today.
 
-Example:
+**Graduation:** A lift case whose delta has dropped to zero on every frontier model is a candidate for graduation to the regression intent (or deletion if both variants saturate even on weak models — see "Remove capability freebies" below). A regression case that starts failing on a new model is a lift case again.
+
+**Remove capability freebies:** If a case passes at 100% on both variants on *both* Opus and Haiku, it's testing model capability, not skill value. Delete it (or rewrite the assertion to be harder). Keeping it inflates the with-skill pass rate without reflecting anything the skill does.
+
+## Assertion types
+
+Assertions are graded in two ways depending on their shape.
+
+**Text assertions** (default) go to an LLM judge:
+```json
+{"text": "Output contains a '## TL;DR' section"}
 ```
-tmp/ghostwrite-evals/iteration-1/
-  eval-happy-path/
-    with_skill/
-      outputs/transcript.md
-      timing.json
-      grading.json
-    without_skill/
-      outputs/transcript.md
-      timing.json
-      grading.json
-    eval_metadata.json
-  benchmark.json
-  benchmark.md
+
+**Deterministic assertions** are graded in Python against the tool trace or captured output — faster, cheaper, no LLM variance:
+```json
+{"tool_called": "scrape_as_markdown"}
+{"tool_not_called": "WebFetch"}
+{"skill_invoked": "ghostwrite"}
+{"lint": "summarize"}
 ```
 
-## Running trigger evals
+Use deterministic assertions for any observable fact about tool use. Reserve text assertions for content and behavior.
 
-Trigger evals test whether Claude routes prompts to your skill correctly. The skill-creator generates 20 realistic queries (mix of should-trigger and should-not-trigger), runs each 3x for reliability, then optimizes the skill description in a loop using a train/test split to prevent overfitting.
+**Lint assertions** run `skills/<name>/lint.py` against the captured agent stdout. Exit 0 = pass, non-zero = fail (the script's stdout is reported as evidence). Each skill with deterministic format rules ships its own `lint.py` — it's the same script the skill runs inside its own tool loop as a self-check, so the harness and the agent catch the same structural bugs. Use `{"lint": "<skill>"}` to replace flaky prose assertions for rules like "starts with a title", "has 5-8 bullets", or "no em dashes".
 
-Run after the skill itself is in good shape. The description is a hyperparameter to optimize, not just metadata.
+## Shared assertions
+
+Cases in the same suite often share structural assertions (e.g. every summarize case wants the same H1/TL;DR/Cliff Notes format). Hoist them to the suite level:
+
+```json
+{
+  "name": "summarize",
+  "shared_assertions": [
+    {"text": "Output starts with a clear title for the summarized content"},
+    {"text": "Output contains a short summary (1-2 sentences) near the top"}
+  ],
+  "evals": [
+    {"id": "c1", "intent": "regression", "turns": ["..."], "assertions": [{"text": "..."}]}
+  ]
+}
+```
+
+Shared assertions are prepended to each case's own `assertions`. A case can opt out with `"use_shared_assertions": false`.
+
+## Grader input limits
+
+Long multi-turn runs produce huge grader prompts. Defaults: 40,000 chars of stdout, 10,000 chars per file, last 50 tool trace entries. Override per case with `"grader_input_limit": 80000` (scales all three).
+
+## Cleanup safety
+
+`cleanup` globs must be relative paths under `references/specs/` or `tmp/`. Absolute paths, `..` segments, and other roots are rejected at load time.
+
+## Writing good assertions
+
+- **Prefer semantic checks over literal format checks.** "Output contains a short 1-2 sentence summary near the top" is robust; "Output contains the literal heading `## TL;DR`" will fail on perfectly valid outputs that use `**Summary:**` or a different heading. Only pin to literal form when a downstream consumer actually parses that form.
+- **Grade the outcome, not the path.** If the user cares that a summary has five components, assert the five components, not the tool sequence that produced them. Brittle structural checks are the single biggest source of false failures (Anthropic's CORE-Bench anecdote: rigid grading scored Opus at 42%; semantic grading scored it at 95%).
+- **Testable, observable properties.** "Output uses Swift's voice" is too soft. "Output contains no em dashes" is graded reliably.
+- **Anchor at least half of assertions in content, not form.** A case that only grades headings can pass with a nonsense body.
+- **Use deterministic assertions for tool use.** `tool_called` / `tool_not_called` / `skill_invoked` are cheaper, faster, and not subject to grader variance.
+- **Multi-turn replies are static.** If the script's turn 3 reply is written assuming turn 2 asks a specific question and the model asks a different one, the reply is a non-sequitur. Keep scripted replies broad, or split the case into single-turn variants.
+
+## Multi-turn cases
+
+Skills with conversational flows (e.g. `scope`, which asks one clarifying question at a time) need more than one turn to reach a graded state. Add them by listing each reply in `turns`:
+
+```json
+{
+  "id": "github-webhook-slack",
+  "turns": [
+    "Scope a GitHub webhook -> Slack PR summaries service.",
+    "Purpose: surface PR activity so reviews don't stall. Internal eng team, ~15 people.",
+    "Node.js service on Fly.io, Redis is available.",
+    "Go with your recommendation.",
+    "Design looks good. Write the spec.",
+    "Spec looks good."
+  ],
+  "assertions": [...]
+}
+```
+
+Notes:
+- Replies are **static**. If the agent asks something the script didn't anticipate, the reply may be a non-sequitur — assertions grade the final trajectory, not conversational coherence. Keep replies broad enough to be plausible answers regardless of exact question phrasing.
+- The whole session shares one 300s timeout.
+- `output.md` contains every assistant turn concatenated with `--- turn N ---` separators.
+- Token counts are summed across turns.
+
+## Artifacts
+
+Every run writes to `tmp/evals/<ISO-timestamp>/`:
+
+```
+tmp/evals/2026-04-08T14-30-00/
+  ghostwrite/
+    eval-sponsor-email/               # lift case — both variants
+      with_skill/outputs/output.md
+      with_skill/grading.json
+      baseline/outputs/output.md
+      baseline/grading.json
+      eval_metadata.json
+  summarize/
+    eval-devto-top-article/           # regression case — with-skill only
+      with_skill/outputs/output.md
+      with_skill/grading.json
+      eval_metadata.json
+  _core/
+    no-ai-attribution/
+      eval-throwaway-commit/run/...
+```
+
+`tmp/` is gitignored.
 
 ## Writing good evals
 
-**Test cases**: Aim for at least 3 per skill. Include a happy path, an edge case, and an adversarial/negative case.
+- At least 3 cases per skill: happy path, edge case, adversarial/negative.
+- Decide the intent up front. If the skill should visibly change behavior on this input, tag `lift`. If the skill encodes a rule you want to protect against drift but the base model also gets it right, tag `regression`.
+- Assertions describe observable properties of the output, not subjective vibes. The grader is an LLM judge; "Output uses Swift's voice" is too soft. "Output contains no em dashes" is graded reliably.
+- Baseline new lift cases against Haiku before merging: `make test ARGS="--model claude-haiku-4-5-20251001 <skill>"`. If both variants tie at 100% on Haiku, the case isn't measuring skill value — rewrite the assertion or drop it.
+- Skill triggers: keep `tests/core/skill-triggers.json` updated when you add a skill.
 
-**Assertions**: Make them objectively verifiable. Use descriptive text that reads clearly in the benchmark viewer. Skip assertions for subjective qualities (tone, style) and rely on qualitative review for those.
+## Adding a new skill
 
-**Trigger eval queries**: Make them realistic and detailed, not abstract. Include file paths, context, casual phrasing. The should-not-trigger cases should be near-misses, not obviously irrelevant prompts.
-
-**Tool Trace**: Every with-skill and baseline run appends a `## Tool Trace` section to its output listing the fetch and read tools it actually invoked. This is enforced by the `/eval` workflow as a regression check. If your skill fetches web content, write assertions that confirm the brightdata MCP was used and `WebFetch` / `WebSearch` were not. The summarize evals are the reference example.
-
-## Quick eval run
-
-Use the `/eval` command for a fast pass/fail check:
-
-```
-/eval                        # All skills
-/eval ghostwrite summarize   # Specific skills
-/eval --no-baseline          # Skip baseline comparison
-/eval --verbose              # Show all evidence
-```
-
-Results print inline as a summary table. Full outputs go to `tmp/evals/<timestamp>/`.
-
-For the full eval lifecycle (iteration, visual review, description optimization), use the skill-creator skill instead.
-
-## Current coverage
-
-| Skill | Evals | Notes |
-|-------|-------|-------|
-| ghostwrite | 2 | Happy path + hard gate (refuses to create from scratch) |
-| scope | 3 | Happy path + vague prompt + adversarial |
-| summarize | 4 | dev.to article, specific URL, Anthropic page, PDF |
-| prompt-engineer | 3 | Happy path (JSON extractor) + review existing prompt + vague request |
-
+1. Create `tests/skills/<name>/evals.json` with at least 3 cases.
+2. Add a case to `tests/core/skill-triggers.json` that prompts a realistic trigger and asserts the Skill tool fires.
+3. `make test ARGS="<name>"` to verify.

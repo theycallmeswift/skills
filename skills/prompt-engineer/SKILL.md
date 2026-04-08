@@ -18,13 +18,16 @@ Tokens cost money, latency, and attention. A shorter prompt that hits the goal b
 
    **Draft mode (no questions):** the user has given you a concrete target task AND either a sample input, an existing prompt to fix, or output fields/shape. Examples: "extract parties, dates, termination clauses as JSON", "fix this prompt: <pasted>", "classify these reviews as pos/neg/neutral". Reasonable defaults for unspecified items (model target, exact schema field names, edge cases) are fine. Draft it.
 
-   **Ask mode (one question, then stop):** the user has given you a topic with no shape. Examples: "I need a prompt for summarization", "write me something for customer support". Ask exactly ONE clarifying question that would most change the output. Do not draft, do not list 5 questions, do not invent a content type. Wait for the answer.
+   **Ask mode (one question, then stop):** the user has given you a topic with no shape. Examples: "I need a prompt for summarization", "write me something for customer support". Ask exactly ONE clarifying question that would most change the output. ONE question means one — never join two questions with "and", "also", or a comma. If you catch yourself writing "X and Y?", split it and ask only X. Do not draft, do not list 5 questions, do not invent a content type. Wait for the answer.
 
    The minimum bar for draft mode: a clear target task plus at least one of {sample input, existing prompt, named output fields}. If you have all three, definitely draft. If you have none, definitely ask.
 
 3. **Pick a pattern.** Match the task to a framework (see `references/frameworks.md`). Use it silently, don't name it unless asked.
 4. **Draft self-contained.** The target LLM should need zero extra context.
-5. **Cut.** Run the Quality Bar. Delete anything that isn't pulling weight.
+5. **Cut.** Run the Quality Bar. Delete anything that isn't pulling weight. Then run the Failure Mode Checklist — but ONLY for tasks where these failure modes are real:
+   - **Structured extraction from documents** (parsing contracts, invoices, resumes, PDFs, multi-page text into JSON/fields): the prompt MUST say (a) what to do when a required field is missing or unknown (return null, omit, raise) AND (b) how to handle long or multi-page input (process the full document, chunking expectation, or explicit length handling). One short clause each is enough — do not bloat.
+   - **Classification on short user-provided text** (sentiment, intent, single review/message): these checks do NOT apply. Do not add missing-field or long-input handling. The lean rule wins.
+   - When in doubt: would adding this clause change the output for a realistic input? If no, skip it.
 6. **Present.** Code block + one-line technique note. Nothing else.
 
 ## Framework Picker
@@ -51,6 +54,20 @@ Pick the lightest pattern that fits. Combine only when blending clearly improves
 
 When sections are needed, order them: Role → Task → Context → Constraints → Examples → Input → Output format. Skip any section that doesn't earn its place. A simple extractor only needs Task, Examples, Input, Output.
 
+## Schema Field Names
+
+When the user names fields to extract ("parties, effective date, termination clauses"), the schema keys in the drafted prompt use the **shortest unambiguous form** of each concept, snake_cased. Drop filler nouns like `_clauses`, `_section`, `_info`, `_details`, `_data` when the concept stands on its own.
+
+Examples:
+- "parties" → `parties`
+- "effective date" → `effective_date`
+- "termination clauses" → `termination` (drop `_clauses` — the concept is "termination")
+- "payment terms" → `payment_terms` (keep — "payment" alone is ambiguous)
+- "contact information" → `contact` (drop `_information` — filler)
+- "risk factors" → `risks`
+
+The goal: the consumer of the JSON can read each key once and know what it holds, without the key repeating itself in prose. Every token earns its keep, including in field names.
+
 ## Quality Bar
 
 Every "no" is a fix.
@@ -64,6 +81,7 @@ Every "no" is a fix.
 - **Lean:** could you delete a line without changing the output? If yes, delete it.
 - **Examples earn it:** included examples cover edge cases and match the target?
 - **Placeholders marked:** user-supplied values shown as `{like_this}`?
+- **Failure modes covered:** what happens when a required field is missing, when input is too long, or when the model is uncertain? At least the relevant ones are addressed (e.g. "return null", "process the full document", "say 'unknown'").
 
 ## Anti-Patterns
 
