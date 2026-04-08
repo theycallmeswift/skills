@@ -85,8 +85,12 @@ def check_summary_paragraph(text: str) -> str | None:
     return None
 
 
-def check_bullet_count(text: str, lo: int = 5, hi: int = 8) -> str | None:
-    """There must be a contiguous bulleted list somewhere with lo..hi items."""
+def check_bullet_count(text: str, hi: int = 8) -> str | None:
+    """There must be a bulleted list, and no run of bullets may exceed `hi`.
+
+    Intentionally no floor: short inputs legitimately support fewer bullets,
+    and padding to hit a floor is a worse failure mode than emitting 3.
+    """
     lines = _lines(text)
     runs: list[int] = []
     current = 0
@@ -101,10 +105,11 @@ def check_bullet_count(text: str, lo: int = 5, hi: int = 8) -> str | None:
     if current:
         runs.append(current)
     if not runs:
-        return f"no bulleted list found (expected {lo}-{hi} items)"
-    if any(lo <= r <= hi for r in runs):
-        return None
-    return f"no bulleted list with {lo}-{hi} items (found runs: {runs})"
+        return "no bulleted list found"
+    over = [r for r in runs if r > hi]
+    if over:
+        return f"bulleted list exceeds {hi} items (found runs: {runs})"
+    return None
 
 
 def check_share_block(text: str) -> str | None:

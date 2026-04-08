@@ -41,7 +41,7 @@ Every summary the user sees is a **single assistant message** that fills in this
 
 - <bullet 1>
 - <bullet 2>
-- <5 to 8 bullets total>
+- <as many bullets as the source supports, up to 8 max>
 
 ## Share
 
@@ -66,11 +66,11 @@ Every summary the user sees is a **single assistant message** that fills in this
 3. **Identify the Share takeaway** (one punchy sentence that would make someone click) and the **Comment angle** (something specific to react to as a builder).
 4. **Invoke the `ghostwrite` skill exactly once** with both the Share takeaway and the Comment angle. Ask it to return two rewrites: a Slack-style share message and a short forum comment. Ghostwrite's return value is **raw text you paste into the Share and Comment code fences of the template in step 6**. It is never your final response to the user. If ghostwrite gives you text and you are tempted to just return it, STOP — you still owe the user the full template (H1 + TL;DR + Cliff Notes + Share + Comment).
 5. **Verify hard limits.** Count, do not estimate.
-   - **Cliff Notes**: 5-8 bullets. If more than 8, consolidate.
+   - **Cliff Notes**: up to 8 bullets. Fewer is fine — if the source only supports 3, emit 3. Never pad to hit a number.
    - **Share**: 1-2 sentences. If more, cut.
    - **Comment**: 20 words or fewer inside the code fence. If more, trim yourself (do not re-invoke ghostwrite).
 6. **Write the full template above as a single markdown message.** All five sections. Literal `## TL;DR`, `## Cliff Notes`, `## Share`, `## Comment` headings. No bold-label substitutes.
-7. **Self-check before presenting.** Write your draft to `tmp/summarize-draft.md`, run `python skills/summarize/lint.py tmp/summarize-draft.md`, and fix the file until the lint is clean (exit 0). The lint catches structural bugs the model is known to drift on: missing title, narration leaking into output, wrong bullet count, em dashes, missing Share/Comment blocks.
+7. **Self-check before presenting.** Write your draft to `tmp/summarize-draft.md`, run `python skills/summarize/lint.py tmp/summarize-draft.md`, and fix the file until the lint is clean (exit 0). The lint catches structural bugs the model is known to drift on: missing title, narration leaking into output, too many bullets (>8), em dashes, missing Share/Comment blocks.
 8. **Deliver the draft verbatim.** Your next assistant message is the contents of `tmp/summarize-draft.md` and nothing else. First character is the `#` of the H1. Last character is the closing backtick of the Comment code fence. No "Lint clean.", no "Here's the summary:", no "---", no trailing "Let me know...". Read the file back and send exactly what it contains.
 
 ## Input types
@@ -99,8 +99,8 @@ In all three cases, the `## Share` and `## Comment` section headings are still e
 - Each bullet: 1-2 sentences max. No long paragraphs.
 - Use **bold** for names, key terms, or critical facts so they pop when skimming.
 - Use *italics* for context, nuance, or editorial framing that helps interpretation.
-- 5-8 bullets total, ordered by importance (not source order).
-- Never pad with filler to hit 5.
+- Up to 8 bullets, ordered by importance (not source order). Fewer is fine.
+- Never pad with filler. If the source only supports 3 bullets, emit 3.
 
 **Share** — a code fence containing the ghostwritten Slack-style hot take. Use Slack markdown inside the fence: `*bold*` single asterisks, `_italic_` single underscores. For URL inputs, the last line inside the fence is the bare source URL on its own line. For file/pasted inputs, omit the URL line entirely.
 

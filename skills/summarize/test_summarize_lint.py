@@ -95,8 +95,8 @@ def test_em_dash_is_rejected():
     assert "no_em_dash" in _rule_names(findings)
 
 
-def test_bullet_count_out_of_range():
-    # Only 3 bullets — too few
+def test_bullet_count_three_bullets_is_fine():
+    # Short input: 3 bullets is legitimate; floor removed.
     text = """\
 # Title
 
@@ -118,8 +118,52 @@ share
 comment
 ```
 """
-    findings = lint(text)
-    assert "bullet_count" in _rule_names(findings)
+    assert "bullet_count" not in _rule_names(lint(text))
+
+
+def test_bullet_count_over_ceiling_fails():
+    bullets = "\n".join(f"- b{i}" for i in range(10))
+    text = f"""\
+# Title
+
+Summary paragraph.
+
+{bullets}
+
+## Share
+
+```
+share
+```
+
+## Comment
+
+```
+comment
+```
+"""
+    assert "bullet_count" in _rule_names(lint(text))
+
+
+def test_bullet_count_no_list_fails():
+    text = """\
+# Title
+
+Summary paragraph only. No list.
+
+## Share
+
+```
+share
+```
+
+## Comment
+
+```
+comment
+```
+"""
+    assert "bullet_count" in _rule_names(lint(text))
 
 
 def test_comment_too_long():
