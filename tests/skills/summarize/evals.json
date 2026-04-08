@@ -6,9 +6,9 @@
     {"text": "TL;DR is 1-2 sentences of plain body text, not rendered as a heading or bold block"},
     {"text": "Output contains a '## Cliff Notes' section"},
     {"text": "Cliff Notes contains a bulleted list with 5-8 items"},
-    {"text": "Output contains a '## Share' section"},
-    {"text": "Share section contains a code fence with a bare URL on its own line"},
-    {"text": "Output contains a '## Comment' section"},
+    {"text": "Output contains a '## Share' section with the literal heading '## Share' (not a bold label like '**SLACK**')"},
+    {"text": "Share section contains a code fence"},
+    {"text": "Output contains a '## Comment' section with the literal heading '## Comment' (not a bold label like '**COMMENT**')"},
     {"text": "Comment section contains a code fence with content of 20 words or fewer"}
   ],
   "evals": [
@@ -20,6 +20,7 @@
       "files": [],
       "assertions": [
         {"text": "Output contains a clickable link to the source URL near the title"},
+        {"text": "Share section code fence contains a bare URL on its own line"},
         {"tool_called": "scrape_as_markdown"},
         {"tool_not_called": "WebFetch"},
         {"tool_not_called": "WebSearch"}
@@ -33,6 +34,7 @@
       "files": [],
       "assertions": [
         {"text": "Output contains a clickable link to the source URL near the title"},
+        {"text": "Share section code fence contains a bare URL on its own line"},
         {"tool_called": "scrape_as_markdown"},
         {"tool_not_called": "WebFetch"},
         {"tool_not_called": "WebSearch"}
@@ -46,6 +48,7 @@
       "files": [],
       "assertions": [
         {"text": "Output contains a clickable link to the source URL near the title"},
+        {"text": "Share section code fence contains a bare URL on its own line"},
         {"tool_called": "scrape_as_markdown"},
         {"tool_not_called": "WebFetch"},
         {"tool_not_called": "WebSearch"}
@@ -59,6 +62,7 @@
       "files": ["test-paper.pdf"],
       "assertions": [
         {"text": "H1 title uses the document/paper title or filename, not a URL"},
+        {"text": "Share section code fence contains no URL (PDF input has no source URL to share)"},
         {"tool_called": "Read"},
         {"tool_not_called": "WebFetch"},
         {"tool_not_called": "WebSearch"},
@@ -74,6 +78,7 @@
       "assertions": [
         {"text": "H1 title is based on the pasted content (e.g. about pull requests or code review), not a generic placeholder"},
         {"text": "Cliff Notes bullets reflect the pasted text (PR size, review time, trunk-based, etc.), not invented topics"},
+        {"text": "Share section code fence contains no URL (pasted text input has no source URL to share)"},
         {"tool_not_called": "scrape_as_markdown"},
         {"tool_not_called": "scrape_batch"},
         {"tool_not_called": "WebFetch"},
