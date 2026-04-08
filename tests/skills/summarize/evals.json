@@ -79,6 +79,23 @@
         {"tool_not_called": "WebFetch"},
         {"tool_not_called": "WebSearch"}
       ]
+    },
+    {
+      "id": "short-input-no-padding",
+      "turns": [
+        "Summarize this note:\n\nWe decided to push the Q3 demo day to the week of September 15. The reason is that the new partner onboarding flow won't be ready in time for the original date. Marketing has been told. Calendar invites will go out Friday."
+      ],
+      "files": [],
+      "use_shared_assertions": false,
+      "assertions": [
+        {"text": "Output contains an H1 title (line starting with '# ')"},
+        {"text": "Output contains a '## TL;DR' section"},
+        {"text": "TL;DR correctly names the Q3 demo day date change as the core fact"},
+        {"text": "Every Cliff Notes bullet is directly supported by the 4-sentence input (mentions demo day, Sept 15, partner onboarding, marketing, or calendar invites — not invented details)"},
+        {"text": "Output does NOT pad the Cliff Notes with generic project-management commentary not present in the input"},
+        {"tool_not_called": "scrape_as_markdown"},
+        {"tool_not_called": "WebFetch"}
+      ]
     }
   ]
 }
