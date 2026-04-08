@@ -11,7 +11,7 @@ make test ARGS="--no-baseline scope"   # skip baseline runs (faster)
 make test ARGS="--verbose"             # show passing assertion evidence too
 ```
 
-The harness discovers eval files under `tests/`, runs each case in parallel through the Claude Agent SDK (concurrency cap 4), grades with an LLM judge, and prints a live table (TTY) or pytest dots (CI).
+The harness discovers eval files under `tests/`, runs each case in parallel through the Claude Agent SDK (concurrency cap 8), grades with an LLM judge, and prints a live table (TTY) or pytest dots (CI).
 
 ## Layout
 

@@ -11,7 +11,7 @@ from .models import RunPlan
 from .reporter import CaseResult, Reporter
 from .runner import run_claude
 
-CONCURRENCY = 4
+CONCURRENCY = 8
 
 def _artifact_dir(root: Path, plan: RunPlan, run_id: str) -> Path:
     if plan.suite_kind == "core":
