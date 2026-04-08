@@ -52,6 +52,70 @@ def test_cleanup_rejects_bare_star(tmp_path):
     with pytest.raises(ValueError, match="allowed roots"):
         load_eval_file(f, kind="skill")
 
+def test_shared_assertions_are_prepended_to_each_case(tmp_path):
+    f = tmp_path / "evals.json"
+    f.write_text(json.dumps({
+        "name": "demo",
+        "shared_assertions": [
+            {"text": "Output is non-empty"},
+            {"text": "Output has a heading"},
+        ],
+        "evals": [
+            {
+                "id": "c1",
+                "turns": ["hi"],
+                "assertions": [{"text": "Output mentions cats"}],
+            },
+            {
+                "id": "c2",
+                "turns": ["hi"],
+                "assertions": [{"text": "Output mentions dogs"}],
+            },
+        ],
+    }))
+    suite = load_eval_file(f, kind="skill")
+    assert [a["text"] for a in suite.cases[0].assertions] == [
+        "Output is non-empty",
+        "Output has a heading",
+        "Output mentions cats",
+    ]
+    assert [a["text"] for a in suite.cases[1].assertions] == [
+        "Output is non-empty",
+        "Output has a heading",
+        "Output mentions dogs",
+    ]
+
+
+def test_case_can_opt_out_of_shared_assertions(tmp_path):
+    f = tmp_path / "evals.json"
+    f.write_text(json.dumps({
+        "name": "demo",
+        "shared_assertions": [{"text": "shared one"}],
+        "evals": [
+            {
+                "id": "opted-out",
+                "turns": ["hi"],
+                "use_shared_assertions": False,
+                "assertions": [{"text": "own one"}],
+            },
+        ],
+    }))
+    suite = load_eval_file(f, kind="skill")
+    assert [a["text"] for a in suite.cases[0].assertions] == ["own one"]
+
+
+def test_no_shared_assertions_key_works_as_before(tmp_path):
+    f = tmp_path / "evals.json"
+    f.write_text(json.dumps({
+        "name": "demo",
+        "evals": [
+            {"id": "c1", "turns": ["hi"], "assertions": [{"text": "only"}]},
+        ],
+    }))
+    suite = load_eval_file(f, kind="skill")
+    assert [a["text"] for a in suite.cases[0].assertions] == ["only"]
+
+
 FIXTURES = Path(__file__).parent.parent / "fixtures"
 
 def test_load_skill_eval_file():

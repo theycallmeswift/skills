@@ -54,17 +54,27 @@ def _load_turns(case: dict, source: Path) -> list[str]:
 
 def load_eval_file(path: Path, kind: EvalKind) -> EvalSuite:
     data = json.loads(path.read_text())
-    cases = [
-        EvalCase(
+    shared = data.get("shared_assertions", [])
+    if not isinstance(shared, list):
+        raise ValueError(
+            f"{path}: 'shared_assertions' must be a list of assertion dicts."
+        )
+
+    cases: list[EvalCase] = []
+    for c in data["evals"]:
+        own = c.get("assertions", [])
+        if c.get("use_shared_assertions", True):
+            merged = [*shared, *own]
+        else:
+            merged = list(own)
+        cases.append(EvalCase(
             id=str(c["id"]),
             turns=_load_turns(c, path),
             files=c.get("files", []),
-            assertions=c.get("assertions", []),
+            assertions=merged,
             grader_model=c.get("grader_model"),
             cleanup=_validate_cleanup(c.get("cleanup", []), path),
-        )
-        for c in data["evals"]
-    ]
+        ))
     return EvalSuite(
         name=data["name"],
         kind=kind,
