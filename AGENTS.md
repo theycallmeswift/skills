@@ -46,6 +46,7 @@ All web content goes through the `brightdata` MCP server. The built-in `WebFetch
 - `skills/` -- Each skill gets its own directory with a `SKILL.md` and optional `references/`
 - `docs/` -- Hand-authored documentation and prompt context (e.g. `about-swift.md`, `evals.md`)
 - `references/` -- Agent-generated context: `plans/`, `research/`, `specs/`, plus on-demand reference material loaded by skills
+- `tests/` -- Evals (`tests/skills/`, `tests/core/`) and the Python harness (`tests/support/harness/`). See `docs/evals.md`.
 - `tmp/` -- Scratch space for working sessions. Not tracked in git. Put intermediate outputs, drafts, and test results here.
 
 ## Safety & Standards
@@ -57,6 +58,7 @@ Be transparent and direct on sensitive topics. Prioritize community safety and p
 Skills are in `skills/`. Each has a `SKILL.md` with activation triggers.
 
 - **ghostwrite** -- Rewrite content in Swift's voice. See `skills/ghostwrite/SKILL.md`.
+- **prompt-engineer** -- Write, improve, and debug prompts for LLMs. See `skills/prompt-engineer/SKILL.md`.
 - **scope** -- Turn a vague idea into a structured spec through collaborative design. See `skills/scope/SKILL.md`.
 - **summarize** -- Produce skimmable summaries of web pages, PDFs, and articles. See `skills/summarize/SKILL.md`.
 

@@ -5,6 +5,7 @@ Personal agent framework for [Claude Code](https://docs.anthropic.com/en/docs/cl
 ## Skills
 
 - **ghostwrite** -- Rewrites rough content in Swift's voice, formatted for a target platform (email, LinkedIn, Slack, DEV blog).
+- **prompt-engineer** -- Writes, improves, and debugs prompts for LLMs. System prompts, tool use, evals.
 - **scope** -- Turns a vague idea into a structured spec through collaborative design. Enforces design-before-code.
 - **summarize** -- Produces skimmable summaries of web pages, PDFs, and articles with TL;DR, cliff notes, and ready-to-share messages.
 
@@ -31,17 +32,17 @@ Skills are available in every Claude Code session after install. Invoke them by 
 mechaswift/
 ├── skills/                  # On-demand capability modules
 │   ├── ghostwrite/          # Content rewriter
-│   │   ├── SKILL.md
-│   │   └── references/      # Style samples
+│   ├── prompt-engineer/     # Prompt authoring/debugging
 │   ├── scope/               # Design & ideation
-│   │   ├── SKILL.md
-│   │   └── evals/           # Eval definitions
 │   └── summarize/           # Content summarization
-│       ├── SKILL.md
-│       └── evals/           # Eval definitions
 ├── docs/                    # Hand-authored docs and prompt context
 │   ├── about-swift.md       # Bio, tone, voice
-│   └── evals.md             # How to run and write skill evals
+│   ├── evals.md             # How to run and write skill evals
+│   └── plugin-structure.md  # Plugin layout reference
+├── tests/                   # Evals + harness
+│   ├── core/                # Cross-cutting rules (no-ai-attribution, skill-triggers)
+│   ├── skills/              # Per-skill eval suites
+│   └── support/harness/     # Python eval runner
 ├── references/              # Agent-generated context
 │   ├── plans/               # Implementation plans
 │   ├── research/            # Best-practices research
@@ -59,17 +60,17 @@ Skills can reference hand-authored prompt context from `docs/` (e.g. `about-swif
 
 ## Testing
 
-Each skill with evals has an `evals/evals.json` defining test prompts and structural assertions. The `/eval` slash command runs them in parallel: each prompt is executed with and without the skill loaded, graded by an LLM judge against the assertions, and printed as a pass/fail summary table.
+Eval suites live under `tests/skills/<name>/evals.json` (per-skill) and `tests/core/*.json` (cross-cutting rules). A Python harness runs them in parallel through the Claude Agent SDK, grades with an LLM judge (plus deterministic tool-trace and lint assertions), and prints a live table.
 
 ```
-/eval                        # All skills + project evals
-/eval ghostwrite summarize   # Specific skills
-/eval --no-baseline          # Skip the without-skill comparison
-/eval --verbose              # Show full grading evidence
+make test                                       # All suites
+make test ARGS="ghostwrite summarize"           # Specific suites
+make test ARGS="--no-baseline"                  # Skip baseline (with-skill only)
+make test ARGS="--verbose"                      # Show passing assertion evidence
+make test ARGS="--model claude-haiku-4-5-20251001"  # Override agent model
+make test-unit                                  # Harness unit tests
 ```
 
 Results print inline. Full outputs land in `tmp/evals/<timestamp>/`.
 
-For the full lifecycle (iteration, HTML viewer, trigger-eval description optimization), use Anthropic's **skill-creator** skill instead.
-
-See [docs/evals.md](docs/evals.md) for the eval file format, current coverage, and best practices.
+See [docs/evals.md](docs/evals.md) for the eval file format, tiers (lift vs regression), assertion types, and best practices.
