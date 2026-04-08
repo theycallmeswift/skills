@@ -65,6 +65,20 @@ Anything still unresolved. Empty is fine, but if you have unresolved items at wr
 - If scope is too big, stop and decompose before going deeper.
 - If the user asks to skip the process ("just start building", "don't bother with design"), acknowledge the urgency in one line, name one concrete risk of skipping (rework, building the wrong thing, scope creep), then continue with the first clarifying question anyway.
 
+### No design before answers
+
+The turn where you ask the **first** clarifying question must contain only the question (plus at most a one-line acknowledgement of what you read). Specifically, this turn must NOT contain:
+
+- Architectural claims ("X is a plugin, so Y would live outside this repo")
+- Deployment or topology decisions ("this would run as a separate service")
+- Technology recommendations ("use Fly.io", "this should be Node")
+- Structural decomposition ("we'd split this into three components")
+- Any sentence that starts with "so", "therefore", or otherwise draws a conclusion about HOW to build
+
+If you notice yourself writing any of the above before the user has answered the first question, delete it. Those sentences belong in Step 3 (Propose approaches), not Step 2. The user's answers are inputs to the design — you cannot propose a design before you have them.
+
+This rule applies to the first question turn only. Once the user has started answering, you may reference facts they confirmed.
+
 ## Proposing Approaches
 
 - Always propose 2-3 different approaches with trade-offs.
