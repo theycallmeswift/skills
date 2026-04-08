@@ -62,6 +62,86 @@ _OUTPUT_SCHEMA = {
 }
 
 
+def _match_tool(trace: list[dict], needle: str) -> dict | None:
+    """Return the first trace entry whose name contains `needle`, else None."""
+    for entry in trace:
+        if needle in entry.get("name", ""):
+            return entry
+    return None
+
+
+def _match_skill_invocation(trace: list[dict], skill: str) -> dict | None:
+    """Return the first Skill tool entry whose input.skill matches.
+
+    Accepts both bare ('ghostwrite') and prefixed ('mechaswift:ghostwrite') forms.
+    """
+    for entry in trace:
+        if entry.get("name") != "Skill":
+            continue
+        inv = entry.get("input", {}).get("skill", "")
+        if inv == skill or inv.endswith(f":{skill}"):
+            return entry
+    return None
+
+
+def _grade_deterministic(assertions: list[dict], run: RunResult) -> list[dict]:
+    """Evaluate deterministic assertions against the tool trace."""
+    out: list[dict] = []
+    for a in assertions:
+        if "tool_called" in a:
+            needle = a["tool_called"]
+            hit = _match_tool(run.tool_trace, needle)
+            if hit is not None:
+                out.append({
+                    "text": f"tool_called: {needle}",
+                    "passed": True,
+                    "evidence": f"matched tool '{hit['name']}' on turn {hit.get('turn', '?')}",
+                })
+            else:
+                out.append({
+                    "text": f"tool_called: {needle}",
+                    "passed": False,
+                    "evidence": f"no matching tool in trace ({len(run.tool_trace)} entries)",
+                })
+        elif "tool_not_called" in a:
+            needle = a["tool_not_called"]
+            hit = _match_tool(run.tool_trace, needle)
+            if hit is None:
+                out.append({
+                    "text": f"tool_not_called: {needle}",
+                    "passed": True,
+                    "evidence": f"no matching tool in trace ({len(run.tool_trace)} entries)",
+                })
+            else:
+                out.append({
+                    "text": f"tool_not_called: {needle}",
+                    "passed": False,
+                    "evidence": f"found '{hit['name']}' on turn {hit.get('turn', '?')}",
+                })
+        elif "skill_invoked" in a:
+            skill = a["skill_invoked"]
+            hit = _match_skill_invocation(run.tool_trace, skill)
+            if hit is not None:
+                out.append({
+                    "text": f"skill_invoked: {skill}",
+                    "passed": True,
+                    "evidence": f"Skill tool fired with skill='{hit['input'].get('skill', '?')}' on turn {hit.get('turn', '?')}",
+                })
+            else:
+                has_any_skill = any(e.get("name") == "Skill" for e in run.tool_trace)
+                if has_any_skill:
+                    fired = [e.get("input", {}).get("skill", "?") for e in run.tool_trace if e.get("name") == "Skill"]
+                    evidence = f"Skill tool fired but with different skills: {fired}"
+                else:
+                    evidence = "no Skill tool invocations in trace"
+                out.append({
+                    "text": f"skill_invoked: {skill}",
+                    "passed": False,
+                    "evidence": evidence,
+                })
+    return out
+
+
 def _build_prompt(run: RunResult, assertions: list[dict], original_prompt: str) -> str:
     files_block = (
         "\n\n".join(f"--- {p} ---\n{c}" for p, c in run.files_written.items())
