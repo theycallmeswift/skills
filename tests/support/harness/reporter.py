@@ -12,14 +12,17 @@ class CaseResult:
     run: RunResult
     grading: Grading
 
+
 class Reporter(Protocol):
     def start(self, total: int) -> None: ...
     def case_started(self, plan: RunPlan) -> None: ...
     def case_finished(self, result: CaseResult) -> None: ...
     def finish(self, results: list[CaseResult], verbose: bool) -> int: ...
 
+
 def make_reporter() -> "Reporter":
     return RichReporter() if sys.stdout.isatty() else DotsReporter()
+
 
 class DotsReporter:
     def __init__(self) -> None:
@@ -46,6 +49,7 @@ class DotsReporter:
         print()
         return _print_summary(results, verbose)
 
+
 LIFT_MIN_WITH_SKILL_RATE = 0.75  # Option 2: warn/fail only if with-skill dips below 75%
 
 
@@ -66,24 +70,28 @@ def _print_summary(results: list[CaseResult], verbose: bool) -> int:
         ws = variants.get("with_skill")
         if ws is None:
             continue
-        if ws.plan.case.tier == "lift":
+        if ws.plan.case.intent == "lift":
             lift_rows.append((suite, case_id, ws, variants.get("baseline")))
         else:
             regression_rows.append((suite, case_id, ws))
 
     if lift_rows:
         print("\n## Lift Suite\n")
-        print(f"{'Skill':<20} {'Eval':<30} {'With Skill':<14} {'Baseline':<14} {'Delta':<8} {'Status':<8}")
+        print(
+            f"{'Skill':<20} {'Eval':<30} {'With Skill':<14} {'Baseline':<14} {'Delta':<8} {'Status':<8}"
+        )
         for suite, case_id, ws, bl in lift_rows:
             ws_str = _fmt_score(ws.grading)
             bl_str = _fmt_score(bl.grading) if bl else "—"
             d_val: float | None = None
             delta = ""
             if bl and bl.grading.total:
-                d_val = (ws.grading.passed / ws.grading.total) - (bl.grading.passed / bl.grading.total)
-                delta = f"{d_val*100:+.0f}%"
+                d_val = (ws.grading.passed / ws.grading.total) - (
+                    bl.grading.passed / bl.grading.total
+                )
+                delta = f"{d_val * 100:+.0f}%"
             ws_rate = ws.grading.passed / ws.grading.total if ws.grading.total else 0.0
-            # Fail lift tier ONLY if with-skill falls below the min rate OR
+            # Fail lift intent ONLY if with-skill falls below the min rate OR
             # the run itself errored. A flat/negative delta is informational.
             failing = ws.run.exit_code != 0 or ws_rate < LIFT_MIN_WITH_SKILL_RATE
             warn = (d_val is not None and d_val < 0) and not failing
@@ -142,17 +150,20 @@ def _print_summary(results: list[CaseResult], verbose: bool) -> int:
 
     return exit_code
 
+
 def _fmt_score(g: Grading) -> str:
     if g.total == 0:
         return "n/a"
     pct = int(round(100 * g.passed / g.total))
     return f"{g.passed}/{g.total} ({pct}%)"
 
+
 class RichReporter:
     def __init__(self) -> None:
         from rich.console import Console
         from rich.live import Live
         from rich.table import Table
+
         self._Console = Console
         self._Live = Live
         self._Table = Table
@@ -179,9 +190,17 @@ class RichReporter:
 
     def case_started(self, plan: RunPlan) -> None:
         key = (plan.suite_name, plan.case_id, plan.variant)
-        self._rows[key] = {"cells": [
-            plan.suite_name, plan.case_id, plan.variant, "[yellow]running[/yellow]", "—", "—", "—"
-        ]}
+        self._rows[key] = {
+            "cells": [
+                plan.suite_name,
+                plan.case_id,
+                plan.variant,
+                "[yellow]running[/yellow]",
+                "—",
+                "—",
+                "—",
+            ]
+        }
         if self._live:
             self._live.update(self._table())
 
@@ -194,15 +213,17 @@ class RichReporter:
         else:
             status = "[green]pass[/green]"
         tokens = f"{result.run.input_tokens + result.run.output_tokens}"
-        self._rows[key] = {"cells": [
-            result.plan.suite_name,
-            result.plan.case_id,
-            result.plan.variant,
-            status,
-            f"{result.run.duration_s:.1f}s",
-            tokens,
-            _fmt_score(result.grading),
-        ]}
+        self._rows[key] = {
+            "cells": [
+                result.plan.suite_name,
+                result.plan.case_id,
+                result.plan.variant,
+                status,
+                f"{result.run.duration_s:.1f}s",
+                tokens,
+                _fmt_score(result.grading),
+            ]
+        }
         if self._live:
             self._live.update(self._table())
 

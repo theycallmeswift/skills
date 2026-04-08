@@ -1,11 +1,13 @@
 """Unit tests for skills/summarize/lint.py."""
+
 from __future__ import annotations
 
 import importlib.util
 from pathlib import Path
 
+_PROJECT_ROOT = Path(__file__).resolve().parents[3]
 _spec = importlib.util.spec_from_file_location(
-    "summarize_lint_under_test", Path(__file__).parent / "lint.py"
+    "summarize_lint_under_test", _PROJECT_ROOT / "skills" / "summarize" / "lint.py"
 )
 _mod = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(_mod)
@@ -202,7 +204,7 @@ def test_cli_entry(tmp_path: Path):
     good = tmp_path / "good.md"
     good.write_text(GOOD)
     r = subprocess.run(
-        [sys.executable, "skills/summarize/lint.py", str(good)],
+        [sys.executable, str(_PROJECT_ROOT / "skills" / "summarize" / "lint.py"), str(good)],
         capture_output=True,
         text=True,
     )
@@ -211,7 +213,7 @@ def test_cli_entry(tmp_path: Path):
     bad = tmp_path / "bad.md"
     bad.write_text(BAD_LOCAL_PDF)
     r = subprocess.run(
-        [sys.executable, "skills/summarize/lint.py", str(bad)],
+        [sys.executable, str(_PROJECT_ROOT / "skills" / "summarize" / "lint.py"), str(bad)],
         capture_output=True,
         text=True,
     )

@@ -7,6 +7,7 @@ Usage:
 Exit 0 = clean. Exit 1 = findings (one per line on stdout as "FAIL: <rule>: <evidence>").
 No dependencies beyond the stdlib.
 """
+
 from __future__ import annotations
 
 import re
@@ -138,7 +139,7 @@ def check_comment_block(text: str) -> str | None:
         return "no Comment block found"
 
     # Extract body: everything after the label, strip code fences, stop at next heading or EOF
-    after = text[match.end():]
+    after = text[match.end() :]
     body_lines: list[str] = []
     for line in after.splitlines():
         stripped = line.strip()

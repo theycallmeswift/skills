@@ -6,7 +6,7 @@
   "evals": [
     {
       "id": "devto-top-article",
-      "tier": "regression",
+      "intent": "regression",
       "turns": [
         "Summarize the top article on dev.to that isn't a challenge or contest announcement"
       ],
@@ -21,7 +21,7 @@
     },
     {
       "id": "devto-rust-tab-orchestrator",
-      "tier": "regression",
+      "intent": "regression",
       "turns": [
         "Summarize this article: https://dev.to/tasenikol/when-chrome-ate-my-ram-designing-a-pressure-aware-tab-orchestrator-with-rust-1g05"
       ],
@@ -37,7 +37,7 @@
     },
     {
       "id": "anthropic-claude-character",
-      "tier": "regression",
+      "intent": "regression",
       "turns": [
         "Summarize this page for me https://www.anthropic.com/research/claude-character"
       ],
@@ -53,7 +53,7 @@
     },
     {
       "id": "local-pdf",
-      "tier": "regression",
+      "intent": "regression",
       "turns": [
         "Summarize this PDF: test-paper.pdf"
       ],
@@ -74,7 +74,7 @@
         "Summarize this for me:\n\nThe rise of the pull request has fundamentally reshaped how software teams collaborate. Originally introduced by GitHub in 2008 as a lightweight way to propose changes across forks, the pull request has evolved into the primary unit of code review, discussion, and integration in modern engineering workflows. Teams argue about PR size, PR templates, PR etiquette, and how long a PR can sit in review before it becomes stale. Companies have built entire product lines around PR automation — linters that comment inline, bots that auto-assign reviewers based on CODEOWNERS, dashboards that show how long each PR spent waiting at each stage.\n\nBut the pull request has a dark side. Large PRs are where bugs hide, because reviewers skim when they should read. Small PRs fragment context, forcing reviewers to hold a mental model across six tabs. Teams that merge PRs too fast ship bugs; teams that merge too slow ship nothing. The median PR in a busy repository sits in review for two days, and those two days are where velocity goes to die. Solving the pull request problem has become a cottage industry: trunk-based development advocates, stacked diff tools like Graphite, and AI review bots all claim to have the answer.\n\nThe real answer is probably boring: small, focused changes; reviewers who actually read; and a team culture that treats a pending PR as a shared problem, not one person's backlog item."
       ],
       "files": [],
-      "tier": "regression",
+      "intent": "regression",
       "assertions": [
         {"text": "Title is based on the pasted content (e.g. mentions pull requests, code review, or a related specific concept), not a generic placeholder like 'Summary' or 'Document'"},
         {"text": "Key points reflect the pasted text (PR size, review time, trunk-based development, reviewer behavior, stacked diffs, etc.), not invented topics"},
@@ -87,7 +87,7 @@
     },
     {
       "id": "short-input-no-padding",
-      "tier": "regression",
+      "intent": "regression",
       "turns": [
         "Summarize this note:\n\nWe decided to push the Q3 demo day to the week of September 15. The reason is that the new partner onboarding flow won't be ready in time for the original date. Marketing has been told. Calendar invites will go out Friday."
       ],

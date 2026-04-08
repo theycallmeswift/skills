@@ -21,6 +21,7 @@ Clone the repo anywhere, then register it as a Claude Code plugin:
 git clone git@github.com:theycallmeswift/mechaswift.git
 cd mechaswift
 cp .env.example .env   # then fill in API keys
+make install           # installs Python deps for the eval harness via uv
 claude plugins add /path/to/mechaswift
 ```
 
@@ -68,9 +69,17 @@ make test ARGS="ghostwrite summarize"           # Specific suites
 make test ARGS="--no-baseline"                  # Skip baseline (with-skill only)
 make test ARGS="--verbose"                      # Show passing assertion evidence
 make test ARGS="--model claude-haiku-4-5-20251001"  # Override agent model
-make test-unit                                  # Harness unit tests
+make test-harness                               # Harness + skill-lint unit tests
 ```
 
 Results print inline. Full outputs land in `tmp/evals/<timestamp>/`.
 
-See [docs/evals.md](docs/evals.md) for the eval file format, tiers (lift vs regression), assertion types, and best practices.
+Other Makefile targets:
+
+```
+make install    # uv sync (install Python deps)
+make lint       # uv run ruff check --fix .
+make format     # uv run ruff format .
+```
+
+See [docs/evals.md](docs/evals.md) for the eval file format, intents (lift vs regression), assertion types, and best practices.

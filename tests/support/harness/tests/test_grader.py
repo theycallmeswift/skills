@@ -32,18 +32,27 @@ def test_build_prompt_truncates_long_stdout():
     run = RunResult(
         stdout="x" * (DEFAULT_STDOUT_LIMIT + 5000),
         files_written={},
-        input_tokens=0, output_tokens=0, duration_s=0.0,
-        exit_code=0, tool_trace=[], turn_count=1,
+        input_tokens=0,
+        output_tokens=0,
+        duration_s=0.0,
+        exit_code=0,
+        tool_trace=[],
+        turn_count=1,
     )
-    prompt = _build_prompt(run, [{"text": "y"}], original_prompt="p", stdout_limit=DEFAULT_STDOUT_LIMIT)
+    prompt = _build_prompt(
+        run, [{"text": "y"}], original_prompt="p", stdout_limit=DEFAULT_STDOUT_LIMIT
+    )
     assert "truncated" in prompt
     assert len(prompt) < DEFAULT_STDOUT_LIMIT + 5000
 
 
 def test_build_prompt_truncates_tool_trace_to_last_n():
     run = RunResult(
-        stdout="x", files_written={},
-        input_tokens=0, output_tokens=0, duration_s=0.0,
+        stdout="x",
+        files_written={},
+        input_tokens=0,
+        output_tokens=0,
+        duration_s=0.0,
         exit_code=0,
         tool_trace=[{"name": f"t{i}", "input": {}, "turn": 1} for i in range(200)],
         turn_count=1,
@@ -55,19 +64,27 @@ def test_build_prompt_truncates_tool_trace_to_last_n():
 
 def _run_with_trace(trace):
     return RunResult(
-        stdout="", files_written={}, input_tokens=0, output_tokens=0,
-        duration_s=0.0, exit_code=0, tool_trace=trace, turn_count=1,
+        stdout="",
+        files_written={},
+        input_tokens=0,
+        output_tokens=0,
+        duration_s=0.0,
+        exit_code=0,
+        tool_trace=trace,
+        turn_count=1,
     )
 
 
 def test_tool_called_passes_when_name_matches_substring():
     run = _run_with_trace([{"name": "mcp__brightdata__scrape_as_markdown", "input": {}, "turn": 1}])
     exps = _grade_deterministic([{"tool_called": "scrape_as_markdown"}], run)
-    assert exps == [{
-        "text": "tool_called: scrape_as_markdown",
-        "passed": True,
-        "evidence": "matched tool 'mcp__brightdata__scrape_as_markdown' on turn 1",
-    }]
+    assert exps == [
+        {
+            "text": "tool_called: scrape_as_markdown",
+            "passed": True,
+            "evidence": "matched tool 'mcp__brightdata__scrape_as_markdown' on turn 1",
+        }
+    ]
 
 
 def test_tool_called_fails_when_absent():
@@ -91,25 +108,31 @@ def test_tool_not_called_fails_when_present():
 
 
 def test_skill_invoked_matches_bare_name():
-    run = _run_with_trace([
-        {"name": "Skill", "input": {"skill": "ghostwrite"}, "turn": 1},
-    ])
+    run = _run_with_trace(
+        [
+            {"name": "Skill", "input": {"skill": "ghostwrite"}, "turn": 1},
+        ]
+    )
     exps = _grade_deterministic([{"skill_invoked": "ghostwrite"}], run)
     assert exps[0]["passed"] is True
 
 
 def test_skill_invoked_matches_prefixed_name():
-    run = _run_with_trace([
-        {"name": "Skill", "input": {"skill": "mechaswift:ghostwrite"}, "turn": 1},
-    ])
+    run = _run_with_trace(
+        [
+            {"name": "Skill", "input": {"skill": "mechaswift:ghostwrite"}, "turn": 1},
+        ]
+    )
     exps = _grade_deterministic([{"skill_invoked": "ghostwrite"}], run)
     assert exps[0]["passed"] is True
 
 
 def test_skill_invoked_fails_when_different_skill():
-    run = _run_with_trace([
-        {"name": "Skill", "input": {"skill": "summarize"}, "turn": 1},
-    ])
+    run = _run_with_trace(
+        [
+            {"name": "Skill", "input": {"skill": "summarize"}, "turn": 1},
+        ]
+    )
     exps = _grade_deterministic([{"skill_invoked": "ghostwrite"}], run)
     assert exps[0]["passed"] is False
 
@@ -123,8 +146,14 @@ def test_skill_invoked_fails_when_no_skill_tool_at_all():
 
 def _run_with_stdout(stdout: str) -> RunResult:
     return RunResult(
-        stdout=stdout, files_written={}, input_tokens=0, output_tokens=0,
-        duration_s=0.0, exit_code=0, tool_trace=[], turn_count=1,
+        stdout=stdout,
+        files_written={},
+        input_tokens=0,
+        output_tokens=0,
+        duration_s=0.0,
+        exit_code=0,
+        tool_trace=[],
+        turn_count=1,
     )
 
 
@@ -153,9 +182,11 @@ def test_lint_assertion_missing_skill_reports_clearly():
 
 
 def test_grade_merges_deterministic_and_text_in_order(monkeypatch):
-    run = _run_with_trace([
-        {"name": "Skill", "input": {"skill": "ghostwrite"}, "turn": 1},
-    ])
+    run = _run_with_trace(
+        [
+            {"name": "Skill", "input": {"skill": "ghostwrite"}, "turn": 1},
+        ]
+    )
     assertions = [
         {"text": "output is a rewrite"},
         {"skill_invoked": "ghostwrite"},
@@ -163,10 +194,7 @@ def test_grade_merges_deterministic_and_text_in_order(monkeypatch):
     ]
 
     async def fake_llm_grade(run_, text_assertions, model, original_prompt, input_limit=None):
-        return [
-            {"text": a["text"], "passed": True, "evidence": "ok"}
-            for a in text_assertions
-        ]
+        return [{"text": a["text"], "passed": True, "evidence": "ok"} for a in text_assertions]
 
     monkeypatch.setattr("tests.support.harness.grader._grade_text_llm", fake_llm_grade)
 
@@ -179,6 +207,7 @@ def test_grade_merges_deterministic_and_text_in_order(monkeypatch):
     assert all(e["passed"] for e in result.expectations)
     assert result.passed == 3
     assert result.total == 3
+
 
 @pytest.mark.skipif(
     not os.environ.get("ANTHROPIC_API_KEY") and not os.environ.get("CLAUDE_CODE_OAUTH_TOKEN"),
@@ -198,6 +227,7 @@ async def test_grader_passes_obviously_true_assertion():
     assert g.passed == 1
     assert g.failed == 0
     assert g.expectations[0]["passed"] is True
+
 
 @pytest.mark.skipif(
     not os.environ.get("ANTHROPIC_API_KEY") and not os.environ.get("CLAUDE_CODE_OAUTH_TOKEN"),

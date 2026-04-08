@@ -25,14 +25,10 @@ def _validate_cleanup(patterns: list[str], source: Path) -> list[str]:
     the allowed roots. This runs at load time so bad configs fail loudly.
     """
     if not isinstance(patterns, list):
-        raise ValueError(
-            f"eval case in {source}: 'cleanup' must be a list of glob strings."
-        )
+        raise ValueError(f"eval case in {source}: 'cleanup' must be a list of glob strings.")
     for p in patterns:
         if not isinstance(p, str) or not p:
-            raise ValueError(
-                f"eval case in {source}: cleanup entries must be non-empty strings."
-            )
+            raise ValueError(f"eval case in {source}: cleanup entries must be non-empty strings.")
         if p.startswith("/"):
             raise ValueError(
                 f"eval case in {source}: cleanup glob '{p}' is absolute; "
@@ -56,7 +52,7 @@ def _load_turns(case: dict, source: Path) -> list[str]:
     if turns is None:
         raise ValueError(
             f"eval case '{case.get('id', '?')}' in {source} is missing 'turns'. "
-            f"Use a list of strings, e.g. \"turns\": [\"first message\"]."
+            f'Use a list of strings, e.g. "turns": ["first message"].'
         )
     if not isinstance(turns, list) or not turns or not all(isinstance(t, str) for t in turns):
         raise ValueError(
@@ -70,9 +66,7 @@ def load_eval_file(path: Path, kind: EvalKind) -> EvalSuite:
     if "name" not in data:
         raise ValueError(f"{path}: missing 'name' at top level.")
     if "evals" not in data:
-        raise ValueError(
-            f"{path}: missing 'evals' at top level (should be a list of cases)."
-        )
+        raise ValueError(f"{path}: missing 'evals' at top level (should be a list of cases).")
     try:
         validate(instance=data, schema=_get_schema())
     except ValidationError as e:
@@ -81,9 +75,7 @@ def load_eval_file(path: Path, kind: EvalKind) -> EvalSuite:
         ) from e
     shared = data.get("shared_assertions", [])
     if not isinstance(shared, list):
-        raise ValueError(
-            f"{path}: 'shared_assertions' must be a list of assertion dicts."
-        )
+        raise ValueError(f"{path}: 'shared_assertions' must be a list of assertion dicts.")
 
     cases: list[EvalCase] = []
     for c in data["evals"]:
@@ -92,22 +84,25 @@ def load_eval_file(path: Path, kind: EvalKind) -> EvalSuite:
             merged = [*shared, *own]
         else:
             merged = list(own)
-        cases.append(EvalCase(
-            id=str(c["id"]),
-            turns=_load_turns(c, path),
-            files=c.get("files", []),
-            assertions=merged,
-            grader_model=c.get("grader_model"),
-            grader_input_limit=c.get("grader_input_limit"),
-            cleanup=_validate_cleanup(c.get("cleanup", []), path),
-            tier=c.get("tier", "regression"),
-        ))
+        cases.append(
+            EvalCase(
+                id=str(c["id"]),
+                turns=_load_turns(c, path),
+                files=c.get("files", []),
+                assertions=merged,
+                grader_model=c.get("grader_model"),
+                grader_input_limit=c.get("grader_input_limit"),
+                cleanup=_validate_cleanup(c.get("cleanup", []), path),
+                intent=c.get("intent", "regression"),
+            )
+        )
     return EvalSuite(
         name=data["name"],
         kind=kind,
         source_path=path,
         cases=cases,
     )
+
 
 def discover_suites(tests_root: Path, names: list[str] | None = None) -> list[EvalSuite]:
     suites: list[EvalSuite] = []
@@ -131,6 +126,7 @@ def discover_suites(tests_root: Path, names: list[str] | None = None) -> list[Ev
         suites = [s for s in suites if s.name in wanted]
 
     return suites
+
 
 SKILL_PREAMBLE = "Before responding, read and follow skills/{name}/SKILL.md.\n\n"
 
@@ -156,34 +152,40 @@ def build_run_plans(
             if suite.kind == "skill":
                 skill_dir = project_root / "skills" / suite.name
                 with_skill_paths = [skill_dir, agents_md, *case_files]
-                plans.append(RunPlan(
-                    suite_name=suite.name,
-                    suite_kind=suite.kind,
-                    case_id=case.id,
-                    variant="with_skill",
-                    turns=_with_preamble(case.turns, suite.name),
-                    context_paths=with_skill_paths,
-                    case=case,
-                ))
-                if baseline and case.tier == "lift":
-                    plans.append(RunPlan(
+                plans.append(
+                    RunPlan(
                         suite_name=suite.name,
                         suite_kind=suite.kind,
                         case_id=case.id,
-                        variant="baseline",
+                        variant="with_skill",
+                        turns=_with_preamble(case.turns, suite.name),
+                        context_paths=with_skill_paths,
+                        case=case,
+                    )
+                )
+                if baseline and case.intent == "lift":
+                    plans.append(
+                        RunPlan(
+                            suite_name=suite.name,
+                            suite_kind=suite.kind,
+                            case_id=case.id,
+                            variant="baseline",
+                            turns=list(case.turns),
+                            context_paths=[agents_md, *case_files],
+                            case=case,
+                        )
+                    )
+            else:  # core
+                plans.append(
+                    RunPlan(
+                        suite_name=suite.name,
+                        suite_kind=suite.kind,
+                        case_id=case.id,
+                        variant="run",
                         turns=list(case.turns),
                         context_paths=[agents_md, *case_files],
                         case=case,
-                    ))
-            else:  # core
-                plans.append(RunPlan(
-                    suite_name=suite.name,
-                    suite_kind=suite.kind,
-                    case_id=case.id,
-                    variant="run",
-                    turns=list(case.turns),
-                    context_paths=[agents_md, *case_files],
-                    case=case,
-                ))
+                    )
+                )
 
     return plans

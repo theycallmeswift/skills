@@ -17,17 +17,21 @@ def _make_project(tmp_path: Path) -> Path:
     (root / "skills" / "demo" / "SKILL.md").write_text("demo skill")
     (root / "references" / "specs").mkdir(parents=True)
     (root / "AGENTS.md").write_text("agents")
-    (root / "tests" / "skills" / "demo" / "evals.json").write_text(json.dumps({
-        "name": "demo",
-        "evals": [
+    (root / "tests" / "skills" / "demo" / "evals.json").write_text(
+        json.dumps(
             {
-                "id": "happy",
-                "turns": ["do the thing"],
-                "assertions": [{"text": "output says hello"}],
-                "cleanup": ["references/specs/demo-*.md"],
-            },
-        ],
-    }))
+                "name": "demo",
+                "evals": [
+                    {
+                        "id": "happy",
+                        "turns": ["do the thing"],
+                        "assertions": [{"text": "output says hello"}],
+                        "cleanup": ["references/specs/demo-*.md"],
+                    },
+                ],
+            }
+        )
+    )
     # Seed a spec file that the cleanup glob should remove after the run.
     (root / "references" / "specs" / "demo-artifact.md").write_text("stale")
     return root
@@ -87,8 +91,14 @@ def test_run_evals_returns_1_when_assertion_fails(tmp_path, monkeypatch):
 
     async def fake_run_claude(turns, cwd, context_paths, project_root, timeout_s=300, model=None):
         return RunResult(
-            stdout="nope", files_written={}, input_tokens=0, output_tokens=0,
-            duration_s=0.0, exit_code=0, tool_trace=[], turn_count=1,
+            stdout="nope",
+            files_written={},
+            input_tokens=0,
+            output_tokens=0,
+            duration_s=0.0,
+            exit_code=0,
+            tool_trace=[],
+            turn_count=1,
         )
 
     async def fake_grade(run, assertions, model=None, original_prompt="", input_limit=None):
@@ -100,8 +110,11 @@ def test_run_evals_returns_1_when_assertion_fails(tmp_path, monkeypatch):
 
     exit_code = asyncio.run(
         orchestrator.run_evals(
-            project_root=root, names=["demo"], baseline=False,
-            verbose=False, reporter=DotsReporter(),
+            project_root=root,
+            names=["demo"],
+            baseline=False,
+            verbose=False,
+            reporter=DotsReporter(),
         )
     )
     assert exit_code == 1

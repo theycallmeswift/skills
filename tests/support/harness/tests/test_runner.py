@@ -17,6 +17,7 @@ def test_copy_context_files_and_dirs(tmp_path):
     cwd.mkdir()
 
     from tests.support.harness.runner import copy_context_paths
+
     copy_context_paths(
         [src / "AGENTS.md", src / "skills" / "ghostwrite"],
         project_root=src,
@@ -38,6 +39,7 @@ def test_copy_context_resolves_symlinks(tmp_path):
     cwd.mkdir()
 
     from tests.support.harness.runner import copy_context_paths
+
     copy_context_paths([src / "CLAUDE.md"], project_root=src, cwd=cwd)
 
     target = cwd / "CLAUDE.md"
@@ -51,6 +53,7 @@ def test_snapshot_captures_only_new_or_modified(tmp_path):
     (cwd / "existing.md").write_text("original")
 
     from tests.support.harness.runner import capture_changes, snapshot_files
+
     before = snapshot_files(cwd)
 
     (cwd / "existing.md").write_text("modified")
@@ -67,6 +70,7 @@ def test_snapshot_captures_only_new_or_modified(tmp_path):
 
 def test_build_agent_options_omits_model_by_default(tmp_path):
     from tests.support.harness.runner import build_agent_options
+
     opts = build_agent_options(cwd=tmp_path, project_root=tmp_path)
     # When not specified, model should not be set (SDK default applies).
     assert getattr(opts, "model", None) in (None, "")
@@ -74,6 +78,7 @@ def test_build_agent_options_omits_model_by_default(tmp_path):
 
 def test_build_agent_options_passes_model_when_given(tmp_path):
     from tests.support.harness.runner import build_agent_options
+
     opts = build_agent_options(
         cwd=tmp_path,
         project_root=tmp_path,
@@ -88,6 +93,7 @@ def test_build_agent_options_passes_model_when_given(tmp_path):
 )
 async def test_run_claude_smoke(tmp_path):
     from tests.support.harness.runner import run_claude
+
     result = await run_claude(
         turns=["Reply with exactly the word 'pong' and nothing else."],
         cwd=tmp_path,

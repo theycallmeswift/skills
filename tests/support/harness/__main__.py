@@ -16,21 +16,24 @@ def main() -> int:
         "--model",
         default=None,
         help="Override the model used by the agent SDK (e.g. claude-haiku-4-5-20251001). "
-             "Defaults to the SDK session model.",
+        "Defaults to the SDK session model.",
     )
     args = parser.parse_args()
 
     project_root = Path(__file__).resolve().parents[3]
     reporter = make_reporter()
 
-    return asyncio.run(run_evals(
-        project_root=project_root,
-        names=args.names or None,
-        baseline=not args.no_baseline,
-        verbose=args.verbose,
-        reporter=reporter,
-        model=args.model,
-    ))
+    return asyncio.run(
+        run_evals(
+            project_root=project_root,
+            names=args.names or None,
+            baseline=not args.no_baseline,
+            verbose=args.verbose,
+            reporter=reporter,
+            model=args.model,
+        )
+    )
+
 
 if __name__ == "__main__":
     sys.exit(main())

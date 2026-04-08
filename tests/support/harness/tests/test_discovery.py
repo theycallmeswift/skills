@@ -8,35 +8,45 @@ from tests.support.harness.discovery import EvalSuite, load_eval_file
 
 def _write_suite(tmp_path: Path, cleanup: list[str]) -> Path:
     f = tmp_path / "evals.json"
-    f.write_text(json.dumps({
-        "name": "demo",
-        "evals": [{
-            "id": "c1",
-            "turns": ["hi"],
-            "cleanup": cleanup,
-        }],
-    }))
+    f.write_text(
+        json.dumps(
+            {
+                "name": "demo",
+                "evals": [
+                    {
+                        "id": "c1",
+                        "turns": ["hi"],
+                        "cleanup": cleanup,
+                    }
+                ],
+            }
+        )
+    )
     return f
 
 
 def test_grader_input_limit_is_loaded(tmp_path):
     f = tmp_path / "evals.json"
-    f.write_text(json.dumps({
-        "name": "demo",
-        "evals": [
+    f.write_text(
+        json.dumps(
             {
-                "id": "c1",
-                "turns": ["hi"],
-                "grader_input_limit": 8000,
-                "assertions": [{"text": "x"}],
-            },
-            {
-                "id": "c2",
-                "turns": ["hi"],
-                "assertions": [{"text": "x"}],
-            },
-        ],
-    }))
+                "name": "demo",
+                "evals": [
+                    {
+                        "id": "c1",
+                        "turns": ["hi"],
+                        "grader_input_limit": 8000,
+                        "assertions": [{"text": "x"}],
+                    },
+                    {
+                        "id": "c2",
+                        "turns": ["hi"],
+                        "assertions": [{"text": "x"}],
+                    },
+                ],
+            }
+        )
+    )
     suite = load_eval_file(f, kind="skill")
     assert suite.cases[0].grader_input_limit == 8000
     assert suite.cases[1].grader_input_limit is None
@@ -77,27 +87,32 @@ def test_cleanup_rejects_bare_star(tmp_path):
     with pytest.raises(ValueError, match="allowed roots"):
         load_eval_file(f, kind="skill")
 
+
 def test_shared_assertions_are_prepended_to_each_case(tmp_path):
     f = tmp_path / "evals.json"
-    f.write_text(json.dumps({
-        "name": "demo",
-        "shared_assertions": [
-            {"text": "Output is non-empty"},
-            {"text": "Output has a heading"},
-        ],
-        "evals": [
+    f.write_text(
+        json.dumps(
             {
-                "id": "c1",
-                "turns": ["hi"],
-                "assertions": [{"text": "Output mentions cats"}],
-            },
-            {
-                "id": "c2",
-                "turns": ["hi"],
-                "assertions": [{"text": "Output mentions dogs"}],
-            },
-        ],
-    }))
+                "name": "demo",
+                "shared_assertions": [
+                    {"text": "Output is non-empty"},
+                    {"text": "Output has a heading"},
+                ],
+                "evals": [
+                    {
+                        "id": "c1",
+                        "turns": ["hi"],
+                        "assertions": [{"text": "Output mentions cats"}],
+                    },
+                    {
+                        "id": "c2",
+                        "turns": ["hi"],
+                        "assertions": [{"text": "Output mentions dogs"}],
+                    },
+                ],
+            }
+        )
+    )
     suite = load_eval_file(f, kind="skill")
     assert [a["text"] for a in suite.cases[0].assertions] == [
         "Output is non-empty",
@@ -113,35 +128,44 @@ def test_shared_assertions_are_prepended_to_each_case(tmp_path):
 
 def test_case_can_opt_out_of_shared_assertions(tmp_path):
     f = tmp_path / "evals.json"
-    f.write_text(json.dumps({
-        "name": "demo",
-        "shared_assertions": [{"text": "shared one"}],
-        "evals": [
+    f.write_text(
+        json.dumps(
             {
-                "id": "opted-out",
-                "turns": ["hi"],
-                "use_shared_assertions": False,
-                "assertions": [{"text": "own one"}],
-            },
-        ],
-    }))
+                "name": "demo",
+                "shared_assertions": [{"text": "shared one"}],
+                "evals": [
+                    {
+                        "id": "opted-out",
+                        "turns": ["hi"],
+                        "use_shared_assertions": False,
+                        "assertions": [{"text": "own one"}],
+                    },
+                ],
+            }
+        )
+    )
     suite = load_eval_file(f, kind="skill")
     assert [a["text"] for a in suite.cases[0].assertions] == ["own one"]
 
 
 def test_no_shared_assertions_key_works_as_before(tmp_path):
     f = tmp_path / "evals.json"
-    f.write_text(json.dumps({
-        "name": "demo",
-        "evals": [
-            {"id": "c1", "turns": ["hi"], "assertions": [{"text": "only"}]},
-        ],
-    }))
+    f.write_text(
+        json.dumps(
+            {
+                "name": "demo",
+                "evals": [
+                    {"id": "c1", "turns": ["hi"], "assertions": [{"text": "only"}]},
+                ],
+            }
+        )
+    )
     suite = load_eval_file(f, kind="skill")
     assert [a["text"] for a in suite.cases[0].assertions] == ["only"]
 
 
-FIXTURES = Path(__file__).parent.parent / "fixtures"
+FIXTURES = Path(__file__).parent.parent.parent / "fixtures"
+
 
 def test_load_skill_eval_file():
     suite = load_eval_file(FIXTURES / "sample-skill-eval.json", kind="skill")
@@ -156,7 +180,8 @@ def test_load_skill_eval_file():
     assert case.assertions == [{"text": "Output is short"}]
     assert case.grader_model is None
     assert case.cleanup == []
-    assert case.tier == "lift"
+    assert case.intent == "lift"
+
 
 def test_load_core_eval_file():
     suite = load_eval_file(FIXTURES / "sample-core-eval.json", kind="core")
@@ -164,6 +189,7 @@ def test_load_core_eval_file():
     case = suite.cases[0]
     assert case.grader_model == "claude-haiku-4-5-20251001"
     assert case.cleanup == ["tmp/fake-repo"]
+
 
 def test_discover_walks_tests_tree(tmp_path):
     (tmp_path / "tests" / "skills" / "ghostwrite").mkdir(parents=True)
@@ -176,11 +202,13 @@ def test_discover_walks_tests_tree(tmp_path):
     )
 
     from tests.support.harness.discovery import discover_suites
+
     suites = discover_suites(tmp_path / "tests")
     assert len(suites) == 2
     by_name = {s.name: s for s in suites}
     assert by_name["ghostwrite"].kind == "skill"
     assert by_name["no-ai-attribution"].kind == "core"
+
 
 def test_discover_filters_by_name(tmp_path):
     (tmp_path / "tests" / "skills" / "ghostwrite").mkdir(parents=True)
@@ -193,9 +221,11 @@ def test_discover_filters_by_name(tmp_path):
     )
 
     from tests.support.harness.discovery import discover_suites
+
     suites = discover_suites(tmp_path / "tests", names=["ghostwrite"])
     assert len(suites) == 1
     assert suites[0].name == "ghostwrite"
+
 
 def test_build_run_plans_skill_with_baseline(tmp_path):
     (tmp_path / "tests" / "skills" / "ghostwrite").mkdir(parents=True)
@@ -207,6 +237,7 @@ def test_build_run_plans_skill_with_baseline(tmp_path):
     (tmp_path / "skills" / "ghostwrite" / "SKILL.md").write_text("# skill")
 
     from tests.support.harness.discovery import build_run_plans, discover_suites
+
     suites = discover_suites(tmp_path / "tests")
     plans = build_run_plans(suites, project_root=tmp_path, baseline=True)
 
@@ -217,7 +248,9 @@ def test_build_run_plans_skill_with_baseline(tmp_path):
     with_skill = by_variant["with_skill"]
     assert with_skill.suite_name == "ghostwrite"
     assert with_skill.case_id == "sponsor-email"
-    assert with_skill.turns[0].startswith("Before responding, read and follow skills/ghostwrite/SKILL.md.")
+    assert with_skill.turns[0].startswith(
+        "Before responding, read and follow skills/ghostwrite/SKILL.md."
+    )
     assert "Rewrite this" in with_skill.turns[0]
     assert len(with_skill.turns) == 1
     assert (tmp_path / "skills" / "ghostwrite") in with_skill.context_paths
@@ -228,49 +261,64 @@ def test_build_run_plans_skill_with_baseline(tmp_path):
     assert (tmp_path / "skills" / "ghostwrite") not in baseline.context_paths
     assert (tmp_path / "AGENTS.md") in baseline.context_paths
 
-def test_regression_tier_emits_only_with_skill(tmp_path):
-    """A case with tier=regression must produce only the with_skill plan,
+
+def test_regression_intent_emits_only_with_skill(tmp_path):
+    """A case with intent=regression must produce only the with_skill plan,
     even when baseline=True is requested at the suite level."""
     (tmp_path / "tests" / "skills" / "ghostwrite").mkdir(parents=True)
-    (tmp_path / "tests" / "skills" / "ghostwrite" / "evals.json").write_text(json.dumps({
-        "name": "ghostwrite",
-        "evals": [{
-            "id": "preserve-link",
-            "turns": ["hi"],
-            "tier": "regression",
-            "assertions": [{"text": "x"}],
-        }],
-    }))
+    (tmp_path / "tests" / "skills" / "ghostwrite" / "evals.json").write_text(
+        json.dumps(
+            {
+                "name": "ghostwrite",
+                "evals": [
+                    {
+                        "id": "preserve-link",
+                        "turns": ["hi"],
+                        "intent": "regression",
+                        "assertions": [{"text": "x"}],
+                    }
+                ],
+            }
+        )
+    )
     (tmp_path / "AGENTS.md").write_text("# project context")
     (tmp_path / "skills" / "ghostwrite").mkdir(parents=True)
     (tmp_path / "skills" / "ghostwrite" / "SKILL.md").write_text("# skill")
 
     from tests.support.harness.discovery import build_run_plans, discover_suites
+
     suites = discover_suites(tmp_path / "tests")
     plans = build_run_plans(suites, project_root=tmp_path, baseline=True)
     assert len(plans) == 1
     assert plans[0].variant == "with_skill"
 
 
-def test_tier_defaults_to_regression_when_omitted(tmp_path):
-    """If a case omits the tier field, it defaults to regression (safer default
+def test_intent_defaults_to_regression_when_omitted(tmp_path):
+    """If a case omits the intent field, it defaults to regression (safer default
     — opt in to the stricter lift bar, never emit baseline accidentally)."""
     (tmp_path / "tests" / "skills" / "ghostwrite").mkdir(parents=True)
-    (tmp_path / "tests" / "skills" / "ghostwrite" / "evals.json").write_text(json.dumps({
-        "name": "ghostwrite",
-        "evals": [{
-            "id": "untiered",
-            "turns": ["hi"],
-            "assertions": [{"text": "x"}],
-        }],
-    }))
+    (tmp_path / "tests" / "skills" / "ghostwrite" / "evals.json").write_text(
+        json.dumps(
+            {
+                "name": "ghostwrite",
+                "evals": [
+                    {
+                        "id": "no-intent",
+                        "turns": ["hi"],
+                        "assertions": [{"text": "x"}],
+                    }
+                ],
+            }
+        )
+    )
     (tmp_path / "AGENTS.md").write_text("# project context")
     (tmp_path / "skills" / "ghostwrite").mkdir(parents=True)
     (tmp_path / "skills" / "ghostwrite" / "SKILL.md").write_text("# skill")
 
     from tests.support.harness.discovery import build_run_plans, discover_suites
+
     suites = discover_suites(tmp_path / "tests")
-    assert suites[0].cases[0].tier == "regression"
+    assert suites[0].cases[0].intent == "regression"
     plans = build_run_plans(suites, project_root=tmp_path, baseline=True)
     assert len(plans) == 1
     assert plans[0].variant == "with_skill"
@@ -286,10 +334,12 @@ def test_build_run_plans_skill_no_baseline(tmp_path):
     (tmp_path / "skills" / "ghostwrite" / "SKILL.md").write_text("# skill")
 
     from tests.support.harness.discovery import build_run_plans, discover_suites
+
     suites = discover_suites(tmp_path / "tests")
     plans = build_run_plans(suites, project_root=tmp_path, baseline=False)
     assert len(plans) == 1
     assert plans[0].variant == "with_skill"
+
 
 def test_build_run_plans_core(tmp_path):
     (tmp_path / "tests" / "core").mkdir(parents=True)
@@ -299,6 +349,7 @@ def test_build_run_plans_core(tmp_path):
     (tmp_path / "AGENTS.md").write_text("# project context")
 
     from tests.support.harness.discovery import build_run_plans, discover_suites
+
     suites = discover_suites(tmp_path / "tests")
     plans = build_run_plans(suites, project_root=tmp_path, baseline=True)
     assert len(plans) == 1
@@ -325,24 +376,34 @@ def test_missing_evals_raises_clear_error(tmp_path):
 
 def test_schema_rejects_unknown_top_level_key(tmp_path):
     f = tmp_path / "evals.json"
-    f.write_text(json.dumps({
-        "name": "demo",
-        "evals": [{"id": "c1", "turns": ["hi"]}],
-        "random_typo_key": 42,
-    }))
+    f.write_text(
+        json.dumps(
+            {
+                "name": "demo",
+                "evals": [{"id": "c1", "turns": ["hi"]}],
+                "random_typo_key": 42,
+            }
+        )
+    )
     with pytest.raises(ValueError, match="schema validation failed"):
         load_eval_file(f, kind="skill")
 
 
 def test_schema_rejects_assertion_with_multiple_keys(tmp_path):
     f = tmp_path / "evals.json"
-    f.write_text(json.dumps({
-        "name": "demo",
-        "evals": [{
-            "id": "c1",
-            "turns": ["hi"],
-            "assertions": [{"text": "x", "tool_called": "y"}],
-        }],
-    }))
+    f.write_text(
+        json.dumps(
+            {
+                "name": "demo",
+                "evals": [
+                    {
+                        "id": "c1",
+                        "turns": ["hi"],
+                        "assertions": [{"text": "x", "tool_called": "y"}],
+                    }
+                ],
+            }
+        )
+    )
     with pytest.raises(ValueError, match="schema validation failed"):
         load_eval_file(f, kind="skill")

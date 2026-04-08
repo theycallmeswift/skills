@@ -7,6 +7,7 @@ Usage:
 Exit 0 = clean. Exit 1 = findings (one per line on stdout as "FAIL: <rule>: <evidence>").
 No dependencies beyond the stdlib.
 """
+
 from __future__ import annotations
 
 import re

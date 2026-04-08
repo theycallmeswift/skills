@@ -142,11 +142,13 @@ async def run_claude(
                         if isinstance(message, AssistantMessage):
                             for block in message.content:
                                 if isinstance(block, ToolUseBlock):
-                                    tool_trace.append({
-                                        "name": block.name,
-                                        "input": block.input,
-                                        "turn": i,
-                                    })
+                                    tool_trace.append(
+                                        {
+                                            "name": block.name,
+                                            "input": block.input,
+                                            "turn": i,
+                                        }
+                                    )
                                     # Any tool use invalidates the in-progress
                                     # "final answer" — the user's view is only
                                     # the text AFTER the last tool call.
@@ -180,5 +182,3 @@ async def run_claude(
         error=error,
         final_message="".join(final_message_parts),
     )
-
-

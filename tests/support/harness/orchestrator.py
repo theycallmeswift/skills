@@ -13,6 +13,7 @@ from .runner import run_claude
 
 CONCURRENCY = 8
 
+
 def _artifact_dir(root: Path, plan: RunPlan, run_id: str) -> Path:
     if plan.suite_kind == "core":
         base = root / run_id / "_core" / plan.suite_name / f"eval-{plan.case_id}" / "run"
@@ -20,6 +21,7 @@ def _artifact_dir(root: Path, plan: RunPlan, run_id: str) -> Path:
         base = root / run_id / plan.suite_name / f"eval-{plan.case_id}" / plan.variant
     base.mkdir(parents=True, exist_ok=True)
     return base
+
 
 async def _run_one(
     plan: RunPlan,
@@ -59,24 +61,32 @@ async def _run_one(
             final_msg = getattr(run, "final_message", "") or ""
             if final_msg:
                 (adir / "outputs" / "final_message.md").write_text(final_msg)
-            (adir / "files_written.json").write_text(
-                json.dumps(run.files_written, indent=2)
+            (adir / "files_written.json").write_text(json.dumps(run.files_written, indent=2))
+            (adir.parent / "eval_metadata.json").write_text(
+                json.dumps(
+                    {
+                        "id": plan.case_id,
+                        "turns": plan.case.turns,
+                        "turn_count": len(plan.case.turns),
+                        "assertions": plan.case.assertions,
+                    },
+                    indent=2,
+                )
             )
-            (adir.parent / "eval_metadata.json").write_text(json.dumps({
-                "id": plan.case_id,
-                "turns": plan.case.turns,
-                "turn_count": len(plan.case.turns),
-                "assertions": plan.case.assertions,
-            }, indent=2))
-            (adir / "grading.json").write_text(json.dumps({
-                "expectations": grading.expectations,
-                "summary": {
-                    "passed": grading.passed,
-                    "failed": grading.failed,
-                    "total": grading.total,
-                    "pass_rate": (grading.passed / grading.total) if grading.total else 0.0,
-                },
-            }, indent=2))
+            (adir / "grading.json").write_text(
+                json.dumps(
+                    {
+                        "expectations": grading.expectations,
+                        "summary": {
+                            "passed": grading.passed,
+                            "failed": grading.failed,
+                            "total": grading.total,
+                            "pass_rate": (grading.passed / grading.total) if grading.total else 0.0,
+                        },
+                    },
+                    indent=2,
+                )
+            )
 
             result = CaseResult(plan=plan, run=run, grading=grading)
 
@@ -90,6 +100,7 @@ async def _run_one(
 
         reporter.case_finished(result)
         return result
+
 
 async def run_evals(
     project_root: Path,
@@ -112,7 +123,9 @@ async def run_evals(
 
     reporter.start(len(plans))
     sem = asyncio.Semaphore(CONCURRENCY)
-    tasks = [_run_one(p, project_root, artifact_root, run_id, reporter, sem, model=model) for p in plans]
+    tasks = [
+        _run_one(p, project_root, artifact_root, run_id, reporter, sem, model=model) for p in plans
+    ]
     results = await asyncio.gather(*tasks)
     exit_code = reporter.finish(list(results), verbose=verbose)
     print(f"\nFull results: tmp/evals/{run_id}/")

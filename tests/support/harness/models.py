@@ -3,7 +3,8 @@ from pathlib import Path
 from typing import Literal
 
 EvalKind = Literal["skill", "core"]
-EvalTier = Literal["lift", "regression"]
+EvalIntent = Literal["lift", "regression"]
+
 
 @dataclass
 class EvalCase:
@@ -14,7 +15,8 @@ class EvalCase:
     grader_model: str | None = None
     grader_input_limit: int | None = None
     cleanup: list[str] = field(default_factory=list)
-    tier: EvalTier = "regression"
+    intent: EvalIntent = "regression"
+
 
 @dataclass
 class EvalSuite:
@@ -23,7 +25,9 @@ class EvalSuite:
     source_path: Path
     cases: list[EvalCase]
 
+
 RunVariant = Literal["with_skill", "baseline", "run"]
+
 
 @dataclass
 class RunPlan:
@@ -38,7 +42,7 @@ class RunPlan:
 
 @dataclass
 class Grading:
-    expectations: list[dict]   # [{text, passed, evidence}]
+    expectations: list[dict]  # [{text, passed, evidence}]
     passed: int
     failed: int
     total: int

@@ -23,6 +23,7 @@ def _truncate_tail(s: str, limit: int) -> str:
     dropped = len(s) - limit
     return f"[... truncated {dropped} chars ...]\n{s[-limit:]}"
 
+
 GRADER_PROMPT = """\
 You are a strict eval grader. Read the AGENT OUTPUT below and grade each ASSERTION as PASS or FAIL.
 
@@ -111,55 +112,71 @@ def _grade_deterministic(assertions: list[dict], run: RunResult) -> list[dict]:
             needle = a["tool_called"]
             hit = _match_tool(run.tool_trace, needle)
             if hit is not None:
-                out.append({
-                    "text": f"tool_called: {needle}",
-                    "passed": True,
-                    "evidence": f"matched tool '{hit['name']}' on turn {hit.get('turn', '?')}",
-                })
+                out.append(
+                    {
+                        "text": f"tool_called: {needle}",
+                        "passed": True,
+                        "evidence": f"matched tool '{hit['name']}' on turn {hit.get('turn', '?')}",
+                    }
+                )
             else:
-                out.append({
-                    "text": f"tool_called: {needle}",
-                    "passed": False,
-                    "evidence": f"no matching tool in trace ({len(run.tool_trace)} entries)",
-                })
+                out.append(
+                    {
+                        "text": f"tool_called: {needle}",
+                        "passed": False,
+                        "evidence": f"no matching tool in trace ({len(run.tool_trace)} entries)",
+                    }
+                )
         elif "tool_not_called" in a:
             needle = a["tool_not_called"]
             hit = _match_tool(run.tool_trace, needle)
             if hit is None:
-                out.append({
-                    "text": f"tool_not_called: {needle}",
-                    "passed": True,
-                    "evidence": f"no matching tool in trace ({len(run.tool_trace)} entries)",
-                })
+                out.append(
+                    {
+                        "text": f"tool_not_called: {needle}",
+                        "passed": True,
+                        "evidence": f"no matching tool in trace ({len(run.tool_trace)} entries)",
+                    }
+                )
             else:
-                out.append({
-                    "text": f"tool_not_called: {needle}",
-                    "passed": False,
-                    "evidence": f"found '{hit['name']}' on turn {hit.get('turn', '?')}",
-                })
+                out.append(
+                    {
+                        "text": f"tool_not_called: {needle}",
+                        "passed": False,
+                        "evidence": f"found '{hit['name']}' on turn {hit.get('turn', '?')}",
+                    }
+                )
         elif "lint" in a:
             out.append(_grade_lint(a["lint"], run))
         elif "skill_invoked" in a:
             skill = a["skill_invoked"]
             hit = _match_skill_invocation(run.tool_trace, skill)
             if hit is not None:
-                out.append({
-                    "text": f"skill_invoked: {skill}",
-                    "passed": True,
-                    "evidence": f"Skill tool fired with skill='{hit['input'].get('skill', '?')}' on turn {hit.get('turn', '?')}",
-                })
+                out.append(
+                    {
+                        "text": f"skill_invoked: {skill}",
+                        "passed": True,
+                        "evidence": f"Skill tool fired with skill='{hit['input'].get('skill', '?')}' on turn {hit.get('turn', '?')}",
+                    }
+                )
             else:
                 has_any_skill = any(e.get("name") == "Skill" for e in run.tool_trace)
                 if has_any_skill:
-                    fired = [e.get("input", {}).get("skill", "?") for e in run.tool_trace if e.get("name") == "Skill"]
+                    fired = [
+                        e.get("input", {}).get("skill", "?")
+                        for e in run.tool_trace
+                        if e.get("name") == "Skill"
+                    ]
                     evidence = f"Skill tool fired but with different skills: {fired}"
                 else:
                     evidence = "no Skill tool invocations in trace"
-                out.append({
-                    "text": f"skill_invoked: {skill}",
-                    "passed": False,
-                    "evidence": evidence,
-                })
+                out.append(
+                    {
+                        "text": f"skill_invoked: {skill}",
+                        "passed": False,
+                        "evidence": evidence,
+                    }
+                )
     return out
 
 
@@ -174,8 +191,7 @@ def _build_prompt(
     stdout = _truncate_tail(run.stdout or "(empty)", stdout_limit)
     files_block = (
         "\n\n".join(
-            f"--- {p} ---\n{_truncate_tail(c, file_limit)}"
-            for p, c in run.files_written.items()
+            f"--- {p} ---\n{_truncate_tail(c, file_limit)}" for p, c in run.files_written.items()
         )
         or "(none)"
     )
@@ -216,9 +232,7 @@ def _grade_lint(skill: str, run: RunResult) -> dict:
     if not content.strip() and run.files_written:
         # Use the last file the agent wrote as the draft.
         content = next(iter(run.files_written.values()))
-    with tempfile.NamedTemporaryFile(
-        mode="w", suffix=".md", delete=False, encoding="utf-8"
-    ) as tmp:
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".md", delete=False, encoding="utf-8") as tmp:
         tmp.write(content)
         tmp_path = tmp.name
     try:
@@ -262,7 +276,9 @@ async def _grade_text_llm(
     else:
         scale = input_limit / DEFAULT_STDOUT_LIMIT
         prompt = _build_prompt(
-            run, assertions, original_prompt,
+            run,
+            assertions,
+            original_prompt,
             stdout_limit=input_limit,
             file_limit=int(DEFAULT_FILE_LIMIT * scale),
             trace_limit=max(DEFAULT_TRACE_LIMIT, int(DEFAULT_TRACE_LIMIT * scale)),
