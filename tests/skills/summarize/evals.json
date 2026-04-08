@@ -1,5 +1,16 @@
 {
   "name": "summarize",
+  "shared_assertions": [
+    {"text": "Output contains an H1 title (line starting with '# ')"},
+    {"text": "Output contains a '## TL;DR' section"},
+    {"text": "TL;DR is 1-2 sentences of plain body text, not rendered as a heading or bold block"},
+    {"text": "Output contains a '## Cliff Notes' section"},
+    {"text": "Cliff Notes contains a bulleted list with 5-8 items"},
+    {"text": "Output contains a '## Share' section"},
+    {"text": "Share section contains a code fence with a bare URL on its own line"},
+    {"text": "Output contains a '## Comment' section"},
+    {"text": "Comment section contains a code fence with content of 20 words or fewer"}
+  ],
   "evals": [
     {
       "id": "devto-top-article",
@@ -8,36 +19,7 @@
       ],
       "files": [],
       "assertions": [
-        {
-          "text": "Output contains an H1 title (line starting with '# ')"
-        },
-        {
-          "text": "Output contains a clickable link to the source URL near the title"
-        },
-        {
-          "text": "Output contains a '## TL;DR' section"
-        },
-        {
-          "text": "TL;DR is 1-2 sentences of plain body text, not rendered as a heading or bold block"
-        },
-        {
-          "text": "Output contains a '## Cliff Notes' section"
-        },
-        {
-          "text": "Cliff Notes contains a bulleted list with 5-8 items"
-        },
-        {
-          "text": "Output contains a '## Share' section"
-        },
-        {
-          "text": "Share section contains a code fence with a bare URL on its own line"
-        },
-        {
-          "text": "Output contains a '## Comment' section"
-        },
-        {
-          "text": "Comment section contains a code fence with content of 20 words or fewer"
-        },
+        {"text": "Output contains a clickable link to the source URL near the title"},
         {"tool_called": "scrape_as_markdown"},
         {"tool_not_called": "WebFetch"},
         {"tool_not_called": "WebSearch"}
@@ -50,36 +32,7 @@
       ],
       "files": [],
       "assertions": [
-        {
-          "text": "Output contains an H1 title (line starting with '# ')"
-        },
-        {
-          "text": "Output contains a clickable link to the source URL near the title"
-        },
-        {
-          "text": "Output contains a '## TL;DR' section"
-        },
-        {
-          "text": "TL;DR is 1-2 sentences of plain body text, not rendered as a heading or bold block"
-        },
-        {
-          "text": "Output contains a '## Cliff Notes' section"
-        },
-        {
-          "text": "Cliff Notes contains a bulleted list with 5-8 items"
-        },
-        {
-          "text": "Output contains a '## Share' section"
-        },
-        {
-          "text": "Share section contains a code fence with a bare URL on its own line"
-        },
-        {
-          "text": "Output contains a '## Comment' section"
-        },
-        {
-          "text": "Comment section contains a code fence with content of 20 words or fewer"
-        },
+        {"text": "Output contains a clickable link to the source URL near the title"},
         {"tool_called": "scrape_as_markdown"},
         {"tool_not_called": "WebFetch"},
         {"tool_not_called": "WebSearch"}
@@ -92,36 +45,7 @@
       ],
       "files": [],
       "assertions": [
-        {
-          "text": "Output contains an H1 title (line starting with '# ')"
-        },
-        {
-          "text": "Output contains a clickable link to the source URL near the title"
-        },
-        {
-          "text": "Output contains a '## TL;DR' section"
-        },
-        {
-          "text": "TL;DR is 1-2 sentences of plain body text, not rendered as a heading or bold block"
-        },
-        {
-          "text": "Output contains a '## Cliff Notes' section"
-        },
-        {
-          "text": "Cliff Notes contains a bulleted list with 5-8 items"
-        },
-        {
-          "text": "Output contains a '## Share' section"
-        },
-        {
-          "text": "Share section contains a code fence with a bare URL on its own line"
-        },
-        {
-          "text": "Output contains a '## Comment' section"
-        },
-        {
-          "text": "Comment section contains a code fence with content of 20 words or fewer"
-        },
+        {"text": "Output contains a clickable link to the source URL near the title"},
         {"tool_called": "scrape_as_markdown"},
         {"tool_not_called": "WebFetch"},
         {"tool_not_called": "WebSearch"}
@@ -132,37 +56,9 @@
       "turns": [
         "Summarize this PDF: test-paper.pdf"
       ],
-      "files": [
-        "test-paper.pdf"
-      ],
+      "files": ["test-paper.pdf"],
       "assertions": [
-        {
-          "text": "Output contains an H1 title (line starting with '# ')"
-        },
-        {
-          "text": "H1 title uses the document/paper title or filename, not a URL"
-        },
-        {
-          "text": "Output contains a '## TL;DR' section"
-        },
-        {
-          "text": "TL;DR is 1-2 sentences of plain body text, not rendered as a heading or bold block"
-        },
-        {
-          "text": "Output contains a '## Cliff Notes' section"
-        },
-        {
-          "text": "Cliff Notes contains a bulleted list with 5-8 items"
-        },
-        {
-          "text": "Output contains a '## Share' section"
-        },
-        {
-          "text": "Output contains a '## Comment' section"
-        },
-        {
-          "text": "Comment section contains a code fence with content of 20 words or fewer"
-        },
+        {"text": "H1 title uses the document/paper title or filename, not a URL"},
         {"tool_called": "Read"},
         {"tool_not_called": "WebFetch"},
         {"tool_not_called": "WebSearch"},
