@@ -258,3 +258,17 @@ def test_build_run_plans_core(tmp_path):
     assert plan.suite_name == "no-ai-attribution"
     assert plan.case_id == "throwaway-commit"
     assert (tmp_path / "AGENTS.md") in plan.context_paths
+
+
+def test_missing_name_raises_clear_error(tmp_path):
+    f = tmp_path / "evals.json"
+    f.write_text(json.dumps({"evals": [{"id": "c1", "turns": ["hi"]}]}))
+    with pytest.raises(ValueError, match="missing 'name'"):
+        load_eval_file(f, kind="skill")
+
+
+def test_missing_evals_raises_clear_error(tmp_path):
+    f = tmp_path / "evals.json"
+    f.write_text(json.dumps({"name": "demo"}))
+    with pytest.raises(ValueError, match="missing 'evals'"):
+        load_eval_file(f, kind="skill")

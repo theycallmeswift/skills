@@ -55,6 +55,12 @@ def _load_turns(case: dict, source: Path) -> list[str]:
 
 def load_eval_file(path: Path, kind: EvalKind) -> EvalSuite:
     data = json.loads(path.read_text())
+    if "name" not in data:
+        raise ValueError(f"{path}: missing 'name' at top level.")
+    if "evals" not in data:
+        raise ValueError(
+            f"{path}: missing 'evals' at top level (should be a list of cases)."
+        )
     shared = data.get("shared_assertions", [])
     if not isinstance(shared, list):
         raise ValueError(
