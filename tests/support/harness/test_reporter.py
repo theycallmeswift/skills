@@ -1,5 +1,5 @@
 from tests.support.harness.models import EvalCase, Grading, RunPlan
-from tests.support.harness.reporter import CaseResult, DotsReporter
+from tests.support.harness.reporter import CaseResult, DotsReporter, _print_summary
 from tests.support.harness.runner import RunResult
 
 
@@ -40,3 +40,48 @@ def test_dots_reporter_exit_code_on_with_skill_fail(capsys):
         r.case_finished(res)
     exit_code = r.finish(results, verbose=False)
     assert exit_code == 1
+
+
+def _make_result(
+    variant="with_skill",
+    suite_kind="skill",
+    passed=1, failed=0, exit_code=0,
+):
+    case = EvalCase(id="c1", turns=["hi"])
+    plan = RunPlan(
+        suite_name="demo", suite_kind=suite_kind, case_id="c1",
+        variant=variant, turns=["hi"], context_paths=[], case=case,
+    )
+    run = RunResult(
+        stdout="", files_written={}, input_tokens=0, output_tokens=0,
+        duration_s=0.0, exit_code=exit_code, tool_trace=[], turn_count=1,
+    )
+    exps = [{"text": f"e{i}", "passed": True, "evidence": "ok"} for i in range(passed)]
+    exps += [{"text": f"f{i}", "passed": False, "evidence": "no"} for i in range(failed)]
+    return CaseResult(plan=plan, run=run, grading=Grading.from_expectations(exps))
+
+
+def test_all_pass_returns_0(capsys):
+    assert _print_summary([_make_result(passed=3)], verbose=False) == 0
+
+
+def test_failed_assertion_returns_1(capsys):
+    assert _print_summary([_make_result(passed=1, failed=1)], verbose=False) == 1
+
+
+def test_run_error_returns_1(capsys):
+    assert _print_summary([_make_result(exit_code=1)], verbose=False) == 1
+
+
+def test_baseline_failure_does_not_fail_run(capsys):
+    assert _print_summary(
+        [_make_result(variant="baseline", passed=0, failed=3)],
+        verbose=False,
+    ) == 0
+
+
+def test_core_failure_returns_1(capsys):
+    assert _print_summary(
+        [_make_result(suite_kind="core", variant="run", failed=1)],
+        verbose=False,
+    ) == 1
