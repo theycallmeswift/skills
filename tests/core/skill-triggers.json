@@ -8,12 +8,8 @@
       ],
       "files": [],
       "assertions": [
-        {
-          "text": "The Skill tool was invoked with a skill name matching 'ghostwrite' (check the TOOL TRACE)"
-        },
-        {
-          "text": "The output is a rewritten version of the input, not a refusal or clarifying question"
-        }
+        {"skill_invoked": "ghostwrite"},
+        {"text": "The output is a rewritten version of the input, not a refusal or clarifying question"}
       ]
     },
     {
@@ -23,12 +19,8 @@
       ],
       "files": [],
       "assertions": [
-        {
-          "text": "The Skill tool was invoked with a skill name matching 'scope' (check the TOOL TRACE)"
-        },
-        {
-          "text": "The response engages with scoping the idea (asking clarifying questions or proposing approaches), not jumping to implementation"
-        }
+        {"skill_invoked": "scope"},
+        {"text": "The response engages with scoping the idea (asking clarifying questions or proposing approaches), not jumping to implementation"}
       ]
     },
     {
@@ -38,9 +30,7 @@
       ],
       "files": [],
       "assertions": [
-        {
-          "text": "The Skill tool was invoked with a skill name matching 'summarize' (check the TOOL TRACE)"
-        }
+        {"skill_invoked": "summarize"}
       ]
     },
     {
@@ -50,12 +40,8 @@
       ],
       "files": [],
       "assertions": [
-        {
-          "text": "The Skill tool was invoked with a skill name matching 'prompt-engineer' (check the TOOL TRACE)"
-        },
-        {
-          "text": "The response produces or asks clarifying questions to produce a structured prompt, not a generic answer"
-        }
+        {"skill_invoked": "prompt-engineer"},
+        {"text": "The response produces or asks clarifying questions to produce a structured prompt, not a generic answer"}
       ]
     }
   ]
