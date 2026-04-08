@@ -54,6 +54,20 @@ Pick the lightest pattern that fits. Combine only when blending clearly improves
 
 When sections are needed, order them: Role → Task → Context → Constraints → Examples → Input → Output format. Skip any section that doesn't earn its place. A simple extractor only needs Task, Examples, Input, Output.
 
+## Schema Field Names
+
+When the user names fields to extract ("parties, effective date, termination clauses"), the schema keys in the drafted prompt use the **shortest unambiguous form** of each concept, snake_cased. Drop filler nouns like `_clauses`, `_section`, `_info`, `_details`, `_data` when the concept stands on its own.
+
+Examples:
+- "parties" → `parties`
+- "effective date" → `effective_date`
+- "termination clauses" → `termination` (drop `_clauses` — the concept is "termination")
+- "payment terms" → `payment_terms` (keep — "payment" alone is ambiguous)
+- "contact information" → `contact` (drop `_information` — filler)
+- "risk factors" → `risks`
+
+The goal: the consumer of the JSON can read each key once and know what it holds, without the key repeating itself in prose. Every token earns its keep, including in field names.
+
 ## Quality Bar
 
 Every "no" is a fix.
