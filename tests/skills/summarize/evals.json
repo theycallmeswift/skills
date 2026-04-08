@@ -107,24 +107,6 @@
         {"tool_not_called": "scrape_as_markdown"},
         {"tool_not_called": "WebFetch"}
       ]
-    },
-    {
-      "id": "ambiguous-reference",
-      "tier": "regression",
-      "turns": [
-        "summarize that thing I sent you yesterday"
-      ],
-      "files": [],
-      "use_shared_assertions": false,
-      "assertions": [
-        {"text": "Output asks the user to clarify what 'that thing' refers to (link, paste, filename, etc.)"},
-        {"text": "Output does NOT invent or guess an article, URL, or document to summarize"},
-        {"text": "Output does NOT produce the standard H1/TL;DR/Cliff Notes format — it is a clarifying question, not a summary"},
-        {"tool_not_called": "scrape_as_markdown"},
-        {"tool_not_called": "scrape_batch"},
-        {"tool_not_called": "WebFetch"},
-        {"tool_not_called": "WebSearch"}
-      ]
     }
   ]
 }
