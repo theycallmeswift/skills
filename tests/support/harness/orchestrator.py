@@ -1,6 +1,7 @@
 import asyncio
 import json
 import os
+import shutil
 import tempfile
 from datetime import datetime, timezone
 from pathlib import Path
@@ -39,38 +40,48 @@ async def _run_one(
                 project_root=project_root,
             )
 
+            original_prompt = "\n\n".join(
+                f"[turn {i}] {t}" for i, t in enumerate(plan.case.turns, start=1)
+            )
+            grading = await grade(
+                run,
+                plan.case.assertions,
+                model=plan.case.grader_model,
+                original_prompt=original_prompt,
+            )
+
+            adir = _artifact_dir(artifact_root, plan, run_id)
+            (adir / "outputs").mkdir(exist_ok=True)
+            (adir / "outputs" / "output.md").write_text(run.stdout)
+            (adir / "files_written.json").write_text(
+                json.dumps(run.files_written, indent=2)
+            )
+            (adir.parent / "eval_metadata.json").write_text(json.dumps({
+                "id": plan.case_id,
+                "turns": plan.case.turns,
+                "turn_count": len(plan.case.turns),
+                "assertions": plan.case.assertions,
+            }, indent=2))
+            (adir / "grading.json").write_text(json.dumps({
+                "expectations": grading.expectations,
+                "summary": {
+                    "passed": grading.passed,
+                    "failed": grading.failed,
+                    "total": grading.total,
+                    "pass_rate": (grading.passed / grading.total) if grading.total else 0.0,
+                },
+            }, indent=2))
+
+            result = CaseResult(plan=plan, run=run, grading=grading)
+
+        # Post-run cleanup: safe globs only (validated at discovery time).
         for pattern in plan.case.cleanup:
             for match in project_root.glob(pattern):
                 if match.is_dir():
-                    import shutil; shutil.rmtree(match, ignore_errors=True)
+                    shutil.rmtree(match, ignore_errors=True)
                 else:
                     match.unlink(missing_ok=True)
 
-        original_prompt = "\n\n".join(
-            f"[turn {i}] {t}" for i, t in enumerate(plan.case.turns, start=1)
-        )
-        grading = await grade(run, plan.case.assertions, model=plan.case.grader_model, original_prompt=original_prompt)
-
-        adir = _artifact_dir(artifact_root, plan, run_id)
-        (adir / "outputs").mkdir(exist_ok=True)
-        (adir / "outputs" / "output.md").write_text(run.stdout)
-        (adir.parent / "eval_metadata.json").write_text(json.dumps({
-            "id": plan.case_id,
-            "turns": plan.case.turns,
-            "turn_count": len(plan.case.turns),
-            "assertions": plan.case.assertions,
-        }, indent=2))
-        (adir / "grading.json").write_text(json.dumps({
-            "expectations": grading.expectations,
-            "summary": {
-                "passed": grading.passed,
-                "failed": grading.failed,
-                "total": grading.total,
-                "pass_rate": (grading.passed / grading.total) if grading.total else 0.0,
-            },
-        }, indent=2))
-
-        result = CaseResult(plan=plan, run=run, grading=grading)
         reporter.case_finished(result)
         return result
 
