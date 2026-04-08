@@ -2,6 +2,42 @@ import json
 from pathlib import Path
 from .models import EvalCase, EvalSuite, EvalKind, RunPlan
 
+_CLEANUP_ALLOWED_ROOTS = ("references/specs/", "tmp/")
+
+
+def _validate_cleanup(patterns: list[str], source: Path) -> list[str]:
+    """Reject cleanup globs that could touch files outside the safe allowlist.
+
+    Patterns must be relative, contain no `..` segments, and start with one of
+    the allowed roots. This runs at load time so bad configs fail loudly.
+    """
+    if not isinstance(patterns, list):
+        raise ValueError(
+            f"eval case in {source}: 'cleanup' must be a list of glob strings."
+        )
+    for p in patterns:
+        if not isinstance(p, str) or not p:
+            raise ValueError(
+                f"eval case in {source}: cleanup entries must be non-empty strings."
+            )
+        if p.startswith("/"):
+            raise ValueError(
+                f"eval case in {source}: cleanup glob '{p}' is absolute; "
+                f"use a path relative to project_root."
+            )
+        if ".." in Path(p).parts:
+            raise ValueError(
+                f"eval case in {source}: cleanup glob '{p}' contains '..'; "
+                f"parent traversal is not allowed."
+            )
+        if not any(p.startswith(root) for root in _CLEANUP_ALLOWED_ROOTS):
+            raise ValueError(
+                f"eval case in {source}: cleanup glob '{p}' is not under "
+                f"allowed roots {_CLEANUP_ALLOWED_ROOTS}."
+            )
+    return patterns
+
+
 def _load_turns(case: dict, source: Path) -> list[str]:
     turns = case.get("turns")
     if turns is None:
@@ -25,7 +61,7 @@ def load_eval_file(path: Path, kind: EvalKind) -> EvalSuite:
             files=c.get("files", []),
             assertions=c.get("assertions", []),
             grader_model=c.get("grader_model"),
-            cleanup=c.get("cleanup", []),
+            cleanup=_validate_cleanup(c.get("cleanup", []), path),
         )
         for c in data["evals"]
     ]

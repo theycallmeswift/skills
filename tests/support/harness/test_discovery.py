@@ -1,5 +1,56 @@
+import json
+import pytest
 from pathlib import Path
 from tests.support.harness.discovery import load_eval_file, EvalSuite, EvalCase
+
+
+def _write_suite(tmp_path: Path, cleanup: list[str]) -> Path:
+    f = tmp_path / "evals.json"
+    f.write_text(json.dumps({
+        "name": "demo",
+        "evals": [{
+            "id": "c1",
+            "turns": ["hi"],
+            "cleanup": cleanup,
+        }],
+    }))
+    return f
+
+
+def test_cleanup_allows_safe_references_specs(tmp_path):
+    f = _write_suite(tmp_path, ["references/specs/2026-*.md"])
+    suite = load_eval_file(f, kind="skill")
+    assert suite.cases[0].cleanup == ["references/specs/2026-*.md"]
+
+
+def test_cleanup_allows_tmp_subpaths(tmp_path):
+    f = _write_suite(tmp_path, ["tmp/foo/*"])
+    suite = load_eval_file(f, kind="skill")
+    assert suite.cases[0].cleanup == ["tmp/foo/*"]
+
+
+def test_cleanup_rejects_absolute_path(tmp_path):
+    f = _write_suite(tmp_path, ["/etc/passwd"])
+    with pytest.raises(ValueError, match="absolute"):
+        load_eval_file(f, kind="skill")
+
+
+def test_cleanup_rejects_parent_traversal(tmp_path):
+    f = _write_suite(tmp_path, ["../secrets/*"])
+    with pytest.raises(ValueError, match=r"\.\."):
+        load_eval_file(f, kind="skill")
+
+
+def test_cleanup_rejects_unsafe_root(tmp_path):
+    f = _write_suite(tmp_path, ["skills/*"])
+    with pytest.raises(ValueError, match="allowed roots"):
+        load_eval_file(f, kind="skill")
+
+
+def test_cleanup_rejects_bare_star(tmp_path):
+    f = _write_suite(tmp_path, ["*"])
+    with pytest.raises(ValueError, match="allowed roots"):
+        load_eval_file(f, kind="skill")
 
 FIXTURES = Path(__file__).parent.parent / "fixtures"
 
