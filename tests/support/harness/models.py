@@ -11,6 +11,7 @@ class EvalCase:
     files: list[str] = field(default_factory=list)
     assertions: list[dict] = field(default_factory=list)
     grader_model: str | None = None
+    grader_input_limit: int | None = None
     cleanup: list[str] = field(default_factory=list)
 
 @dataclass

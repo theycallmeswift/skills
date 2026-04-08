@@ -73,6 +73,7 @@ def load_eval_file(path: Path, kind: EvalKind) -> EvalSuite:
             files=c.get("files", []),
             assertions=merged,
             grader_model=c.get("grader_model"),
+            grader_input_limit=c.get("grader_input_limit"),
             cleanup=_validate_cleanup(c.get("cleanup", []), path),
         ))
     return EvalSuite(

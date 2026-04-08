@@ -17,6 +17,29 @@ def _write_suite(tmp_path: Path, cleanup: list[str]) -> Path:
     return f
 
 
+def test_grader_input_limit_is_loaded(tmp_path):
+    f = tmp_path / "evals.json"
+    f.write_text(json.dumps({
+        "name": "demo",
+        "evals": [
+            {
+                "id": "c1",
+                "turns": ["hi"],
+                "grader_input_limit": 8000,
+                "assertions": [{"text": "x"}],
+            },
+            {
+                "id": "c2",
+                "turns": ["hi"],
+                "assertions": [{"text": "x"}],
+            },
+        ],
+    }))
+    suite = load_eval_file(f, kind="skill")
+    assert suite.cases[0].grader_input_limit == 8000
+    assert suite.cases[1].grader_input_limit is None
+
+
 def test_cleanup_allows_safe_references_specs(tmp_path):
     f = _write_suite(tmp_path, ["references/specs/2026-*.md"])
     suite = load_eval_file(f, kind="skill")
