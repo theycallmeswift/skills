@@ -46,6 +46,20 @@
       ]
     },
     {
+      "id": "asks-one-question-at-a-time",
+      "turns": [
+        "Scope a GitHub webhook system for MechaSwift that listens for PR events and posts summaries to Slack."
+      ],
+      "files": [],
+      "assertions": [
+        {"text": "Output contains exactly one question, or at most two questions, on this turn"},
+        {"text": "Output does NOT present a numbered or bulleted list of 3+ clarifying questions at once"},
+        {"text": "Output does NOT propose a design or approach on this turn (waits for answers first)"},
+        {"text": "Output does NOT write a spec file on this turn"},
+        {"text": "Output does NOT create any implementation code or project scaffolding"}
+      ]
+    },
+    {
       "id": "vague-notifications",
       "turns": [
         "Scope a notifications feature"
