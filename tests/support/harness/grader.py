@@ -1,4 +1,8 @@
 import json
+import subprocess
+import sys
+import tempfile
+from pathlib import Path
 
 from claude_agent_sdk import AssistantMessage, ClaudeAgentOptions, ResultMessage, query
 
@@ -133,6 +137,8 @@ def _grade_deterministic(assertions: list[dict], run: RunResult) -> list[dict]:
                     "passed": False,
                     "evidence": f"found '{hit['name']}' on turn {hit.get('turn', '?')}",
                 })
+        elif "lint" in a:
+            out.append(_grade_lint(a["lint"], run))
         elif "skill_invoked" in a:
             skill = a["skill_invoked"]
             hit = _match_skill_invocation(run.tool_trace, skill)
@@ -186,7 +192,51 @@ def _build_prompt(
     )
 
 
-_DETERMINISTIC_KEYS = ("tool_called", "tool_not_called", "skill_invoked")
+_DETERMINISTIC_KEYS = ("tool_called", "tool_not_called", "skill_invoked", "lint")
+
+
+def _repo_root() -> Path:
+    # grader.py lives at tests/support/harness/grader.py; repo root is 3 up.
+    return Path(__file__).resolve().parents[3]
+
+
+def _grade_lint(skill: str, run: RunResult) -> dict:
+    """Run skills/<skill>/lint.py against the agent's captured output."""
+    lint_path = _repo_root() / "skills" / skill / "lint.py"
+    text = f"lint: {skill}"
+    if not lint_path.exists():
+        return {
+            "text": text,
+            "passed": False,
+            "evidence": f"lint script not found at {lint_path}",
+        }
+    # Prefer the final assistant message (what the user actually sees), fall
+    # back to concatenated stdout, then to the last file the agent wrote.
+    content = getattr(run, "final_message", "") or run.stdout or ""
+    if not content.strip() and run.files_written:
+        # Use the last file the agent wrote as the draft.
+        content = next(iter(run.files_written.values()))
+    with tempfile.NamedTemporaryFile(
+        mode="w", suffix=".md", delete=False, encoding="utf-8"
+    ) as tmp:
+        tmp.write(content)
+        tmp_path = tmp.name
+    try:
+        result = subprocess.run(
+            [sys.executable, str(lint_path), tmp_path],
+            capture_output=True,
+            text=True,
+            timeout=30,
+        )
+    finally:
+        Path(tmp_path).unlink(missing_ok=True)
+    passed = result.returncode == 0
+    if passed:
+        evidence = "lint clean (exit 0)"
+    else:
+        findings = result.stdout.strip() or result.stderr.strip() or "(no findings emitted)"
+        evidence = f"exit {result.returncode}: {findings}"
+    return {"text": text, "passed": passed, "evidence": evidence}
 
 
 def _is_deterministic(assertion: dict) -> bool:

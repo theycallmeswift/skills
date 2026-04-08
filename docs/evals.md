@@ -80,14 +80,17 @@ Assertions are graded in two ways depending on their shape.
 {"text": "Output contains a '## TL;DR' section"}
 ```
 
-**Deterministic assertions** are graded in Python against the tool trace — faster, cheaper, no LLM variance:
+**Deterministic assertions** are graded in Python against the tool trace or captured output — faster, cheaper, no LLM variance:
 ```json
 {"tool_called": "scrape_as_markdown"}
 {"tool_not_called": "WebFetch"}
 {"skill_invoked": "ghostwrite"}
+{"lint": "summarize"}
 ```
 
 Use deterministic assertions for any observable fact about tool use. Reserve text assertions for content and behavior.
+
+**Lint assertions** run `skills/<name>/lint.py` against the captured agent stdout. Exit 0 = pass, non-zero = fail (the script's stdout is reported as evidence). Each skill with deterministic format rules ships its own `lint.py` — it's the same script the skill runs inside its own tool loop as a self-check, so the harness and the agent catch the same structural bugs. Use `{"lint": "<skill>"}` to replace flaky prose assertions for rules like "starts with a title", "has 5-8 bullets", or "no em dashes".
 
 ## Shared assertions
 

@@ -15,9 +15,7 @@
         {
           "text": "Output leads with the results or the ask in the first sentence, not a preamble like 'I wanted to reach out'"
         },
-        {
-          "text": "Output does not contain any em dashes (\u2014)"
-        },
+        {"lint": "ghostwrite"},
         {
           "text": "Output contains a sign-off of '- Swift' or 'Happy Hacking,\\nSwift'"
         },

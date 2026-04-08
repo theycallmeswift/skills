@@ -56,6 +56,9 @@ async def _run_one(
             adir = _artifact_dir(artifact_root, plan, run_id)
             (adir / "outputs").mkdir(exist_ok=True)
             (adir / "outputs" / "output.md").write_text(run.stdout)
+            final_msg = getattr(run, "final_message", "") or ""
+            if final_msg:
+                (adir / "outputs" / "final_message.md").write_text(final_msg)
             (adir / "files_written.json").write_text(
                 json.dumps(run.files_written, indent=2)
             )

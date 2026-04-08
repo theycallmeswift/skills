@@ -1,12 +1,7 @@
 {
   "name": "summarize",
   "shared_assertions": [
-    {"text": "Output starts with a clear title for the summarized content — an H1 markdown heading is preferred, but any visually distinct title line at the top is acceptable"},
-    {"text": "Output contains a short summary (1-2 sentences) of the content near the top, before any detailed list of points"},
-    {"text": "Output contains a bulleted list of 5-8 key points extracted from the source (the number must be between 5 and 8 inclusive; fewer or more should fail)"},
-    {"text": "Output contains a shareable snippet (1-2 sentences) suitable for pasting into Slack or a social post, visually distinguished from the main summary (code fence, blockquote, or clearly labeled block all acceptable)"},
-    {"text": "Output contains a short forum-style comment of 20 words or fewer, distinct from the shareable snippet, suitable for pasting as a reply (code fence or clearly labeled block acceptable)"},
-    {"text": "Output contains no em dashes (—)"}
+    {"lint": "summarize"}
   ],
   "evals": [
     {
@@ -103,7 +98,7 @@
         {"text": "Output contains a short 1-2 sentence summary near the top naming the Q3 demo day date change as the core fact"},
         {"text": "If a bulleted list of points is present, every bullet is directly supported by the 4-sentence input (mentions demo day, Sept 15, partner onboarding, marketing, or calendar invites) and none are invented"},
         {"text": "The summary and key points (not the shareable snippet or forum comment — those are explicitly opinionated takeaways) do NOT pad with generic project-management commentary not present in the input, such as risk commentary, schedule advice, or prescriptive framing"},
-        {"text": "Output contains no em dashes (—)"},
+        {"lint": "summarize"},
         {"tool_not_called": "scrape_as_markdown"},
         {"tool_not_called": "WebFetch"}
       ]

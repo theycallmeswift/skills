@@ -42,7 +42,8 @@
         {"required": ["text"], "properties": {"text": {"type": "string", "minLength": 1}}, "additionalProperties": false},
         {"required": ["tool_called"], "properties": {"tool_called": {"type": "string", "minLength": 1}}, "additionalProperties": false},
         {"required": ["tool_not_called"], "properties": {"tool_not_called": {"type": "string", "minLength": 1}}, "additionalProperties": false},
-        {"required": ["skill_invoked"], "properties": {"skill_invoked": {"type": "string", "minLength": 1}}, "additionalProperties": false}
+        {"required": ["skill_invoked"], "properties": {"skill_invoked": {"type": "string", "minLength": 1}}, "additionalProperties": false},
+        {"required": ["lint"], "properties": {"lint": {"type": "string", "minLength": 1}}, "additionalProperties": false}
       ]
     }
   }

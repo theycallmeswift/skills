@@ -70,6 +70,10 @@ class RunResult:
     tool_trace: list[dict] = field(default_factory=list)
     turn_count: int = 1
     error: str | None = None
+    # The final contiguous assistant text run (after the last tool use in the
+    # last turn). This is what a human user actually sees as "the answer",
+    # distinct from `stdout` which concatenates all intermediate narration.
+    final_message: str = ""
 
 
 def build_agent_options(
@@ -112,6 +116,7 @@ async def run_claude(
     before = snapshot_files(cwd)
 
     stdout_parts: list[str] = []
+    final_message_parts: list[str] = []
     tool_trace: list[dict] = []
     input_tokens = 0
     output_tokens = 0
@@ -128,6 +133,9 @@ async def run_claude(
                 for i, turn in enumerate(turns, start=1):
                     if len(turns) > 1:
                         stdout_parts.append(TURN_SEPARATOR.format(n=i))
+                    # Reset final-message buffer at each new turn; the final
+                    # answer is the last contiguous text run in the last turn.
+                    final_message_parts = []
                     await client.query(turn)
                     turns_sent = i
                     async for message in client.receive_response():
@@ -139,8 +147,13 @@ async def run_claude(
                                         "input": block.input,
                                         "turn": i,
                                     })
+                                    # Any tool use invalidates the in-progress
+                                    # "final answer" — the user's view is only
+                                    # the text AFTER the last tool call.
+                                    final_message_parts = []
                                 elif hasattr(block, "text"):
                                     stdout_parts.append(block.text)
+                                    final_message_parts.append(block.text)
                         elif isinstance(message, ResultMessage):
                             usage = getattr(message, "usage", None) or {}
                             input_tokens += usage.get("input_tokens", 0)
@@ -165,6 +178,7 @@ async def run_claude(
         tool_trace=tool_trace,
         turn_count=len(turns),
         error=error,
+        final_message="".join(final_message_parts),
     )
 
 

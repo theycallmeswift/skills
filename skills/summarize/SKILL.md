@@ -7,6 +7,16 @@ description: "Use when the user wants to summarize a web page, article, blog pos
 
 Produce a concise, skimmable summary of any content -- web pages, PDFs, documents, or pasted text. The goal is to help the user decide whether to read the full thing, and give them a ready-to-share message.
 
+## The final response rule (read this first)
+
+Your final assistant message to the user is **only the filled-in template below**. Nothing before it, nothing after it.
+
+- The very first character of your final message is `#` (the H1 title).
+- No preamble. Not "Here's the summary:", not "Summary:", not "Lint clean.", not "---", not a recap of what you did. Zero.
+- No postscript. No "Let me know if you want me to adjust..." at the bottom.
+- Ghostwrite output is **internal scratch**, not your final message. When you invoke ghostwrite, its return value is text you paste INTO the `## Share` and `## Comment` code fences of the template — never the whole response.
+- If you are about to send a message that does not start with `# `, stop and rewrite it. This is the most common way this skill fails.
+
 ## Getting the Content
 
 If the user provides a URL, file, or content, use that. If they just say "summarize this" without context, ask what they'd like summarized. Check for:
@@ -54,12 +64,14 @@ Every summary the user sees is a **single assistant message** that fills in this
 1. **Fetch and read** the content. For a single URL, use `scrape_as_markdown` from the brightdata MCP. For multiple URLs in one request, use `scrape_batch`. For local files (PDFs, DOCX, etc.), use Read directly. If the brightdata MCP is unavailable, fail loudly with a message pointing the user at `BRIGHTDATA_API_TOKEN`. Do not fall back to any other fetch tool.
 2. **Draft Title, TL;DR, and Cliff Notes internally** from the source content. These are YOUR words, not ghostwrite's.
 3. **Identify the Share takeaway** (one punchy sentence that would make someone click) and the **Comment angle** (something specific to react to as a builder).
-4. **Invoke the `ghostwrite` skill exactly once** with both the Share takeaway and the Comment angle. Ask it to return two rewrites: a Slack-style share message and a short forum comment. Ghostwrite's return value is **raw text to paste into the Share and Comment code fences** — it is NOT your final response.
+4. **Invoke the `ghostwrite` skill exactly once** with both the Share takeaway and the Comment angle. Ask it to return two rewrites: a Slack-style share message and a short forum comment. Ghostwrite's return value is **raw text you paste into the Share and Comment code fences of the template in step 6**. It is never your final response to the user. If ghostwrite gives you text and you are tempted to just return it, STOP — you still owe the user the full template (H1 + TL;DR + Cliff Notes + Share + Comment).
 5. **Verify hard limits.** Count, do not estimate.
    - **Cliff Notes**: 5-8 bullets. If more than 8, consolidate.
    - **Share**: 1-2 sentences. If more, cut.
    - **Comment**: 20 words or fewer inside the code fence. If more, trim yourself (do not re-invoke ghostwrite).
 6. **Write the full template above as a single markdown message.** All five sections. Literal `## TL;DR`, `## Cliff Notes`, `## Share`, `## Comment` headings. No bold-label substitutes.
+7. **Self-check before presenting.** Write your draft to `tmp/summarize-draft.md`, run `python skills/summarize/lint.py tmp/summarize-draft.md`, and fix the file until the lint is clean (exit 0). The lint catches structural bugs the model is known to drift on: missing title, narration leaking into output, wrong bullet count, em dashes, missing Share/Comment blocks.
+8. **Deliver the draft verbatim.** Your next assistant message is the contents of `tmp/summarize-draft.md` and nothing else. First character is the `#` of the H1. Last character is the closing backtick of the Comment code fence. No "Lint clean.", no "Here's the summary:", no "---", no trailing "Let me know...". Read the file back and send exactly what it contains.
 
 ## Input types
 

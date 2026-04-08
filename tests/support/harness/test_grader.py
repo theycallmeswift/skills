@@ -121,6 +121,37 @@ def test_skill_invoked_fails_when_no_skill_tool_at_all():
     assert "no Skill tool" in exps[0]["evidence"]
 
 
+def _run_with_stdout(stdout: str) -> RunResult:
+    return RunResult(
+        stdout=stdout, files_written={}, input_tokens=0, output_tokens=0,
+        duration_s=0.0, exit_code=0, tool_trace=[], turn_count=1,
+    )
+
+
+def test_lint_assertion_passes_on_clean_ghostwrite_output():
+    clean = "Hey, Sarah,\n\nSeason 3 wrapped with 450 fellows.\n\n- Swift\n"
+    run = _run_with_stdout(clean)
+    exps = _grade_deterministic([{"lint": "ghostwrite"}], run)
+    assert len(exps) == 1
+    assert exps[0]["passed"] is True
+    assert exps[0]["text"] == "lint: ghostwrite"
+
+
+def test_lint_assertion_fails_on_em_dash():
+    dirty = "We shipped it — finally.\n"
+    run = _run_with_stdout(dirty)
+    exps = _grade_deterministic([{"lint": "ghostwrite"}], run)
+    assert exps[0]["passed"] is False
+    assert "em dash" in exps[0]["evidence"]
+
+
+def test_lint_assertion_missing_skill_reports_clearly():
+    run = _run_with_stdout("anything")
+    exps = _grade_deterministic([{"lint": "nonexistent_skill"}], run)
+    assert exps[0]["passed"] is False
+    assert "not found" in exps[0]["evidence"]
+
+
 def test_grade_merges_deterministic_and_text_in_order(monkeypatch):
     run = _run_with_trace([
         {"name": "Skill", "input": {"skill": "ghostwrite"}, "turn": 1},
