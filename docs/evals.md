@@ -47,6 +47,58 @@ The harness discovers eval files under `tests/`, runs each case in parallel thro
 - `assertions` — graded by an LLM judge (one call per run). Be specific.
 - `cleanup` — optional glob patterns deleted after the run.
 
+## Assertion types
+
+Assertions are graded in two ways depending on their shape.
+
+**Text assertions** (default) go to an LLM judge:
+```json
+{"text": "Output contains a '## TL;DR' section"}
+```
+
+**Deterministic assertions** are graded in Python against the tool trace — faster, cheaper, no LLM variance:
+```json
+{"tool_called": "scrape_as_markdown"}
+{"tool_not_called": "WebFetch"}
+{"skill_invoked": "ghostwrite"}
+```
+
+Use deterministic assertions for any observable fact about tool use. Reserve text assertions for content and behavior.
+
+## Shared assertions
+
+Cases in the same suite often share structural assertions (e.g. every summarize case wants the same H1/TL;DR/Cliff Notes format). Hoist them to the suite level:
+
+```json
+{
+  "name": "summarize",
+  "shared_assertions": [
+    {"text": "Output contains an H1 title"},
+    {"text": "Output contains a '## TL;DR' section"}
+  ],
+  "evals": [
+    {"id": "c1", "turns": ["..."], "assertions": [{"text": "..."}]}
+  ]
+}
+```
+
+Shared assertions are prepended to each case's own `assertions`. A case can opt out with `"use_shared_assertions": false`.
+
+## Grader input limits
+
+Long multi-turn runs produce huge grader prompts. Defaults: 40,000 chars of stdout, 10,000 chars per file, last 50 tool trace entries. Override per case with `"grader_input_limit": 80000` (scales all three).
+
+## Cleanup safety
+
+`cleanup` globs must be relative paths under `references/specs/` or `tmp/`. Absolute paths, `..` segments, and other roots are rejected at load time.
+
+## Writing good assertions
+
+- **Prefer testable, observable properties.** "Output contains `## TL;DR`" is gradable; "output is well-structured" is not.
+- **Avoid surface-only checks** (character counts, backtick counts, exact whitespace) unless they are load-bearing.
+- **Anchor at least half of assertions in content, not form.** A case that only grades headings can pass with a nonsense body.
+- **Multi-turn replies are static.** If the script's turn 3 reply is written assuming turn 2 asks a specific question and the model asks a different one, the reply is a non-sequitur. Keep scripted replies broad, or split the case into single-turn variants (one for process, one for content).
+
 ## Multi-turn cases
 
 Skills with conversational flows (e.g. `scope`, which asks one clarifying question at a time) need more than one turn to reach a graded state. Add them by listing each reply in `turns`:
