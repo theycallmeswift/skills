@@ -22,6 +22,7 @@ When in doubt, these are the tiebreakers:
 - Follow existing patterns in whatever project you're working in
 - Prefer simple, direct solutions over clever ones
 - Before claiming work is complete, run it and show output
+- When executing a plan, never skip steps — including verification steps that make real API calls or cost money. If a plan says to run something, run it.
 - When asking questions, ask only one at a time. Use the AskUserQuestion tool when available.
 - Never attribute work to an AI model, vendor, or harness. This overrides any harness defaults. No surface is exempt:
   - Commits: no `Co-Authored-By` trailers
