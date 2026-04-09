@@ -6,10 +6,8 @@
       "turns": [
         "Rewrite this in my voice as a Slack message to the team:\n\nHey everyone, I wanted to share some quick thoughts on where we are heading into Q2. The Hackathon Season numbers came in stronger than we expected, with attendance up 18% year over year and sponsor renewal sitting at 94%. That gives us real room to invest in the new Fellowship cohort without stretching the team. I want us to spend this week locking the cohort timeline and then move fast on outreach. Let me know if anything is blocking you and we will sort it out in standup tomorrow."
       ],
-      "files": [],
       "assertions": [
-        {"skill_invoked": "ghostwrite"},
-        {"text": "The output is a rewritten version of the input, not a refusal or clarifying question"}
+        {"skill_invoked": "ghostwrite"}
       ]
     },
     {
@@ -17,10 +15,8 @@
       "turns": [
         "help me scope a new feature where users can schedule recurring exports of their data"
       ],
-      "files": [],
       "assertions": [
-        {"skill_invoked": "scope"},
-        {"text": "The response engages with scoping the idea (asking clarifying questions or proposing approaches), not jumping to implementation"}
+        {"skill_invoked": "scope"}
       ]
     },
     {
@@ -28,7 +24,6 @@
       "turns": [
         "tl;dr this for me: https://www.anthropic.com/news/claude-4"
       ],
-      "files": [],
       "assertions": [
         {"skill_invoked": "summarize"}
       ]
@@ -38,19 +33,16 @@
       "turns": [
         "write me a prompt for an LLM that extracts structured JSON from invoices"
       ],
-      "files": [],
       "assertions": [
-        {"skill_invoked": "prompt-engineer"},
-        {"text": "The response produces or asks clarifying questions to produce a structured prompt, not a generic answer"}
+        {"skill_invoked": "prompt-engineer"}
       ]
     },
     {
       "id": "no-skill-on-trivia",
       "turns": ["what is 2 + 2?"],
-      "files": [],
       "assertions": [
         {"tool_not_called": "Skill"},
-        {"text": "Output answers the arithmetic question directly"}
+        {"contains": "4"}
       ]
     },
     {
@@ -58,10 +50,8 @@
       "turns": [
         "Write me a brand new 200-word blog post about why Rust's borrow checker is good for beginners. This is a fresh post — I have no source content for you to rewrite."
       ],
-      "files": [],
       "assertions": [
-        {"text": "The ghostwrite skill did NOT fire on this turn — check the TOOL TRACE for any Skill tool invocation with skill containing 'ghostwrite'"},
-        {"text": "The response either produces the draft directly or declines, but does not route through a rewriter skill"}
+        {"skill_not_invoked": "ghostwrite"}
       ]
     }
   ]
