@@ -338,6 +338,29 @@ def test_lint_assertion_missing_skill_reports_clearly():
     assert "not found" in exps[0]["evidence"]
 
 
+def test_script_name_runs_skill_lint_and_passes_on_clean():
+    clean = "Hey, Sarah,\n\nSeason 3 wrapped with 450 fellows.\n\n- Swift\n"
+    run = _run(final_message=clean)
+    exps = _grade_deterministic([{"script_name": "ghostwrite"}], run)
+    assert len(exps) == 1
+    assert exps[0]["passed"] is True
+    assert exps[0]["text"] == "script_name: ghostwrite"
+
+
+def test_script_name_fails_on_em_dash():
+    run = _run(final_message="We shipped it — finally.\n")
+    exps = _grade_deterministic([{"script_name": "ghostwrite"}], run)
+    assert exps[0]["passed"] is False
+    assert "em dash" in exps[0]["evidence"]
+
+
+def test_lint_alias_still_works():
+    """Legacy key, remove in Phase 6."""
+    run = _run(final_message="Hey, Sarah,\n\n- Swift\n")
+    exps = _grade_deterministic([{"lint": "ghostwrite"}], run)
+    assert exps[0]["passed"] is True
+
+
 def test_grade_merges_deterministic_and_text_in_order(monkeypatch):
     run = _run_with_trace(
         [

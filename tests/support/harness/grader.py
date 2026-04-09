@@ -430,9 +430,14 @@ def _grade_file_contains(a: dict, run: RunResult) -> dict:
     }
 
 
-@_primitive("lint")  # TEMPORARY alias until Task 9 renames to script_name
+@_primitive("lint")  # Backward-compat alias. Delete in Phase 6 after migration.
 def _grade_lint_primitive(a: dict, run: RunResult) -> dict:
     return _grade_lint(a["lint"], run)
+
+
+@_primitive("script_name")
+def _grade_script_name_primitive(a: dict, run: RunResult) -> dict:
+    return _grade_script_name(a["script_name"], run)
 
 
 def _grade_deterministic(assertions: list[dict], run: RunResult) -> list[dict]:
@@ -481,10 +486,10 @@ def _repo_root() -> Path:
     return Path(__file__).resolve().parents[3]
 
 
-def _grade_lint(skill: str, run: RunResult) -> dict:
+def _grade_script_name(skill: str, run: RunResult) -> dict:
     """Run skills/<skill>/lint.py against the agent's captured output."""
     lint_path = _repo_root() / "skills" / skill / "lint.py"
-    text = f"lint: {skill}"
+    text = f"script_name: {skill}"
     if not lint_path.exists():
         return {
             "text": text,
@@ -516,6 +521,13 @@ def _grade_lint(skill: str, run: RunResult) -> dict:
         findings = result.stdout.strip() or result.stderr.strip() or "(no findings emitted)"
         evidence = f"exit {result.returncode}: {findings}"
     return {"text": text, "passed": passed, "evidence": evidence}
+
+
+# Backward-compat alias. Delete in Phase 6 after migration.
+def _grade_lint(skill: str, run: RunResult) -> dict:
+    out = _grade_script_name(skill, run)
+    out["text"] = f"lint: {skill}"
+    return out
 
 
 def _is_deterministic(assertion: dict) -> bool:
