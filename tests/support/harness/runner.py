@@ -1,8 +1,16 @@
+from __future__ import annotations
+
 import asyncio
 import shutil
+import tempfile
 import time
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from pathlib import Path
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from .matchers import EvalResult
 
 from claude_agent_sdk import (
     AssistantMessage,
@@ -184,22 +192,17 @@ async def run_claude(
     )
 
 
-import asyncio as _asyncio
-import tempfile as _tempfile
-from collections.abc import Callable as _Callable
-
-
 def run_eval(
     project_root: Path,
     turns: list[str],
-    setup: _Callable[[Path], None] | None = None,
-    cleanup: _Callable[[Path], None] | None = None,
+    setup: Callable[[Path], None] | None = None,
+    cleanup: Callable[[Path], None] | None = None,
     model: str | None = None,
-) -> "EvalResult":
+) -> EvalResult:
     """High-level eval runner: temp dir, setup, agent run, cleanup, return EvalResult."""
-    from .matchers import EvalResult
+    from .matchers import EvalResult as _EvalResult
 
-    with _tempfile.TemporaryDirectory(prefix="eval-cwd-") as tmp:
+    with tempfile.TemporaryDirectory(prefix="eval-cwd-") as tmp:
         cwd = Path(tmp)
 
         if setup is not None:
@@ -212,7 +215,7 @@ def run_eval(
             preamble = preamble_path.read_text()
             actual_turns[0] = preamble + actual_turns[0]
 
-        run = _asyncio.run(
+        run = asyncio.run(
             run_claude(
                 turns=actual_turns,
                 cwd=cwd,
@@ -225,4 +228,4 @@ def run_eval(
         if cleanup is not None:
             cleanup(cwd)
 
-    return EvalResult(run)
+    return _EvalResult(run)
