@@ -4,8 +4,8 @@ import re
 import subprocess
 import sys
 import tempfile
+from collections.abc import Callable
 from pathlib import Path
-from typing import Callable
 
 from claude_agent_sdk import AssistantMessage, ClaudeAgentOptions, ResultMessage, query
 
@@ -31,11 +31,9 @@ def _resolve_source(run: RunResult, on: str | None) -> list[str]:
     if on == "stdout":
         return [run.stdout or ""]
     if on.startswith("files."):
-        pattern = on[len("files."):]
+        pattern = on[len("files.") :]
         return [
-            content
-            for path, content in run.files_written.items()
-            if fnmatch.fnmatch(path, pattern)
+            content for path, content in run.files_written.items() if fnmatch.fnmatch(path, pattern)
         ]
     raise ValueError(f"unknown `on` target: {on!r}")
 
@@ -46,7 +44,6 @@ def _truncate_tail(s: str, limit: int) -> str:
         return s
     dropped = len(s) - limit
     return f"[... truncated {dropped} chars ...]\n{s[-limit:]}"
-
 
 
 def _match_tool(trace: list[dict], needle: str) -> dict | None:
@@ -80,6 +77,7 @@ def _primitive(key: str) -> Callable[[_PrimitiveFn], _PrimitiveFn]:
     def decorator(fn: _PrimitiveFn) -> _PrimitiveFn:
         _PRIMITIVES[key] = fn
         return fn
+
     return decorator
 
 
@@ -130,9 +128,7 @@ def _grade_skill_invoked(a: dict, run: RunResult) -> dict:
     has_any_skill = any(e.get("name") == "Skill" for e in run.tool_trace)
     if has_any_skill:
         fired = [
-            e.get("input", {}).get("skill", "?")
-            for e in run.tool_trace
-            if e.get("name") == "Skill"
+            e.get("input", {}).get("skill", "?") for e in run.tool_trace if e.get("name") == "Skill"
         ]
         evidence = f"Skill tool fired but with different skills: {fired}"
     else:
@@ -176,9 +172,7 @@ def _grade_regex(a: dict, run: RunResult) -> dict:
 @_primitive("not_regex")
 def _grade_not_regex(a: dict, run: RunResult) -> dict:
     # Shorthand for regex with max=0.
-    return _grade_regex(
-        {"regex": a["not_regex"], "min": 0, "max": 0, "on": a.get("on")}, run
-    )
+    return _grade_regex({"regex": a["not_regex"], "min": 0, "max": 0, "on": a.get("on")}, run)
 
 
 @_primitive("contains")
@@ -308,7 +302,11 @@ def _grade_files_written_include(a: dict, run: RunResult) -> dict:
     return {
         "text": f"files_written_include: {pattern}",
         "passed": bool(matches),
-        "evidence": (f"matched: {matches}" if matches else f"no files matched (wrote {len(run.files_written)})"),
+        "evidence": (
+            f"matched: {matches}"
+            if matches
+            else f"no files matched (wrote {len(run.files_written)})"
+        ),
     }
 
 
@@ -388,8 +386,6 @@ def _grade_deterministic(assertions: list[dict], run: RunResult) -> list[dict]:
     return out
 
 
-
-
 def _repo_root() -> Path:
     # grader.py lives at tests/support/harness/grader.py; repo root is 3 up.
     return Path(__file__).resolve().parents[3]
@@ -430,7 +426,6 @@ def _grade_script_name(skill: str, run: RunResult) -> dict:
         findings = result.stdout.strip() or result.stderr.strip() or "(no findings emitted)"
         evidence = f"exit {result.returncode}: {findings}"
     return {"text": text, "passed": passed, "evidence": evidence}
-
 
 
 def _parse_grader_fallback(raw: str) -> dict:
@@ -534,7 +529,10 @@ async def grade_rubric(
     rubric_text = rubric_path.read_text()
     final_msg = getattr(run, "final_message", "") or run.stdout or "(empty)"
     files_block = (
-        "\n\n".join(f"--- {p} ---\n{_truncate_tail(c, DEFAULT_FILE_LIMIT)}" for p, c in run.files_written.items())
+        "\n\n".join(
+            f"--- {p} ---\n{_truncate_tail(c, DEFAULT_FILE_LIMIT)}"
+            for p, c in run.files_written.items()
+        )
         or "(none)"
     )
     prompt = RUBRIC_PROMPT.format(
@@ -558,7 +556,9 @@ async def grade_rubric(
             passed = True
         expectations.append(
             {
-                "text": ("[critical] " if critical else "[optional] ") + graded["text"] + f" -- {status}",
+                "text": ("[critical] " if critical else "[optional] ")
+                + graded["text"]
+                + f" -- {status}",
                 "passed": passed,
                 "evidence": graded["evidence"],
             }

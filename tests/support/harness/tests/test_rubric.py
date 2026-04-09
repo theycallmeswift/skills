@@ -1,7 +1,3 @@
-from pathlib import Path
-
-import pytest
-
 from tests.support.harness.rubric import parse_rubric_file, parse_rubric_text
 
 

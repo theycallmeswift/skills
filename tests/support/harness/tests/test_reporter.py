@@ -1,6 +1,5 @@
 import io
 from contextlib import redirect_stdout
-from pathlib import Path
 
 from tests.support.harness.models import EvalCase, Grading, RunPlan
 from tests.support.harness.reporter import CaseResult, DotsReporter, _print_summary
@@ -187,13 +186,13 @@ def test_deep_tier_summary_has_three_tables_and_no_warn():
     # Build a result set with one core, one regression, one lift (with baseline).
     results = [
         _cr("skill-triggers", "t1", "core", "eval", passed=3, total=3),
-        _cr("summarize", "paste-raw-text", "skill", "eval", passed=4, total=4, variant="with_skill"),
+        _cr(
+            "summarize", "paste-raw-text", "skill", "eval", passed=4, total=4, variant="with_skill"
+        ),
         _cr(
             "ghostwrite", "sponsor-email", "skill", "eval", passed=4, total=4, variant="with_skill"
         ),
-        _cr(
-            "ghostwrite", "sponsor-email", "skill", "eval", passed=2, total=4, variant="baseline"
-        ),
+        _cr("ghostwrite", "sponsor-email", "skill", "eval", passed=2, total=4, variant="baseline"),
     ]
     # Mark ghostwrite sponsor-email as lift intent:
     results[2].plan.case.intent = "lift"

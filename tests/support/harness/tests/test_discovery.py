@@ -3,7 +3,12 @@ from pathlib import Path
 
 import pytest
 
-from tests.support.harness.discovery import EvalSuite, build_run_plans, discover_suites, load_eval_file
+from tests.support.harness.discovery import (
+    EvalSuite,
+    build_run_plans,
+    discover_suites,
+    load_eval_file,
+)
 from tests.support.harness.models import EvalCase
 
 
@@ -230,10 +235,19 @@ def test_build_run_plans_skill_with_baseline_flat(tmp_path):
     (tmp_path / "skills" / "ghostwrite").mkdir(parents=True)
     (tmp_path / "tests").mkdir()
     (tmp_path / "tests" / "ghostwrite.json").write_text(
-        json.dumps({
-            "name": "ghostwrite",
-            "evals": [{"id": "sponsor-email", "turns": ["hi"], "intent": "lift", "assertions": [{"contains": "x"}]}],
-        })
+        json.dumps(
+            {
+                "name": "ghostwrite",
+                "evals": [
+                    {
+                        "id": "sponsor-email",
+                        "turns": ["hi"],
+                        "intent": "lift",
+                        "assertions": [{"contains": "x"}],
+                    }
+                ],
+            }
+        )
     )
     (tmp_path / "AGENTS.md").write_text("# project context")
     (tmp_path / "skills" / "ghostwrite" / "SKILL.md").write_text("# skill")
@@ -247,7 +261,9 @@ def test_build_run_plans_skill_with_baseline_flat(tmp_path):
 
     with_skill = by_variant["with_skill"]
     assert with_skill.suite_name == "ghostwrite"
-    assert with_skill.turns[0].startswith("Before responding, read and follow skills/ghostwrite/SKILL.md.")
+    assert with_skill.turns[0].startswith(
+        "Before responding, read and follow skills/ghostwrite/SKILL.md."
+    )
     assert (tmp_path / "skills" / "ghostwrite") in with_skill.context_paths
 
     baseline = by_variant["baseline"]
@@ -259,10 +275,19 @@ def test_regression_intent_emits_only_with_skill_flat(tmp_path):
     (tmp_path / "skills" / "ghostwrite").mkdir(parents=True)
     (tmp_path / "tests").mkdir()
     (tmp_path / "tests" / "ghostwrite.json").write_text(
-        json.dumps({
-            "name": "ghostwrite",
-            "evals": [{"id": "c1", "turns": ["hi"], "intent": "regression", "assertions": [{"contains": "x"}]}],
-        })
+        json.dumps(
+            {
+                "name": "ghostwrite",
+                "evals": [
+                    {
+                        "id": "c1",
+                        "turns": ["hi"],
+                        "intent": "regression",
+                        "assertions": [{"contains": "x"}],
+                    }
+                ],
+            }
+        )
     )
     (tmp_path / "AGENTS.md").write_text("# project context")
     (tmp_path / "skills" / "ghostwrite" / "SKILL.md").write_text("# skill")
@@ -277,10 +302,19 @@ def test_build_run_plans_core_flat(tmp_path):
     (tmp_path / "skills").mkdir()
     (tmp_path / "tests").mkdir()
     (tmp_path / "tests" / "no-ai-attribution.json").write_text(
-        json.dumps({
-            "name": "no-ai-attribution",
-            "evals": [{"id": "c1", "turns": ["hi"], "cleanup": ["tmp/fake-repo"], "assertions": [{"contains": "x"}]}],
-        })
+        json.dumps(
+            {
+                "name": "no-ai-attribution",
+                "evals": [
+                    {
+                        "id": "c1",
+                        "turns": ["hi"],
+                        "cleanup": ["tmp/fake-repo"],
+                        "assertions": [{"contains": "x"}],
+                    }
+                ],
+            }
+        )
     )
     (tmp_path / "AGENTS.md").write_text("# project context")
 

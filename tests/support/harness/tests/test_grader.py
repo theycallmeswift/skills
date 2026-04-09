@@ -1,12 +1,9 @@
 import asyncio
 
-import pytest
-
 from tests.support.harness.grader import (
     _grade_deterministic,
     _resolve_source,
     _truncate_tail,
-    grade,
     grade_rubric,
 )
 from tests.support.harness.models import Grading
@@ -64,7 +61,6 @@ def test_truncate_tail_keeps_end_and_adds_marker():
 def test_truncate_tail_noop_when_under_limit():
     s = "short"
     assert _truncate_tail(s, limit=100) == "short"
-
 
 
 def _run_with_trace(trace):
@@ -156,9 +152,7 @@ def test_skill_not_invoked_passes_when_absent():
 
 
 def test_skill_not_invoked_fails_when_skill_fired():
-    run = _run_with_trace(
-        [{"name": "Skill", "input": {"skill": "ghostwrite"}, "turn": 1}]
-    )
+    run = _run_with_trace([{"name": "Skill", "input": {"skill": "ghostwrite"}, "turn": 1}])
     exps = _grade_deterministic([{"skill_not_invoked": "ghostwrite"}], run)
     assert exps[0]["passed"] is False
     assert "ghostwrite" in exps[0]["evidence"]
@@ -170,7 +164,6 @@ def test_skill_not_invoked_accepts_prefixed_name():
     )
     exps = _grade_deterministic([{"skill_not_invoked": "ghostwrite"}], run)
     assert exps[0]["passed"] is False
-
 
 
 def test_regex_passes_on_single_match():
@@ -207,9 +200,7 @@ def test_regex_min_and_max_inclusive():
 
 def test_regex_respects_on_field_stdout():
     run = _run(stdout="VISIBLE", final_message="HIDDEN")
-    exps = _grade_deterministic(
-        [{"regex": "VISIBLE", "on": "stdout"}], run
-    )
+    exps = _grade_deterministic([{"regex": "VISIBLE", "on": "stdout"}], run)
     assert exps[0]["passed"] is True
 
 
@@ -239,17 +230,13 @@ def test_contains_fails_when_absent():
 
 def test_contains_all_requires_every_literal():
     run = _run(final_message="450 fellows, 30% up, 92% rec rate")
-    exps = _grade_deterministic(
-        [{"contains_all": ["450", "30%", "92%"]}], run
-    )
+    exps = _grade_deterministic([{"contains_all": ["450", "30%", "92%"]}], run)
     assert exps[0]["passed"] is True
 
 
 def test_contains_all_fails_on_missing_item():
     run = _run(final_message="450 fellows, 30% up")
-    exps = _grade_deterministic(
-        [{"contains_all": ["450", "30%", "92%"]}], run
-    )
+    exps = _grade_deterministic([{"contains_all": ["450", "30%", "92%"]}], run)
     assert exps[0]["passed"] is False
     assert "92%" in exps[0]["evidence"]
 
@@ -266,7 +253,6 @@ def test_not_contains_fails_when_present():
     assert exps[0]["passed"] is False
 
 
-
 def test_script_name_runs_skill_lint_and_passes_on_clean():
     clean = "Hey, Sarah,\n\nSeason 3 wrapped with 450 fellows.\n\n- Swift\n"
     run = _run(final_message=clean)
@@ -281,7 +267,6 @@ def test_script_name_fails_on_em_dash():
     exps = _grade_deterministic([{"script_name": "ghostwrite"}], run)
     assert exps[0]["passed"] is False
     assert "em dash" in exps[0]["evidence"]
-
 
 
 def test_output_len_lte_passes_under_bound():
@@ -305,9 +290,7 @@ def test_output_len_gte_enforces_minimum():
 
 def test_output_len_respects_on_stdout():
     run = _run(stdout="x" * 50, final_message="")
-    exps = _grade_deterministic(
-        [{"output_len_lte": 40, "on": "stdout"}], run
-    )
+    exps = _grade_deterministic([{"output_len_lte": 40, "on": "stdout"}], run)
     assert exps[0]["passed"] is False
 
 
@@ -335,9 +318,7 @@ def test_trace_order_passes_when_tools_in_order():
         {"name": "Write", "input": {}, "turn": 1},
     ]
     run = _run_with_trace(trace)
-    exps = _grade_deterministic(
-        [{"trace_order": ["scrape_as_markdown", "Write"]}], run
-    )
+    exps = _grade_deterministic([{"trace_order": ["scrape_as_markdown", "Write"]}], run)
     assert exps[0]["passed"] is True
 
 
@@ -347,39 +328,27 @@ def test_trace_order_fails_when_out_of_order():
         {"name": "scrape_as_markdown", "input": {}, "turn": 1},
     ]
     run = _run_with_trace(trace)
-    exps = _grade_deterministic(
-        [{"trace_order": ["scrape_as_markdown", "Write"]}], run
-    )
+    exps = _grade_deterministic([{"trace_order": ["scrape_as_markdown", "Write"]}], run)
     assert exps[0]["passed"] is False
 
 
 def test_trace_order_fails_when_missing_tool():
     trace = [{"name": "scrape_as_markdown", "input": {}, "turn": 1}]
     run = _run_with_trace(trace)
-    exps = _grade_deterministic(
-        [{"trace_order": ["scrape_as_markdown", "Write"]}], run
-    )
+    exps = _grade_deterministic([{"trace_order": ["scrape_as_markdown", "Write"]}], run)
     assert exps[0]["passed"] is False
     assert "Write" in exps[0]["evidence"]
 
 
 def test_trace_count_lte_passes_under_cap():
-    run = _run_with_trace(
-        [{"name": "Bash", "input": {}, "turn": 1} for _ in range(2)]
-    )
-    exps = _grade_deterministic(
-        [{"trace_count_lte": {"tool": "Bash", "n": 3}}], run
-    )
+    run = _run_with_trace([{"name": "Bash", "input": {}, "turn": 1} for _ in range(2)])
+    exps = _grade_deterministic([{"trace_count_lte": {"tool": "Bash", "n": 3}}], run)
     assert exps[0]["passed"] is True
 
 
 def test_trace_count_lte_fails_over_cap():
-    run = _run_with_trace(
-        [{"name": "Bash", "input": {}, "turn": 1} for _ in range(5)]
-    )
-    exps = _grade_deterministic(
-        [{"trace_count_lte": {"tool": "Bash", "n": 3}}], run
-    )
+    run = _run_with_trace([{"name": "Bash", "input": {}, "turn": 1} for _ in range(5)])
+    exps = _grade_deterministic([{"trace_count_lte": {"tool": "Bash", "n": 3}}], run)
     assert exps[0]["passed"] is False
     assert "5" in exps[0]["evidence"]
 
@@ -400,33 +369,25 @@ def test_turn_count_lte_fails():
 
 def test_files_written_include_passes_on_match():
     run = _run(files_written={"references/specs/foo.md": "x"})
-    exps = _grade_deterministic(
-        [{"files_written_include": "references/specs/*.md"}], run
-    )
+    exps = _grade_deterministic([{"files_written_include": "references/specs/*.md"}], run)
     assert exps[0]["passed"] is True
 
 
 def test_files_written_include_fails_when_nothing_matches():
     run = _run(files_written={"other.txt": "x"})
-    exps = _grade_deterministic(
-        [{"files_written_include": "references/specs/*.md"}], run
-    )
+    exps = _grade_deterministic([{"files_written_include": "references/specs/*.md"}], run)
     assert exps[0]["passed"] is False
 
 
 def test_files_written_exclude_passes_when_no_match():
     run = _run(files_written={"notes.md": "x"})
-    exps = _grade_deterministic(
-        [{"files_written_exclude": "package.json"}], run
-    )
+    exps = _grade_deterministic([{"files_written_exclude": "package.json"}], run)
     assert exps[0]["passed"] is True
 
 
 def test_files_written_exclude_fails_on_match():
     run = _run(files_written={"package.json": "{}"})
-    exps = _grade_deterministic(
-        [{"files_written_exclude": "package.json"}], run
-    )
+    exps = _grade_deterministic([{"files_written_exclude": "package.json"}], run)
     assert exps[0]["passed"] is False
 
 
@@ -460,18 +421,14 @@ def test_file_contains_text_literal_passes():
 
 def test_file_contains_text_fails_when_no_matching_file():
     run = _run(files_written={"other.txt": "irrelevant"})
-    exps = _grade_deterministic(
-        [{"file_contains": {"path": "*.md", "text": "x"}}], run
-    )
+    exps = _grade_deterministic([{"file_contains": {"path": "*.md", "text": "x"}}], run)
     assert exps[0]["passed"] is False
     assert "no files matched" in exps[0]["evidence"]
 
 
 def test_file_contains_text_fails_when_text_absent():
     run = _run(files_written={"a.md": "no match here"})
-    exps = _grade_deterministic(
-        [{"file_contains": {"path": "*.md", "text": "needed"}}], run
-    )
+    exps = _grade_deterministic([{"file_contains": {"path": "*.md", "text": "needed"}}], run)
     assert exps[0]["passed"] is False
 
 
@@ -525,7 +482,9 @@ def test_grade_rubric_fails_when_critical_item_fails(monkeypatch, tmp_path):
     rubric_path.write_text("## Critical\n\n- item A\n")
 
     async def fake_llm_call(prompt, model):
-        return {"items": [{"text": "item A", "critical": True, "status": "fail", "evidence": "missing"}]}
+        return {
+            "items": [{"text": "item A", "critical": True, "status": "fail", "evidence": "missing"}]
+        }
 
     monkeypatch.setattr("tests.support.harness.grader._rubric_llm_call", fake_llm_call)
     run = _run(final_message="x")
