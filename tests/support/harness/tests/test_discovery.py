@@ -407,3 +407,45 @@ def test_schema_rejects_assertion_with_multiple_keys(tmp_path):
     )
     with pytest.raises(ValueError, match="schema validation failed"):
         load_eval_file(f, kind="skill")
+
+
+def _write(tmp_path: Path, data: dict) -> Path:
+    p = tmp_path / "demo.json"
+    p.write_text(json.dumps(data))
+    return p
+
+
+def test_schema_accepts_new_primitives(tmp_path):
+    data = {
+        "name": "demo",
+        "evals": [
+            {
+                "id": "c1",
+                "turns": ["hello"],
+                "assertions": [
+                    {"regex": "hi", "min": 1, "max": 3, "on": "final_message"},
+                    {"not_regex": "bad"},
+                    {"contains": "hello"},
+                    {"contains_all": ["a", "b"]},
+                    {"not_contains": "bad"},
+                    {"output_len_lte": 100},
+                    {"output_len_gte": 10},
+                    {"token_usage_lte": 1000},
+                    {"skill_invoked": "ghostwrite"},
+                    {"skill_not_invoked": "summarize"},
+                    {"trace_order": ["Read", "Write"]},
+                    {"trace_count_lte": {"tool": "Bash", "n": 3}},
+                    {"turn_count_lte": 1},
+                    {"files_written_include": "*.md"},
+                    {"files_written_exclude": "*.py"},
+                    {"files_written_count": 0},
+                    {"file_contains": {"path": "*.md", "text": "ok"}},
+                    {"script_name": "ghostwrite"},
+                ],
+            }
+        ],
+    }
+    path = _write(tmp_path, data)
+    suite = load_eval_file(path, kind="skill")
+    assert suite.name == "demo"
+    assert len(suite.cases[0].assertions) == 18
