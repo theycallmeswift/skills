@@ -1156,10 +1156,10 @@ git commit -m "feat: rewrite reporter as pytest plugin with table output"
 
 Wire up the `run_eval` fixture, `--model`, `--verbose` CLI options, and register the reporter plugin.
 
+Tests are auto-tagged by folder via pytest's `rootdir` detection — no subfolder conftest.py files needed just for marks.
+
 **Files:**
 - Create: `tests/conftest.py`
-- Create: `tests/skills/conftest.py`
-- Create: `tests/core/conftest.py`
 
 - [ ] **Step 1: Create tests/conftest.py**
 
@@ -1203,36 +1203,16 @@ def run_eval(project_root, eval_model):
 
 Note: `--verbose` is pytest's built-in flag (`-v`). The reporter plugin reads `config.getoption("verbose")` to detect it. No custom option needed.
 
-- [ ] **Step 2: Create tests/skills/conftest.py**
-
-```python
-# tests/skills/conftest.py
-import pytest
-
-# Mark all tests under tests/skills/ as skill evals
-pytestmark = pytest.mark.skill
-```
-
-- [ ] **Step 3: Create tests/core/conftest.py**
-
-```python
-# tests/core/conftest.py
-import pytest
-
-# Mark all tests under tests/core/ as core evals
-pytestmark = pytest.mark.core
-```
-
-- [ ] **Step 4: Verify conftest loads without errors**
+- [ ] **Step 2: Verify conftest loads without errors**
 
 Run: `uv run pytest tests/conftest.py --co -q`
 Expected: No errors (dry-run collection)
 
-- [ ] **Step 5: Commit**
+- [ ] **Step 3: Commit**
 
 ```bash
-git add tests/conftest.py tests/skills/conftest.py tests/core/conftest.py
-git commit -m "feat: add conftest.py files with run_eval fixture and CLI options"
+git add tests/conftest.py
+git commit -m "feat: add root conftest.py with run_eval fixture and CLI options"
 ```
 
 ---
@@ -1321,6 +1301,8 @@ def test_output_length(result):
 
 - [ ] **Step 2: Create test_linkedin_from_scratch.py**
 
+The model should refuse to draft from scratch — lint checks (em dashes, attribution) don't apply since no content is produced.
+
 ```python
 # tests/skills/ghostwrite/test_linkedin_from_scratch.py
 import textwrap
@@ -1340,21 +1322,6 @@ def result(run_eval, project_root):
         ],
         setup=skill_setup("ghostwrite", project_root),
     )
-
-
-# --- Lint checks (inlined from skills/ghostwrite/lint.py) ---
-
-
-def test_no_em_dash(result):
-    assert result.not_contains("\u2014", on="final_message")
-
-
-def test_no_ai_attribution(result):
-    assert result.not_matches_regex(r"Generated with \[?Claude", on="final_message")
-    assert result.not_matches_regex(r"Co-Authored-By:\s*Claude", on="final_message")
-
-
-# --- Behavioral: ghostwrite should refuse to draft from scratch ---
 
 
 def test_refuses_to_draft(result):
@@ -1380,24 +1347,23 @@ git commit -m "feat: add ghostwrite skill tests (migrated from evals.json)"
 
 ### Task 7: Summarize Skill Tests
 
-Migrate `tests/summarize.json` (6 cases) to 6 pytest test files. Inline summarize lint checks.
+Migrate `tests/summarize.json` to 3 pytest test files. Inline summarize lint checks. The three web-URL cases (dev.to, rust tab orchestrator, anthropic character) are combined into a single `test_web_article.py` using one stable URL — they test the same skill behavior (fetch + summarize). `test_short_input` is dropped as redundant with `test_pasted_text`.
 
 **Files:**
-- Create: `tests/skills/summarize/test_devto_article.py`
-- Create: `tests/skills/summarize/test_rust_tab_orchestrator.py`
-- Create: `tests/skills/summarize/test_anthropic_character.py`
+- Create: `tests/skills/summarize/test_web_article.py`
 - Create: `tests/skills/summarize/test_local_pdf.py`
 - Create: `tests/skills/summarize/test_pasted_text.py`
-- Create: `tests/skills/summarize/test_short_input.py`
 - Read: `tests/summarize.json`
 - Read: `skills/summarize/lint.py`
 
 The `script_name: summarize` lint checks: title format, summary paragraph, bullet count (1-8), share block, comment block, no em dashes, no narration prefix. These become inline assertions.
 
-- [ ] **Step 1: Create test_devto_article.py**
+- [ ] **Step 1: Create test_web_article.py**
+
+Combines the three web-URL cases (dev.to article, rust tab orchestrator, anthropic character) into one test file with one stable URL. They all test the same behavior: fetch a URL via Brightdata and produce a structured summary.
 
 ```python
-# tests/skills/summarize/test_devto_article.py
+# tests/skills/summarize/test_web_article.py
 import textwrap
 
 import pytest
@@ -1410,7 +1376,7 @@ def result(run_eval, project_root):
     return run_eval(
         turns=[
             textwrap.dedent("""\
-                Summarize the top article on dev.to that isn't a challenge or contest announcement\
+                Summarize this page for me https://www.anthropic.com/research/claude-character\
             """),
         ],
         setup=skill_setup("summarize", project_root),
@@ -1453,6 +1419,13 @@ def test_no_narration_prefix(result):
     )
 
 
+def test_has_source_link(result):
+    assert result.matches_regex(
+        r"\[.*\]\(https://www\.anthropic\.com/research/claude-character[^)]*\)",
+        on="final_message",
+    )
+
+
 # --- Tool trace assertions ---
 
 
@@ -1468,98 +1441,7 @@ def test_no_websearch(result):
     assert result.not_tool_called("WebSearch")
 ```
 
-- [ ] **Step 2: Create test_rust_tab_orchestrator.py**
-
-```python
-# tests/skills/summarize/test_rust_tab_orchestrator.py
-import textwrap
-
-import pytest
-
-from tests.support.harness.setup import skill_setup
-
-
-@pytest.fixture(scope="module")
-def result(run_eval, project_root):
-    return run_eval(
-        turns=[
-            textwrap.dedent("""\
-                Summarize this article: https://dev.to/tasenikol/when-chrome-ate-my-ram-designing-a-pressure-aware-tab-orchestrator-with-rust-1g05\
-            """),
-        ],
-        setup=skill_setup("summarize", project_root),
-    )
-
-
-def test_has_source_link(result):
-    assert result.matches_regex(
-        r"\[.*\]\(https://dev\.to/tasenikol/[^)]+\)", on="final_message"
-    )
-
-
-def test_no_em_dash(result):
-    assert result.not_contains("\u2014", on="final_message")
-
-
-def test_uses_brightdata(result):
-    assert result.tool_called("scrape_as_markdown")
-
-
-def test_no_webfetch(result):
-    assert result.not_tool_called("WebFetch")
-
-
-def test_no_websearch(result):
-    assert result.not_tool_called("WebSearch")
-```
-
-- [ ] **Step 3: Create test_anthropic_character.py**
-
-```python
-# tests/skills/summarize/test_anthropic_character.py
-import textwrap
-
-import pytest
-
-from tests.support.harness.setup import skill_setup
-
-
-@pytest.fixture(scope="module")
-def result(run_eval, project_root):
-    return run_eval(
-        turns=[
-            textwrap.dedent("""\
-                Summarize this page for me https://www.anthropic.com/research/claude-character\
-            """),
-        ],
-        setup=skill_setup("summarize", project_root),
-    )
-
-
-def test_has_source_link(result):
-    assert result.matches_regex(
-        r"\[.*\]\(https://www\.anthropic\.com/research/claude-character[^)]*\)",
-        on="final_message",
-    )
-
-
-def test_no_em_dash(result):
-    assert result.not_contains("\u2014", on="final_message")
-
-
-def test_uses_brightdata(result):
-    assert result.tool_called("scrape_as_markdown")
-
-
-def test_no_webfetch(result):
-    assert result.not_tool_called("WebFetch")
-
-
-def test_no_websearch(result):
-    assert result.not_tool_called("WebSearch")
-```
-
-- [ ] **Step 4: Create test_local_pdf.py**
+- [ ] **Step 2: Create test_local_pdf.py**
 
 ```python
 # tests/skills/summarize/test_local_pdf.py
@@ -1608,7 +1490,7 @@ def test_no_websearch(result):
     assert result.not_tool_called("WebSearch")
 ```
 
-- [ ] **Step 5: Create test_pasted_text.py**
+- [ ] **Step 3: Create test_pasted_text.py**
 
 ```python
 # tests/skills/summarize/test_pasted_text.py
@@ -1657,44 +1539,7 @@ def test_no_websearch(result):
     assert result.not_tool_called("WebSearch")
 ```
 
-- [ ] **Step 6: Create test_short_input.py**
-
-```python
-# tests/skills/summarize/test_short_input.py
-import textwrap
-
-import pytest
-
-from tests.support.harness.setup import skill_setup
-
-
-@pytest.fixture(scope="module")
-def result(run_eval, project_root):
-    return run_eval(
-        turns=[
-            textwrap.dedent("""\
-                Summarize this note:
-
-                We decided to push the Q3 demo day to the week of September 15. The reason is that the new partner onboarding flow won't be ready in time for the original date. Marketing has been told. Calendar invites will go out Friday.\
-            """),
-        ],
-        setup=skill_setup("summarize", project_root),
-    )
-
-
-def test_no_em_dash(result):
-    assert result.not_contains("\u2014", on="final_message")
-
-
-def test_no_scrape(result):
-    assert result.not_tool_called("scrape_as_markdown")
-
-
-def test_no_webfetch(result):
-    assert result.not_tool_called("WebFetch")
-```
-
-- [ ] **Step 7: Move test-paper.pdf to support/fixtures/**
+- [ ] **Step 4: Move test-paper.pdf to support/fixtures/**
 
 The PDF currently lives at `tests/fixtures/test-paper.pdf`. The spec says it should be at `tests/support/fixtures/test-paper.pdf`. Check if it already exists there (it was referenced by the orchestrator at its current location). If the file is only at `tests/fixtures/`, move it:
 
@@ -1703,11 +1548,11 @@ mv tests/fixtures/test-paper.pdf tests/support/fixtures/test-paper.pdf
 rmdir tests/fixtures 2>/dev/null || true
 ```
 
-- [ ] **Step 8: Commit**
+- [ ] **Step 5: Commit**
 
 ```bash
 git add tests/skills/summarize/
-git commit -m "feat: add summarize skill tests (6 cases migrated from evals.json)"
+git commit -m "feat: add summarize skill tests (3 cases migrated from evals.json)"
 ```
 
 ---
@@ -2303,7 +2148,7 @@ Rewrite `docs/evals.md` and update `CLAUDE.md` (which is `AGENTS.md`) commands s
 
 - [ ] **Step 1: Rewrite docs/evals.md**
 
-```markdown
+````markdown
 # Evals
 
 All evals are pytest test files. One command, familiar workflow.
@@ -2401,7 +2246,7 @@ cleanup=cleanup_globs("references/specs/2026-*-demo*.md")
 ## Fixtures
 
 Put shared input files under `tests/support/fixtures/`.
-```
+````
 
 - [ ] **Step 2: Update AGENTS.md commands section**
 
@@ -2443,7 +2288,7 @@ In `skills/ghostwrite/SKILL.md`, replace step 8:
 With:
 
 ```
-8. **Self-check before presenting.** Write your draft to `tmp/ghostwrite-draft.md`. Read it back and verify: no em dashes, no banned phrases (excited to share, leverage, ecosystem, delve, synergy, game-changer, paradigm shift, absolutely incredible), no AI attribution strings. Fix any issues before delivering.
+8. **Self-check before presenting.** Before delivering, verify: no em dashes, no banned phrases (excited to share, leverage, ecosystem, delve, synergy, game-changer, paradigm shift, absolutely incredible), no AI attribution strings. Fix any issues before presenting.
 ```
 
 - [ ] **Step 2: Update summarize SKILL.md**
@@ -2457,7 +2302,7 @@ In `skills/summarize/SKILL.md`, replace step 7:
 With:
 
 ```
-7. **Self-check before presenting.** Write your draft to `tmp/summarize-draft.md`. Read it back and verify: starts with H1 title, has summary paragraph before bullets, bullet count 1-8 (never pad), has Share and Comment blocks, no em dashes, no narration prefixes (Let me, Now I, I'll draft, etc.). Fix any issues before delivering.
+7. **Self-check before presenting.** Before delivering, verify: starts with H1 title, has summary paragraph before bullets, bullet count 1-8 (never pad), has Share and Comment blocks, no em dashes, no narration prefixes (Let me, Now I, I'll draft, etc.). Fix any issues before presenting.
 ```
 
 - [ ] **Step 3: Commit**
