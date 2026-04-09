@@ -5,11 +5,10 @@ All evals are pytest test files. One command, familiar workflow.
 ## Running evals
 
 ```
-make test                                          # all evals
+make test                                          # all evals (parallel)
 make test ARGS="tests/skills/ghostwrite/"          # one skill
 make test ARGS="-k sponsor_email"                  # one case
 make test ARGS="--model claude-haiku-4-5-20251001" # specific model
-make test ARGS="--verbose"                         # show evidence
 make test-harness                                  # harness unit tests only
 ```
 
@@ -36,62 +35,87 @@ def test_something(result):
 
 ## Available matchers
 
-`EvalResult` wraps the agent run and provides assertion methods returning `bool`:
+`EvalResult` wraps the agent run and provides assertion methods returning `bool`. Content matchers require an `on` parameter: `"final_message"`, `"stdout"`, or `"files.<glob>"`.
 
-**Content** (require `on` parameter: `"final_message"`, `"stdout"`, or `"files.<glob>"`):
+| Method | `on` | Description |
+|---|---|---|
+| `matches_regex(pattern, on, min=1, max=inf)` | yes | Match count within bounds |
+| `not_matches_regex(pattern, on)` | yes | Zero matches |
+| `contains(text, on)` | yes | Literal substring found |
+| `contains_all(texts, on)` | yes | Every literal found |
+| `not_contains(text, on)` | yes | Literal absent |
+| `output_len_lte(n, on)` | yes | Character count <= n |
+| `output_len_gte(n, on)` | yes | Character count >= n |
+| `llm_judge(item, on=None, content=None)` | optional | LLM judge (Haiku) grades pass/fail. Pass `on` for a source or `content` for raw text |
+| `parse(model, on="final_message")` | yes | Extract fields into a Pydantic model via LLM. Raises ValidationError on shape mismatch |
+| `tool_called(name)` | no | Tool name in trace (substring match) |
+| `not_tool_called(name)` | no | Tool name absent |
+| `skill_invoked(name)` | no | Skill tool fired with matching name |
+| `not_skill_invoked(name)` | no | No matching Skill invocation |
+| `trace_order(tools)` | no | Tools appear in order (gaps ok) |
+| `trace_count_lte(tool, n)` | no | Tool count <= n |
+| `turn_count_lte(n)` | no | Agent completed in <= n turns |
+| `token_usage_lte(n)` | no | input + output tokens <= n |
+| `file_contains(path_glob, text=None, regex=None)` | no | File matching glob contains text/regex |
+| `not_file_contains(path_glob, text=None, regex=None)` | no | Negation |
 
-| Method | Description |
-|---|---|
-| `matches_regex(pattern, on, min=1, max=inf)` | Match count within bounds |
-| `not_matches_regex(pattern, on)` | Zero matches |
-| `contains(text, on)` | Literal substring found |
-| `contains_all(texts, on)` | Every literal found |
-| `not_contains(text, on)` | Literal absent |
-| `output_len_lte(n, on)` | Character count <= n |
-| `output_len_gte(n, on)` | Character count >= n |
-| `llm_judge(item, on, model=None)` | LLM judge (default Haiku) grades pass/fail |
+## Structured output parsing
 
-**Trace** (no `on` parameter):
+For skills with defined output templates (e.g. summarize, scope), use `parse()` to extract fields into a Pydantic model. Structural validation happens in Pydantic validators. Semantic checks use `llm_judge` on extracted fields.
 
-| Method | Description |
-|---|---|
-| `tool_called(name)` | Tool name in trace (substring match) |
-| `not_tool_called(name)` | Tool name absent |
-| `skill_invoked(name)` | Skill tool fired with matching name |
-| `not_skill_invoked(name)` | No matching Skill invocation |
-| `trace_order(tools)` | Tools appear in order (gaps ok) |
-| `trace_count_lte(tool, n)` | Tool count <= n |
-| `turn_count_lte(n)` | Agent completed in <= n turns |
-| `token_usage_lte(n)` | input + output tokens <= n |
+```python
+from pydantic import BaseModel, Field
 
-**Files** (no `on` parameter):
+class SummarizeOutput(BaseModel):
+    title: str
+    tldr: str
+    cliff_notes: list[str] = Field(min_length=1, max_length=8)
+    share: str
+    comment: str
 
-| Method | Description |
-|---|---|
-| `file_contains(path_glob, text=None, regex=None)` | File matching glob contains text/regex |
-| `not_file_contains(path_glob, text=None, regex=None)` | Negation |
+def test_structure(result):
+    result.parse(SummarizeOutput)  # raises if shape is wrong
+
+def test_tldr_quality(result):
+    output = result.parse(SummarizeOutput)
+    assert result.llm_judge(
+        "The TL;DR leads with the single most important takeaway",
+        content=output.tldr,
+    )
+```
 
 ## Setup helpers
 
 ```python
 from tests.support.harness.setup import skill_setup, copy_files, cleanup_globs, compose
 
-# Copy skill dir + AGENTS.md, prepend SKILL.md preamble
 setup=skill_setup("summarize", project_root)
-
-# Copy test fixtures into temp cwd
 setup=copy_files("tests/support/fixtures/test-paper.pdf", project_root=project_root)
-
-# Compose multiple setup functions
 setup=compose(
     skill_setup("summarize", project_root),
     copy_files("tests/support/fixtures/test-paper.pdf", project_root=project_root),
 )
-
-# Cleanup files after run
 cleanup=cleanup_globs("references/specs/2026-*-demo*.md")
 ```
 
 ## Fixtures
 
 Put shared input files under `tests/support/fixtures/`.
+
+## Example output
+
+```
+$ make test ARGS="tests/skills/ghostwrite/"
+
+==================== Eval Summary ====================
+
+Skill            Test                        Result   Time
+ghostwrite       test_blog_format            4/4      22.1s
+ghostwrite       test_email_format           6/6      18.4s
+ghostwrite       test_linkedin_format        5/5      19.7s
+ghostwrite       test_slack_format           6/6      15.3s
+ghostwrite       test_refuses_from_scratch   2/2      8.9s
+                                             23/23    22.1s
+
+==================== 23 passed in 22.1s ====================
+```
