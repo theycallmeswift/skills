@@ -46,7 +46,7 @@ All web content goes through the `brightdata` MCP server. The built-in `WebFetch
 - `skills/` -- Each skill gets its own directory with a `SKILL.md` and optional `references/`
 - `docs/` -- Hand-authored documentation and prompt context (e.g. `about-swift.md`, `evals.md`)
 - `references/` -- Agent-generated context: `plans/`, `research/`, `specs/`, plus on-demand reference material loaded by skills
-- `tests/` -- Evals (`tests/*.json`), fixtures (`tests/fixtures/`), and the Python harness (`tests/support/harness/`). See `docs/evals.md`.
+- `tests/` -- Evals (`tests/skills/`, `tests/core/`), fixtures (`tests/support/fixtures/`), and the Python harness (`tests/support/harness/`). See `docs/evals.md`.
 - `tmp/` -- Scratch space for working sessions. Not tracked in git. Put intermediate outputs, drafts, and test results here.
 
 ## Safety & Standards

@@ -5,7 +5,7 @@ import pytest
 from tests.support.harness.setup import cleanup_globs, skill_setup
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="session")
 def result(run_eval, project_root):
     return run_eval(
         turns=[
