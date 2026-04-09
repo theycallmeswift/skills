@@ -57,7 +57,7 @@ async def _run_one(
                 model=model,
             )
 
-            grading = await grade(run, plan.case.assertions)
+            grading = grade(run, plan.case.assertions)
 
             if _should_rubric_grade(plan, project_root=project_root):
                 rubric_path = project_root / "skills" / plan.suite_name / "RUBRIC.md"

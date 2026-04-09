@@ -566,7 +566,7 @@ async def grade_rubric(
     return Grading.from_expectations(expectations)
 
 
-async def grade(
+def grade(
     run: RunResult,
     assertions: list[dict],
 ) -> Grading:
