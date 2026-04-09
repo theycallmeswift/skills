@@ -182,6 +182,17 @@ def test_core_failure_returns_1(capsys):
     )
 
 
+def test_deep_summary_baseline_only_prints_warning(capsys):
+    """A lift case with only a baseline (no with_skill) should print, not vanish."""
+    bl = _mk_result("ghostwrite", "sponsor-email", "baseline", "skill", passed=2, failed=1, intent="lift")
+    buf = io.StringIO()
+    with redirect_stdout(buf):
+        _print_summary([bl], verbose=False)
+    out = buf.getvalue()
+    # Should mention the case somehow, not silently drop it.
+    assert "sponsor-email" in out
+
+
 def test_deep_tier_summary_has_three_tables_and_no_warn():
     # Build a result set with one core, one regression, one lift (with baseline).
     results = [

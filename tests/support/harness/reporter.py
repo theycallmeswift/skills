@@ -90,6 +90,9 @@ def _print_deep_summary(results: list[CaseResult], verbose: bool, model: str | N
     for (suite, case_id), variants in sorted(by_key.items()):
         ws = variants.get("with_skill")
         if ws is None:
+            bl = variants.get("baseline")
+            if bl and bl.plan.case.intent == "lift":
+                lift_rows.append((suite, case_id, None, bl))
             continue
         if ws.plan.case.intent == "lift":
             lift_rows.append((suite, case_id, ws, variants.get("baseline")))
@@ -108,6 +111,10 @@ def _print_deep_summary(results: list[CaseResult], verbose: bool, model: str | N
     if lift_rows:
         print(f"\n## Lift — {model_label}\n")
         for suite, case_id, ws, bl in lift_rows:
+            if ws is None:
+                bl_str = _fmt_score(bl.grading) if bl else "—"
+                print(f"{suite:<20} {case_id:<32} with_skill=—{'':>12} baseline={bl_str:<12} skip")
+                continue
             ws_str = _fmt_score(ws.grading)
             bl_str = _fmt_score(bl.grading) if bl else "—"
             failing = ws.run.exit_code != 0 or ws.grading.failed > 0
