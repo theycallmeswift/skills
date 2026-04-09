@@ -6,7 +6,7 @@ import importlib.util
 import sys
 from pathlib import Path
 
-_PROJECT_ROOT = Path(__file__).resolve().parents[3]
+_PROJECT_ROOT = Path(__file__).resolve().parents[2]
 _spec = importlib.util.spec_from_file_location(
     "ghostwrite_lint_under_test", _PROJECT_ROOT / "skills" / "ghostwrite" / "lint.py"
 )
