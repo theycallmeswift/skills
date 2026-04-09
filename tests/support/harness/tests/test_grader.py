@@ -198,6 +198,58 @@ def _run_with_stdout(stdout: str) -> RunResult:
     )
 
 
+def test_regex_passes_on_single_match():
+    run = _run(final_message="Hey, Sarah -- welcome")
+    exps = _grade_deterministic([{"regex": r"^Hey, Sarah --"}], run)
+    assert exps[0]["passed"] is True
+    assert exps[0]["text"].startswith("regex:")
+
+
+def test_regex_fails_when_absent():
+    run = _run(final_message="Hello world")
+    exps = _grade_deterministic([{"regex": r"^Hey"}], run)
+    assert exps[0]["passed"] is False
+
+
+def test_regex_min_count_enforced():
+    run = _run(final_message="one? two?")
+    exps = _grade_deterministic([{"regex": r"\?", "min": 3}], run)
+    assert exps[0]["passed"] is False
+    assert "2" in exps[0]["evidence"]
+
+
+def test_regex_max_count_enforced():
+    run = _run(final_message="one? two? three?")
+    exps = _grade_deterministic([{"regex": r"\?", "max": 2}], run)
+    assert exps[0]["passed"] is False
+
+
+def test_regex_min_and_max_inclusive():
+    run = _run(final_message="a? b?")
+    exps = _grade_deterministic([{"regex": r"\?", "min": 2, "max": 2}], run)
+    assert exps[0]["passed"] is True
+
+
+def test_regex_respects_on_field_stdout():
+    run = _run(stdout="VISIBLE", final_message="HIDDEN")
+    exps = _grade_deterministic(
+        [{"regex": "VISIBLE", "on": "stdout"}], run
+    )
+    assert exps[0]["passed"] is True
+
+
+def test_not_regex_passes_when_absent():
+    run = _run(final_message="clean output")
+    exps = _grade_deterministic([{"not_regex": "forbidden"}], run)
+    assert exps[0]["passed"] is True
+
+
+def test_not_regex_fails_when_present():
+    run = _run(final_message="forbidden word here")
+    exps = _grade_deterministic([{"not_regex": "forbidden"}], run)
+    assert exps[0]["passed"] is False
+
+
 def test_lint_assertion_passes_on_clean_ghostwrite_output():
     clean = "Hey, Sarah,\n\nSeason 3 wrapped with 450 fellows.\n\n- Swift\n"
     run = _run_with_stdout(clean)

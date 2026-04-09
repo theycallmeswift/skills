@@ -1,5 +1,6 @@
 import fnmatch
 import json
+import re
 import subprocess
 import sys
 import tempfile
@@ -194,6 +195,30 @@ def _grade_skill_invoked(a: dict, run: RunResult) -> dict:
     else:
         evidence = "no Skill tool invocations in trace"
     return {"text": f"skill_invoked: {skill}", "passed": False, "evidence": evidence}
+
+
+@_primitive("regex")
+def _grade_regex(a: dict, run: RunResult) -> dict:
+    pattern = a["regex"]
+    min_n = a.get("min", 1)
+    max_n = a.get("max")  # None = no upper bound
+    sources = _resolve_source(run, a.get("on"))
+    count = sum(len(re.findall(pattern, s)) for s in sources)
+    passed = count >= min_n and (max_n is None or count <= max_n)
+    bound = f"min={min_n}" + (f", max={max_n}" if max_n is not None else "")
+    return {
+        "text": f"regex: {pattern} ({bound})",
+        "passed": passed,
+        "evidence": f"found {count} match(es) across {len(sources)} source(s)",
+    }
+
+
+@_primitive("not_regex")
+def _grade_not_regex(a: dict, run: RunResult) -> dict:
+    # Shorthand for regex with max=0.
+    return _grade_regex(
+        {"regex": a["not_regex"], "min": 0, "max": 0, "on": a.get("on")}, run
+    )
 
 
 @_primitive("lint")  # TEMPORARY alias until Task 9 renames to script_name
