@@ -1,102 +1,97 @@
 # Evals
 
-Two commands, two questions.
+All evals are pytest test files. One command, familiar workflow.
 
-## `make test` — Did I break anything?
-
-Fast, deterministic, runs on every edit. Target <90s. No LLM grading.
+## Running evals
 
 ```
-make test                    # all suites
-make test ARGS="ghostwrite"   # single suite
-```
-
-Every assertion grades in Python. If your eval uses a check that can't be expressed deterministically, it belongs in the rubric (see `make eval`).
-
-## `make eval` — Is the skill still doing good work?
-
-Deep, rubric-graded, runs pre-release or when iterating on a skill. Target ~2 min.
-
-```
-make eval                    # all suites (with lift baselines)
-make eval ARGS="summarize"   # one suite
+make test                                          # all evals
+make test ARGS="tests/skills/ghostwrite/"          # one skill
+make test ARGS="-k sponsor_email"                  # one case
+make test ARGS="--model claude-haiku-4-5-20251001" # specific model
+make test ARGS="--verbose"                         # show evidence
+make test-harness                                  # harness unit tests only
 ```
 
 ## Writing an eval
 
-1. Create `tests/<name>.json`. If `<name>` matches a directory under `skills/`, the harness treats it as a skill suite; otherwise it's a core suite.
-2. Each case has `id`, `turns`, and `assertions` (an array of deterministic primitives). Optional: `intent` (`lift` or `regression`), `files`, `cleanup`.
-3. For skill suites that want quality grading in `make eval`, create `skills/<name>/RUBRIC.md` with `## Critical` and `## Optional` sections.
+1. Create a test file under `tests/skills/<skill>/` or `tests/core/`.
+2. Name it descriptively: `test_sponsor_email.py`, not `test_evals.py`.
+3. Use a module-scoped fixture to run the agent once, share the result across assertions.
 
-## Assertion vocabulary
+```python
+import pytest
+from tests.support.harness.setup import skill_setup
 
-Every assertion is a JSON object with exactly one primitive key.
+@pytest.fixture(scope="module")
+def result(run_eval, project_root):
+    return run_eval(
+        turns=["Your prompt here"],
+        setup=skill_setup("your-skill", project_root),
+    )
 
-**Content** (checked against `final_message` by default; override with `"on": "stdout"` or `"on": "files.<glob>"`):
-
-| Primitive | Example | Passes when |
-|---|---|---|
-| `regex` | `{"regex": "\\?", "min": 1, "max": 2}` | Match count is within `[min, max]`. Defaults: `min=1`, `max=∞`. |
-| `not_regex` | `{"not_regex": "(?i)sorry"}` | Zero matches. |
-| `contains` | `{"contains": "42"}` | Literal substring found. |
-| `contains_all` | `{"contains_all": ["A", "B"]}` | Every literal found. |
-| `not_contains` | `{"not_contains": "secret"}` | Literal absent. |
-
-**Shape:**
-
-| Primitive | Example | Passes when |
-|---|---|---|
-| `output_len_lte` | `{"output_len_lte": 600}` | Character count ≤ value. |
-| `output_len_gte` | `{"output_len_gte": 100}` | Character count ≥ value. |
-| `token_usage_lte` | `{"token_usage_lte": 50000}` | `input + output` tokens ≤ value. |
-
-**Trace:**
-
-| Primitive | Example | Passes when |
-|---|---|---|
-| `tool_called` | `{"tool_called": "scrape_as_markdown"}` | Tool name appears in trace (substring match). |
-| `tool_not_called` | `{"tool_not_called": "WebFetch"}` | Tool name absent from trace. |
-| `skill_invoked` | `{"skill_invoked": "ghostwrite"}` | `Skill` tool fired with matching skill (bare or prefixed). |
-| `skill_not_invoked` | `{"skill_not_invoked": "ghostwrite"}` | No matching `Skill` tool invocation. |
-| `trace_order` | `{"trace_order": ["Read", "Write"]}` | Tools appear in trace in this order (gaps ok). |
-| `trace_count_lte` | `{"trace_count_lte": {"tool": "Bash", "n": 3}}` | Tool invocation count ≤ `n`. |
-| `turn_count_lte` | `{"turn_count_lte": 1}` | Agent completed in ≤ `n` turns. |
-
-**Files:**
-
-| Primitive | Example | Passes when |
-|---|---|---|
-| `files_written_include` | `{"files_written_include": "refs/specs/*.md"}` | At least one written file matches glob. |
-| `files_written_exclude` | `{"files_written_exclude": "package.json"}` | No written file matches glob. |
-| `files_written_count` | `{"files_written_count": 0}` | Exact file count. |
-| `file_contains` | `{"file_contains": {"path": "*.md", "text": "X"}}` | A file matching `path` glob contains `text` or matches `regex`. Set exactly one of `text` or `regex`. |
-
-**Script:**
-
-| Primitive | Example | Passes when |
-|---|---|---|
-| `script_name` | `{"script_name": "ghostwrite"}` | `skills/<name>/lint.py` exits 0 on the output. |
-
-## Rubric format
-
-```markdown
-# <Skill> Rubric
-
-## Critical
-
-- <testable outcome the output must satisfy>
-
-## Optional
-
-- <nice-to-have; reported but never fails the case>
+def test_something(result):
+    assert result.contains("expected", on="final_message")
 ```
 
-The grader returns `pass` / `fail` / `n/a` for each item. A case fails only if a critical item is `fail`. `n/a` is for items that legitimately don't apply (e.g. a refusal case).
+## Available matchers
+
+`EvalResult` wraps the agent run and provides assertion methods returning `bool`:
+
+**Content** (require `on` parameter: `"final_message"`, `"stdout"`, or `"files.<glob>"`):
+
+| Method | Description |
+|---|---|
+| `matches_regex(pattern, on, min=1, max=inf)` | Match count within bounds |
+| `not_matches_regex(pattern, on)` | Zero matches |
+| `contains(text, on)` | Literal substring found |
+| `contains_all(texts, on)` | Every literal found |
+| `not_contains(text, on)` | Literal absent |
+| `output_len_lte(n, on)` | Character count <= n |
+| `output_len_gte(n, on)` | Character count >= n |
+| `passes_rubric(item, on, model=None)` | LLM judge (default Haiku) grades pass/fail |
+
+**Trace** (no `on` parameter):
+
+| Method | Description |
+|---|---|
+| `tool_called(name)` | Tool name in trace (substring match) |
+| `not_tool_called(name)` | Tool name absent |
+| `skill_invoked(name)` | Skill tool fired with matching name |
+| `not_skill_invoked(name)` | No matching Skill invocation |
+| `trace_order(tools)` | Tools appear in order (gaps ok) |
+| `trace_count_lte(tool, n)` | Tool count <= n |
+| `turn_count_lte(n)` | Agent completed in <= n turns |
+| `token_usage_lte(n)` | input + output tokens <= n |
+
+**Files** (no `on` parameter):
+
+| Method | Description |
+|---|---|
+| `file_contains(path_glob, text=None, regex=None)` | File matching glob contains text/regex |
+| `not_file_contains(path_glob, text=None, regex=None)` | Negation |
+
+## Setup helpers
+
+```python
+from tests.support.harness.setup import skill_setup, copy_files, cleanup_globs, compose
+
+# Copy skill dir + AGENTS.md, prepend SKILL.md preamble
+setup=skill_setup("summarize", project_root)
+
+# Copy test fixtures into temp cwd
+setup=copy_files("tests/support/fixtures/test-paper.pdf", project_root=project_root)
+
+# Compose multiple setup functions
+setup=compose(
+    skill_setup("summarize", project_root),
+    copy_files("tests/support/fixtures/test-paper.pdf", project_root=project_root),
+)
+
+# Cleanup files after run
+cleanup=cleanup_globs("references/specs/2026-*-demo*.md")
+```
 
 ## Fixtures
 
-Put shared input files under `tests/fixtures/`. Reference them in a case via `"files": ["fixture-name.ext"]`.
-
-## Artifacts
-
-Every run writes artifacts under `tmp/evals/<timestamp>/` — one directory per suite/case/variant with the raw output, files written, and grading results.
+Put shared input files under `tests/support/fixtures/`.

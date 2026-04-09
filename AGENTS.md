@@ -64,8 +64,7 @@ Skills are in `skills/`. Each has a `SKILL.md` with activation triggers.
 
 ## Commands
 
-- **make test** -- Fast deterministic eval pass. <90s, no LLM grading. Run on every edit.
-- **make eval** -- Deep eval pass with rubric grading. ~2 min. Run pre-release or when iterating on a skill.
+- **make test** -- Run all evals (skill + core). Pass `ARGS=` for filtering.
 - **make test-harness** -- Run the Python harness unit tests.
 - See `docs/evals.md` for the full workflow.
 
