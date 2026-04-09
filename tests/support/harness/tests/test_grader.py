@@ -11,6 +11,7 @@ from tests.support.harness.grader import (
     _resolve_source,
     _truncate_tail,
     grade,
+    grade_rubric,
 )
 from tests.support.harness.models import Grading
 from tests.support.harness.runner import RunResult
@@ -650,3 +651,86 @@ def test_file_contains_requires_exactly_one_of_text_or_regex():
     )
     assert exps[0]["passed"] is False
     assert "exactly one" in exps[0]["evidence"]
+
+
+def test_grade_rubric_returns_empty_when_no_items(monkeypatch, tmp_path):
+    rubric_path = tmp_path / "RUBRIC.md"
+    rubric_path.write_text("# no items\n")
+    run = _run(final_message="x")
+    result = asyncio.run(grade_rubric(run, rubric_path))
+    assert isinstance(result, Grading)
+    assert result.total == 0
+
+
+def test_grade_rubric_passes_when_all_critical_pass(monkeypatch, tmp_path):
+    rubric_path = tmp_path / "RUBRIC.md"
+    rubric_path.write_text("## Critical\n\n- item A\n- item B\n")
+
+    async def fake_llm_call(prompt, model):
+        return {
+            "items": [
+                {"text": "item A", "critical": True, "status": "pass", "evidence": "ok"},
+                {"text": "item B", "critical": True, "status": "pass", "evidence": "ok"},
+            ]
+        }
+
+    monkeypatch.setattr("tests.support.harness.grader._rubric_llm_call", fake_llm_call)
+    run = _run(final_message="x")
+    result = asyncio.run(grade_rubric(run, rubric_path))
+    assert result.passed == 2
+    assert result.failed == 0
+
+
+def test_grade_rubric_fails_when_critical_item_fails(monkeypatch, tmp_path):
+    rubric_path = tmp_path / "RUBRIC.md"
+    rubric_path.write_text("## Critical\n\n- item A\n")
+
+    async def fake_llm_call(prompt, model):
+        return {"items": [{"text": "item A", "critical": True, "status": "fail", "evidence": "missing"}]}
+
+    monkeypatch.setattr("tests.support.harness.grader._rubric_llm_call", fake_llm_call)
+    run = _run(final_message="x")
+    result = asyncio.run(grade_rubric(run, rubric_path))
+    assert result.failed == 1
+
+
+def test_grade_rubric_na_counts_as_pass_for_critical_gate(monkeypatch, tmp_path):
+    rubric_path = tmp_path / "RUBRIC.md"
+    rubric_path.write_text("## Critical\n\n- item A\n- item B\n")
+
+    async def fake_llm_call(prompt, model):
+        return {
+            "items": [
+                {"text": "item A", "critical": True, "status": "pass", "evidence": "ok"},
+                {"text": "item B", "critical": True, "status": "n/a", "evidence": "not applicable"},
+            ]
+        }
+
+    monkeypatch.setattr("tests.support.harness.grader._rubric_llm_call", fake_llm_call)
+    run = _run(final_message="x")
+    result = asyncio.run(grade_rubric(run, rubric_path))
+    # Case passes: both critical items are pass/na. We report n/a items as
+    # "passed" for aggregate scoring simplicity — the rubric summary on screen
+    # can show na breakdowns separately.
+    assert result.failed == 0
+    assert result.total == 2
+
+
+def test_grade_rubric_optional_failures_dont_fail_the_case(monkeypatch, tmp_path):
+    rubric_path = tmp_path / "RUBRIC.md"
+    rubric_path.write_text("## Critical\n\n- crit\n\n## Optional\n\n- opt\n")
+
+    async def fake_llm_call(prompt, model):
+        return {
+            "items": [
+                {"text": "crit", "critical": True, "status": "pass", "evidence": "ok"},
+                {"text": "opt", "critical": False, "status": "fail", "evidence": "nope"},
+            ]
+        }
+
+    monkeypatch.setattr("tests.support.harness.grader._rubric_llm_call", fake_llm_call)
+    run = _run(final_message="x")
+    result = asyncio.run(grade_rubric(run, rubric_path))
+    # Optional fail is reported but doesn't count toward `failed`.
+    assert result.failed == 0
+    assert result.total == 2

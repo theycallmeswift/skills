@@ -10,6 +10,7 @@ from typing import Callable
 from claude_agent_sdk import AssistantMessage, ClaudeAgentOptions, ResultMessage, query
 
 from .models import Grading
+from .rubric import parse_rubric_file
 from .runner import RunResult
 
 DEFAULT_GRADER_MODEL = "claude-haiku-4-5-20251001"
@@ -595,6 +596,123 @@ def _parse_grader_fallback(raw: str) -> dict:
     if not raw:
         raise RuntimeError("grader returned empty response")
     return json.loads(raw)
+
+
+RUBRIC_PROMPT = """\
+You are a strict rubric grader. Evaluate the AGENT OUTPUT below against each RUBRIC ITEM.
+
+For each item return one of:
+- "pass": the output clearly satisfies the item
+- "fail": the output clearly does not satisfy the item
+- "n/a": the item does not apply to this kind of output (e.g. the correct behavior is a refusal)
+
+Cite specific evidence from the output. No partial credit. When uncertain, fail.
+
+Return ONLY a JSON object matching:
+{{
+  "items": [
+    {{"text": "<item text>", "critical": true|false, "status": "pass"|"fail"|"n/a", "evidence": "<quote or observation>"}}
+  ]
+}}
+
+AGENT OUTPUT (final message):
+{final_message}
+
+FILES WRITTEN:
+{files_block}
+
+RUBRIC:
+{rubric_text}
+"""
+
+_RUBRIC_SCHEMA = {
+    "type": "json_schema",
+    "schema": {
+        "type": "object",
+        "properties": {
+            "items": {
+                "type": "array",
+                "items": {
+                    "type": "object",
+                    "properties": {
+                        "text": {"type": "string"},
+                        "critical": {"type": "boolean"},
+                        "status": {"type": "string", "enum": ["pass", "fail", "n/a"]},
+                        "evidence": {"type": "string"},
+                    },
+                    "required": ["text", "critical", "status", "evidence"],
+                    "additionalProperties": False,
+                },
+            }
+        },
+        "required": ["items"],
+        "additionalProperties": False,
+    },
+}
+
+
+async def _rubric_llm_call(prompt: str, model: str) -> dict:
+    """Call the LLM with structured output. Isolated so tests can monkeypatch."""
+    options = ClaudeAgentOptions(model=model, output_format=_RUBRIC_SCHEMA)
+    structured: dict | None = None
+    parts: list[str] = []
+    async for message in query(prompt=prompt, options=options):
+        if isinstance(message, ResultMessage):
+            if getattr(message, "structured_output", None):
+                structured = message.structured_output
+            elif getattr(message, "result", None):
+                parts.append(message.result)
+        elif isinstance(message, AssistantMessage):
+            for block in message.content:
+                if hasattr(block, "text"):
+                    parts.append(block.text)
+    if structured is not None:
+        return structured
+    raw = "".join(parts).strip()
+    return _parse_grader_fallback(raw)
+
+
+async def grade_rubric(
+    run: RunResult,
+    rubric_path: Path,
+    model: str = DEFAULT_GRADER_MODEL,
+) -> Grading:
+    items = parse_rubric_file(rubric_path)
+    if not items:
+        return Grading.from_expectations([])
+    rubric_text = rubric_path.read_text()
+    final_msg = getattr(run, "final_message", "") or run.stdout or "(empty)"
+    files_block = (
+        "\n\n".join(f"--- {p} ---\n{_truncate_tail(c, DEFAULT_FILE_LIMIT)}" for p, c in run.files_written.items())
+        or "(none)"
+    )
+    prompt = RUBRIC_PROMPT.format(
+        final_message=_truncate_tail(final_msg, DEFAULT_STDOUT_LIMIT),
+        files_block=files_block,
+        rubric_text=rubric_text,
+    )
+    data = await _rubric_llm_call(prompt, model)
+    expectations: list[dict] = []
+    for graded in data["items"]:
+        status = graded["status"]
+        critical = graded["critical"]
+        # Pass rule (see spec §Rubric grader):
+        #   - critical + fail  => failed
+        #   - critical + pass  => passed
+        #   - critical + n/a   => passed (excused)
+        #   - optional + any   => passed (informational only)
+        if critical and status == "fail":
+            passed = False
+        else:
+            passed = True
+        expectations.append(
+            {
+                "text": ("[critical] " if critical else "[optional] ") + graded["text"] + f" -- {status}",
+                "passed": passed,
+                "evidence": graded["evidence"],
+            }
+        )
+    return Grading.from_expectations(expectations)
 
 
 async def grade(
