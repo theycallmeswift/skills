@@ -9,8 +9,8 @@
       ],
       "assertions": [
         {"script_name": "ghostwrite"},
-        {"regex": "Hey, Sarah --"},
-        {"regex": "(- Swift|Happy Hacking,\\s*\\nSwift)"},
+        {"regex": "(?m)^Hey, Sarah --"},
+        {"regex": "(?m)(- Swift|Happy Hacking,\\s*\\nSwift)\\s*$"},
         {"contains_all": ["450", "30%", "92%"]},
         {"output_len_lte": 600}
       ]
