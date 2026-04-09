@@ -148,6 +148,6 @@ async def run_evals(
         _run_one(p, project_root, artifact_root, run_id, reporter, sem, model=model) for p in plans
     ]
     results = await asyncio.gather(*tasks)
-    exit_code = reporter.finish(list(results), verbose=verbose)
+    exit_code = reporter.finish(list(results), verbose=verbose, model=model)
     print(f"\nFull results: tmp/evals/{run_id}/")
     return exit_code

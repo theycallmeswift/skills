@@ -1,6 +1,56 @@
+import io
+from contextlib import redirect_stdout
+from pathlib import Path
+
 from tests.support.harness.models import EvalCase, Grading, RunPlan
 from tests.support.harness.reporter import CaseResult, DotsReporter, _print_summary
 from tests.support.harness.runner import RunResult
+
+
+def _cr(suite, case_id, kind, tier, passed, total, variant="run"):
+    return CaseResult(
+        plan=RunPlan(
+            suite_name=suite,
+            suite_kind=kind,
+            case_id=case_id,
+            variant=variant,
+            turns=["hi"],
+            context_paths=[],
+            case=EvalCase(id=case_id, turns=["hi"]),
+            tier=tier,
+        ),
+        run=RunResult(
+            stdout="",
+            files_written={},
+            input_tokens=0,
+            output_tokens=0,
+            duration_s=1.0,
+            exit_code=0,
+            tool_trace=[],
+            turn_count=1,
+        ),
+        grading=Grading.from_expectations(
+            [{"text": f"c{i}", "passed": i < passed, "evidence": ""} for i in range(total)]
+        ),
+    )
+
+
+def test_fast_tier_summary_single_table_no_warn():
+    results = [
+        _cr("ghostwrite", "sponsor-email", "skill", "test", passed=4, total=4),
+        _cr("ghostwrite", "linkedin", "skill", "test", passed=3, total=4),
+        _cr("skill-triggers", "t1", "core", "test", passed=3, total=3),
+    ]
+    buf = io.StringIO()
+    with redirect_stdout(buf):
+        _print_summary(results, verbose=False, model="claude-haiku-4-5")
+    out = buf.getvalue()
+    assert "WARN" not in out
+    assert "baseline" not in out
+    assert "## Core" in out
+    assert "## Skills" in out
+    assert "claude-haiku-4-5" in out
+    assert "ghostwrite" in out
 
 
 def _mk_result(suite, case_id, variant, kind, passed, failed, exit_code=0, intent="regression"):
@@ -13,6 +63,7 @@ def _mk_result(suite, case_id, variant, kind, passed, failed, exit_code=0, inten
         turns=["x"],
         context_paths=[],
         case=case,
+        tier="eval",
     )
     run = RunResult(
         stdout="",
@@ -73,6 +124,7 @@ def _make_result(
         turns=["hi"],
         context_paths=[],
         case=case,
+        tier="eval",
     )
     run = RunResult(
         stdout="",

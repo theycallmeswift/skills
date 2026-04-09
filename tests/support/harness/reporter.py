@@ -17,7 +17,7 @@ class Reporter(Protocol):
     def start(self, total: int) -> None: ...
     def case_started(self, plan: RunPlan) -> None: ...
     def case_finished(self, result: CaseResult) -> None: ...
-    def finish(self, results: list[CaseResult], verbose: bool) -> int: ...
+    def finish(self, results: list[CaseResult], verbose: bool, model: str | None = None) -> int: ...
 
 
 def make_reporter() -> "Reporter":
@@ -45,15 +45,29 @@ class DotsReporter:
         if self._count % 50 == 0:
             print()
 
-    def finish(self, results: list[CaseResult], verbose: bool) -> int:
+    def finish(self, results: list[CaseResult], verbose: bool, model: str | None = None) -> int:
         print()
-        return _print_summary(results, verbose)
+        return _print_summary(results, verbose, model=model)
 
 
 LIFT_MIN_WITH_SKILL_RATE = 0.75  # Option 2: warn/fail only if with-skill dips below 75%
 
 
-def _print_summary(results: list[CaseResult], verbose: bool) -> int:
+def _print_summary(results: list[CaseResult], verbose: bool, model: str | None = None) -> int:
+    if not results:
+        return 0
+    tier = results[0].plan.tier
+    if tier == "test":
+        return _print_fast_summary(results, verbose=verbose, model=model)
+    return _print_deep_summary(results, verbose=verbose, model=model)
+
+
+def _print_deep_summary(results: list[CaseResult], verbose: bool, model: str | None) -> int:
+    # Temporary passthrough — Task 17 replaces this with the tiered layout.
+    return _print_existing_summary(results, verbose)
+
+
+def _print_existing_summary(results: list[CaseResult], verbose: bool) -> int:
     skill_results = [r for r in results if r.plan.suite_kind == "skill"]
     core_results = [r for r in results if r.plan.suite_kind == "core"]
 
@@ -151,6 +165,68 @@ def _print_summary(results: list[CaseResult], verbose: bool) -> int:
     return exit_code
 
 
+def _print_fast_summary(results: list[CaseResult], verbose: bool, model: str | None) -> int:
+    exit_code = 0
+    by_suite_kind: dict[str, dict[str, list[CaseResult]]] = {"core": {}, "skill": {}}
+    for r in results:
+        suite = r.plan.suite_name
+        by_suite_kind[r.plan.suite_kind].setdefault(suite, []).append(r)
+
+    if by_suite_kind["core"]:
+        print("\n## Core\n")
+        for suite, cases in sorted(by_suite_kind["core"].items()):
+            passed = sum(1 for c in cases if c.grading.failed == 0 and c.run.exit_code == 0)
+            total = len(cases)
+            status = "ok" if passed == total else "fail"
+            if status == "fail":
+                exit_code = 1
+            print(f"{suite:<25} {passed}/{total}  {status}")
+
+    if by_suite_kind["skill"]:
+        print("\n## Skills\n")
+        for suite, cases in sorted(by_suite_kind["skill"].items()):
+            passed = sum(1 for c in cases if c.grading.failed == 0 and c.run.exit_code == 0)
+            total = len(cases)
+            status = "ok" if passed == total else "fail"
+            if status == "fail":
+                exit_code = 1
+            print(f"{suite:<25} {passed}/{total}  {status}")
+
+    total_cases = len(results)
+    passed_cases = sum(1 for r in results if r.grading.failed == 0 and r.run.exit_code == 0)
+    pct = int(round(100 * passed_cases / total_cases)) if total_cases else 0
+    print(f"\n{passed_cases}/{total_cases} pass ({pct}%) on {model or 'default'}")
+    _print_failures(results, verbose)
+    return exit_code
+
+
+def _print_failures(results: list[CaseResult], verbose: bool) -> None:
+    failures: list[CaseResult] = []
+    for r in results:
+        if r.plan.suite_kind == "skill" and r.plan.variant == "baseline":
+            continue
+        if r.grading.failed > 0 or r.run.exit_code != 0:
+            failures.append(r)
+    if failures:
+        print("\n### Failures\n")
+        for r in failures:
+            label = f"{r.plan.suite_name} > {r.plan.case_id} > {r.plan.variant}"
+            print(f"\n**{label}**")
+            if r.run.exit_code != 0:
+                print(f"- RUN ERROR ({r.run.exit_code}): {r.run.error}")
+            for exp in r.grading.expectations:
+                if not exp["passed"]:
+                    print(f"- FAIL: {exp['text']}")
+                    print(f"  Evidence: {exp.get('evidence', '(none)')}")
+    if verbose:
+        print("\n### Passing assertions (verbose)\n")
+        for r in results:
+            for exp in r.grading.expectations:
+                if exp["passed"]:
+                    print(f"- PASS [{r.plan.suite_name}/{r.plan.case_id}]: {exp['text']}")
+                    print(f"  Evidence: {exp.get('evidence', '(none)')}")
+
+
 def _fmt_score(g: Grading) -> str:
     if g.total == 0:
         return "n/a"
@@ -227,8 +303,8 @@ class RichReporter:
         if self._live:
             self._live.update(self._table())
 
-    def finish(self, results: list[CaseResult], verbose: bool) -> int:
+    def finish(self, results: list[CaseResult], verbose: bool, model: str | None = None) -> int:
         if self._live:
             self._live.__exit__(None, None, None)
             self._live = None
-        return _print_summary(results, verbose)
+        return _print_summary(results, verbose, model=model)
