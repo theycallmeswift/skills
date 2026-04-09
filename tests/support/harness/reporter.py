@@ -50,9 +50,6 @@ class DotsReporter:
         return _print_summary(results, verbose, model=model)
 
 
-LIFT_MIN_WITH_SKILL_RATE = 0.75  # Option 2: warn/fail only if with-skill dips below 75%
-
-
 def _print_summary(results: list[CaseResult], verbose: bool, model: str | None = None) -> int:
     if not results:
         return 0
@@ -63,23 +60,33 @@ def _print_summary(results: list[CaseResult], verbose: bool, model: str | None =
 
 
 def _print_deep_summary(results: list[CaseResult], verbose: bool, model: str | None) -> int:
-    # Temporary passthrough — Task 17 replaces this with the tiered layout.
-    return _print_existing_summary(results, verbose)
-
-
-def _print_existing_summary(results: list[CaseResult], verbose: bool) -> int:
-    skill_results = [r for r in results if r.plan.suite_kind == "skill"]
-    core_results = [r for r in results if r.plan.suite_kind == "core"]
-
     exit_code = 0
+    model_label = model or "default"
 
+    core = [r for r in results if r.plan.suite_kind == "core"]
+    skill = [r for r in results if r.plan.suite_kind == "skill"]
+
+    # Core table
+    if core:
+        print(f"\n## Core — {model_label}\n")
+        by_suite: dict[str, list[CaseResult]] = {}
+        for r in core:
+            by_suite.setdefault(r.plan.suite_name, []).append(r)
+        for suite, cases in sorted(by_suite.items()):
+            passed = sum(1 for c in cases if c.grading.failed == 0 and c.run.exit_code == 0)
+            total = len(cases)
+            status = "ok" if passed == total else "fail"
+            if status == "fail":
+                exit_code = 1
+            print(f"{suite:<32} {passed}/{total} checks   {status}")
+
+    # Pair up with_skill and baseline runs by (suite, case_id)
     by_key: dict[tuple[str, str], dict[str, CaseResult]] = {}
-    for r in skill_results:
-        key = (r.plan.suite_name, r.plan.case_id)
-        by_key.setdefault(key, {})[r.plan.variant] = r
+    for r in skill:
+        by_key.setdefault((r.plan.suite_name, r.plan.case_id), {})[r.plan.variant] = r
 
-    lift_rows: list[tuple[str, str, CaseResult, CaseResult | None]] = []
-    regression_rows: list[tuple[str, str, CaseResult]] = []
+    regression_rows = []
+    lift_rows = []
     for (suite, case_id), variants in sorted(by_key.items()):
         ws = variants.get("with_skill")
         if ws is None:
@@ -89,79 +96,29 @@ def _print_existing_summary(results: list[CaseResult], verbose: bool) -> int:
         else:
             regression_rows.append((suite, case_id, ws))
 
+    if regression_rows:
+        print(f"\n## Skills (regression) — {model_label}\n")
+        for suite, case_id, ws in regression_rows:
+            failing = ws.run.exit_code != 0 or ws.grading.failed > 0
+            if failing:
+                exit_code = 1
+            status = "fail" if failing else "ok"
+            print(f"{suite:<20} {case_id:<32} {_fmt_score(ws.grading):<14} {status}")
+
     if lift_rows:
-        print("\n## Lift Suite\n")
-        print(
-            f"{'Skill':<20} {'Eval':<30} {'With Skill':<14} {'Baseline':<14} {'Delta':<8} {'Status':<8}"
-        )
+        print(f"\n## Lift — {model_label}\n")
         for suite, case_id, ws, bl in lift_rows:
             ws_str = _fmt_score(ws.grading)
             bl_str = _fmt_score(bl.grading) if bl else "—"
-            d_val: float | None = None
-            delta = ""
-            if bl and bl.grading.total:
-                d_val = (ws.grading.passed / ws.grading.total) - (
-                    bl.grading.passed / bl.grading.total
-                )
-                delta = f"{d_val * 100:+.0f}%"
-            ws_rate = ws.grading.passed / ws.grading.total if ws.grading.total else 0.0
-            # Fail lift intent ONLY if with-skill falls below the min rate OR
-            # the run itself errored. A flat/negative delta is informational.
-            failing = ws.run.exit_code != 0 or ws_rate < LIFT_MIN_WITH_SKILL_RATE
-            warn = (d_val is not None and d_val < 0) and not failing
-            if failing:
-                status = "FAIL"
-                exit_code = 1
-            elif warn:
-                status = "WARN"
-            else:
-                status = "OK"
-            print(f"{suite:<20} {case_id:<30} {ws_str:<14} {bl_str:<14} {delta:<8} {status:<8}")
-
-    if regression_rows:
-        print("\n## Regression Suite\n")
-        print(f"{'Skill':<20} {'Eval':<30} {'Result':<14} {'Status':<8}")
-        for suite, case_id, ws in regression_rows:
-            ws_str = _fmt_score(ws.grading)
             failing = ws.run.exit_code != 0 or ws.grading.failed > 0
-            status = "FAIL" if failing else "OK"
             if failing:
                 exit_code = 1
-            print(f"{suite:<20} {case_id:<30} {ws_str:<14} {status:<8}")
+            status = "fail" if failing else "ok"
+            print(
+                f"{suite:<20} {case_id:<32} with_skill={ws_str:<12} baseline={bl_str:<12} {status}"
+            )
 
-    if core_results:
-        print("\n## Core Eval Results\n")
-        print(f"{'Eval':<25} {'Case':<30} {'Result':<14}")
-        for r in sorted(core_results, key=lambda x: (x.plan.suite_name, x.plan.case_id)):
-            print(f"{r.plan.suite_name:<25} {r.plan.case_id:<30} {_fmt_score(r.grading):<14}")
-            if r.grading.failed > 0 or r.run.exit_code != 0:
-                exit_code = 1
-
-    failures: list[CaseResult] = []
-    for r in results:
-        if r.plan.suite_kind == "skill" and r.plan.variant == "baseline":
-            continue
-        if r.grading.failed > 0 or r.run.exit_code != 0:
-            failures.append(r)
-    if failures:
-        print("\n### Failures\n")
-        for r in failures:
-            label = f"{r.plan.suite_name} > {r.plan.case_id} > {r.plan.variant}"
-            print(f"\n**{label}**")
-            if r.run.exit_code != 0:
-                print(f"- RUN ERROR ({r.run.exit_code}): {r.run.error}")
-            for exp in r.grading.expectations:
-                if not exp["passed"]:
-                    print(f"- FAIL: {exp['text']}")
-                    print(f"  Evidence: {exp.get('evidence', '(none)')}")
-    if verbose:
-        print("\n### Passing assertions (verbose)\n")
-        for r in results:
-            for exp in r.grading.expectations:
-                if exp["passed"]:
-                    print(f"- PASS [{r.plan.suite_name}/{r.plan.case_id}]: {exp['text']}")
-                    print(f"  Evidence: {exp.get('evidence', '(none)')}")
-
+    _print_failures(results, verbose)
     return exit_code
 
 

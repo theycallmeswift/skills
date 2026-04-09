@@ -92,7 +92,7 @@ def test_dots_reporter_summary_skill_pass(capsys):
     exit_code = r.finish(results, verbose=False)
     out = capsys.readouterr().out
     assert ".." in out
-    assert "Regression Suite" in out
+    assert "## Skills (regression)" in out
     assert "ghostwrite" in out
     assert exit_code == 0  # baseline failures don't break exit code
 
@@ -163,56 +163,13 @@ def test_baseline_failure_does_not_fail_run(capsys):
     )
 
 
-def test_lift_intent_ok_when_with_skill_above_threshold(capsys):
-    """Lift case with high with-skill rate and positive delta → OK, exit 0."""
-    ws = _make_result(variant="with_skill", intent="lift", passed=4, failed=0)
-    bl = _make_result(variant="baseline", intent="lift", passed=1, failed=3)
-    exit_code = _print_summary([ws, bl], verbose=False)
-    out = capsys.readouterr().out
-    assert "Lift Suite" in out
-    assert " OK" in out
-    assert exit_code == 0
-
-
-def test_lift_intent_warn_on_negative_delta_but_not_failing(capsys):
-    """Lift case with with-skill ≥ 75% but delta ≤ 0 → WARN, exit 0.
-    Per Option 2: zero/negative delta is informational, not a failure."""
-    ws = _make_result(variant="with_skill", intent="lift", passed=4, failed=0)
-    bl = _make_result(variant="baseline", intent="lift", passed=4, failed=0)
-    exit_code = _print_summary([ws, bl], verbose=False)
-    out = capsys.readouterr().out
-    assert "Lift Suite" in out
-    # Equal rates → delta 0 → neither negative nor positive; status should be OK.
-    # (Warn is only for strictly negative deltas.)
-    assert exit_code == 0
-
-
-def test_lift_intent_fails_when_with_skill_below_threshold(capsys):
-    """Lift case with with-skill < 75% → FAIL, exit 1."""
-    ws = _make_result(variant="with_skill", intent="lift", passed=2, failed=4)
-    bl = _make_result(variant="baseline", intent="lift", passed=0, failed=6)
-    exit_code = _print_summary([ws, bl], verbose=False)
-    assert exit_code == 1
-
-
-def test_lift_intent_strictly_negative_delta_emits_warn(capsys):
-    """Lift case with positive with-skill rate but strictly negative delta
-    (baseline > with-skill) → WARN, not FAIL (exit 0)."""
-    ws = _make_result(variant="with_skill", intent="lift", passed=3, failed=1)
-    bl = _make_result(variant="baseline", intent="lift", passed=4, failed=0)
-    exit_code = _print_summary([ws, bl], verbose=False)
-    out = capsys.readouterr().out
-    assert "WARN" in out
-    assert exit_code == 0
-
-
 def test_regression_intent_fails_on_any_failure(capsys):
     """Regression cases must hit 100% or the suite fails."""
     ws = _make_result(variant="with_skill", intent="regression", passed=3, failed=1)
     exit_code = _print_summary([ws], verbose=False)
     out = capsys.readouterr().out
-    assert "Regression Suite" in out
-    assert "FAIL" in out
+    assert "## Skills (regression)" in out
+    assert "fail" in out
     assert exit_code == 1
 
 
@@ -224,3 +181,31 @@ def test_core_failure_returns_1(capsys):
         )
         == 1
     )
+
+
+def test_deep_tier_summary_has_three_tables_and_no_warn():
+    # Build a result set with one core, one regression, one lift (with baseline).
+    results = [
+        _cr("skill-triggers", "t1", "core", "eval", passed=3, total=3),
+        _cr("summarize", "paste-raw-text", "skill", "eval", passed=4, total=4, variant="with_skill"),
+        _cr(
+            "ghostwrite", "sponsor-email", "skill", "eval", passed=4, total=4, variant="with_skill"
+        ),
+        _cr(
+            "ghostwrite", "sponsor-email", "skill", "eval", passed=2, total=4, variant="baseline"
+        ),
+    ]
+    # Mark ghostwrite sponsor-email as lift intent:
+    results[2].plan.case.intent = "lift"
+    results[3].plan.case.intent = "lift"
+    # summarize paste-raw-text is regression by default.
+
+    buf = io.StringIO()
+    with redirect_stdout(buf):
+        _print_summary(results, verbose=False, model="claude-sonnet-4-6")
+    out = buf.getvalue()
+    assert "## Core" in out
+    assert "## Skills (regression)" in out
+    assert "## Lift" in out
+    assert "WARN" not in out
+    assert "claude-sonnet-4-6" in out
