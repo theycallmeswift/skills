@@ -1,274 +1,139 @@
-import sys
-from dataclasses import dataclass
-from typing import Protocol
+"""Pytest plugin for eval result reporting.
 
-from .models import Grading, RunPlan
-from .runner import RunResult
+Registered via conftest.py: pytest_plugins = ["tests.support.harness.reporter"]
+"""
+from __future__ import annotations
 
-
-@dataclass
-class CaseResult:
-    plan: RunPlan
-    run: RunResult
-    grading: Grading
+from collections import defaultdict
+from pathlib import PurePosixPath
 
 
-class Reporter(Protocol):
-    def start(self, total: int) -> None: ...
-    def case_started(self, plan: RunPlan) -> None: ...
-    def case_finished(self, result: CaseResult) -> None: ...
-    def finish(self, results: list[CaseResult], verbose: bool, model: str | None = None) -> int: ...
+class EvalReporter:
+    """Collects test results and formats a summary table."""
 
+    def __init__(self, verbose: bool = False) -> None:
+        self.verbose = verbose
+        # {module_nodeid: [report, ...]}
+        self._results: dict[str, list] = defaultdict(list)
+        # {module_nodeid: max_duration}
+        self._durations: dict[str, float] = defaultdict(float)
 
-def make_reporter() -> "Reporter":
-    return RichReporter() if sys.stdout.isatty() else DotsReporter()
+    def record_result(self, report) -> None:
+        # Extract the module path (everything before ::)
+        module = report.nodeid.split("::")[0]
+        self._results[module].append(report)
+        if report.duration > self._durations[module]:
+            self._durations[module] = report.duration
 
+    def _parse_module(self, module: str) -> tuple[str, str]:
+        """Extract skill name and test name from module path."""
+        parts = PurePosixPath(module).parts
+        # tests/skills/<skill>/test_xxx.py -> (skill, test_xxx)
+        # tests/core/test_xxx.py -> (core, test_xxx)
+        filename = PurePosixPath(module).stem  # test_xxx
+        if "skills" in parts:
+            idx = list(parts).index("skills")
+            skill = parts[idx + 1] if idx + 1 < len(parts) else "unknown"
+            return (skill, filename)
+        if "core" in parts:
+            return ("core", filename)
+        return ("other", filename)
 
-class DotsReporter:
-    def __init__(self) -> None:
-        self._count = 0
+    def build_table_rows(self) -> list[dict]:
+        rows = []
+        for module, reports in sorted(self._results.items()):
+            skill, test = self._parse_module(module)
+            passed = sum(1 for r in reports if r.passed)
+            total = len(reports)
+            duration = self._durations[module]
+            failures = [r for r in reports if r.failed]
+            rows.append({
+                "skill": skill,
+                "test": test,
+                "passed": passed,
+                "total": total,
+                "duration": duration,
+                "failures": failures,
+                "module": module,
+            })
+        return rows
 
-    def start(self, total: int) -> None:
-        print(f"Running {total} cases...")
+    def compute_totals(self) -> dict:
+        all_reports = [r for reports in self._results.values() for r in reports]
+        return {
+            "passed": sum(1 for r in all_reports if r.passed),
+            "total": len(all_reports),
+        }
 
-    def case_started(self, plan: RunPlan) -> None:
-        pass
-
-    def case_finished(self, result: CaseResult) -> None:
-        symbol = "."
-        if result.run.exit_code != 0:
-            symbol = "E"
-        elif result.grading.failed > 0:
-            symbol = "F"
-        print(symbol, end="", flush=True)
-        self._count += 1
-        if self._count % 50 == 0:
-            print()
-
-    def finish(self, results: list[CaseResult], verbose: bool, model: str | None = None) -> int:
-        print()
-        return _print_summary(results, verbose, model=model)
-
-
-def _print_summary(results: list[CaseResult], verbose: bool, model: str | None = None) -> int:
-    if not results:
-        return 0
-    tier = results[0].plan.tier
-    if tier == "test":
-        return _print_fast_summary(results, verbose=verbose, model=model)
-    return _print_deep_summary(results, verbose=verbose, model=model)
-
-
-def _print_deep_summary(results: list[CaseResult], verbose: bool, model: str | None) -> int:
-    exit_code = 0
-    model_label = model or "default"
-
-    core = [r for r in results if r.plan.suite_kind == "core"]
-    skill = [r for r in results if r.plan.suite_kind == "skill"]
-
-    # Core table
-    if core:
-        print(f"\n## Core — {model_label}\n")
-        by_suite: dict[str, list[CaseResult]] = {}
-        for r in core:
-            by_suite.setdefault(r.plan.suite_name, []).append(r)
-        for suite, cases in sorted(by_suite.items()):
-            passed = sum(1 for c in cases if c.grading.failed == 0 and c.run.exit_code == 0)
-            total = len(cases)
-            status = "ok" if passed == total else "fail"
-            if status == "fail":
-                exit_code = 1
-            print(f"{suite:<32} {passed}/{total} checks   {status}")
-
-    # Pair up with_skill and baseline runs by (suite, case_id)
-    by_key: dict[tuple[str, str], dict[str, CaseResult]] = {}
-    for r in skill:
-        by_key.setdefault((r.plan.suite_name, r.plan.case_id), {})[r.plan.variant] = r
-
-    regression_rows = []
-    lift_rows = []
-    for (suite, case_id), variants in sorted(by_key.items()):
-        ws = variants.get("with_skill")
-        if ws is None:
-            bl = variants.get("baseline")
-            if bl and bl.plan.case.intent == "lift":
-                lift_rows.append((suite, case_id, None, bl))
-            continue
-        if ws.plan.case.intent == "lift":
-            lift_rows.append((suite, case_id, ws, variants.get("baseline")))
-        else:
-            regression_rows.append((suite, case_id, ws))
-
-    if regression_rows:
-        print(f"\n## Skills (regression) — {model_label}\n")
-        for suite, case_id, ws in regression_rows:
-            failing = ws.run.exit_code != 0 or ws.grading.failed > 0
-            if failing:
-                exit_code = 1
-            status = "fail" if failing else "ok"
-            print(f"{suite:<20} {case_id:<32} {_fmt_score(ws.grading):<14} {status}")
-
-    if lift_rows:
-        print(f"\n## Lift — {model_label}\n")
-        for suite, case_id, ws, bl in lift_rows:
-            if ws is None:
-                bl_str = _fmt_score(bl.grading) if bl else "—"
-                print(f"{suite:<20} {case_id:<32} with_skill=—{'':>12} baseline={bl_str:<12} skip")
-                continue
-            ws_str = _fmt_score(ws.grading)
-            bl_str = _fmt_score(bl.grading) if bl else "—"
-            failing = ws.run.exit_code != 0 or ws.grading.failed > 0
-            if failing:
-                exit_code = 1
-            status = "fail" if failing else "ok"
-            print(
-                f"{suite:<20} {case_id:<32} with_skill={ws_str:<12} baseline={bl_str:<12} {status}"
+    def format_table(self) -> str:
+        rows = self.build_table_rows()
+        totals = self.compute_totals()
+        lines = []
+        lines.append(
+            f"{'Skill':<17}{'Test':<28}{'Result':<9}{'Time'}"
+        )
+        total_duration = 0.0
+        for row in rows:
+            result = f"{row['passed']}/{row['total']}"
+            time_str = f"{row['duration']:.1f}s"
+            total_duration += row["duration"]
+            lines.append(
+                f"{row['skill']:<17}{row['test']:<28}{result:<9}{time_str}"
             )
+        lines.append(
+            f"{'':<17}{'':<28}{totals['passed']}/{totals['total']:<9}{total_duration:.1f}s"
+        )
+        return "\n".join(lines)
 
-    _print_failures(results, verbose)
-    return exit_code
-
-
-def _print_fast_summary(results: list[CaseResult], verbose: bool, model: str | None) -> int:
-    exit_code = 0
-    by_suite_kind: dict[str, dict[str, list[CaseResult]]] = {"core": {}, "skill": {}}
-    for r in results:
-        suite = r.plan.suite_name
-        by_suite_kind[r.plan.suite_kind].setdefault(suite, []).append(r)
-
-    if by_suite_kind["core"]:
-        print("\n## Core\n")
-        for suite, cases in sorted(by_suite_kind["core"].items()):
-            passed = sum(1 for c in cases if c.grading.failed == 0 and c.run.exit_code == 0)
-            total = len(cases)
-            status = "ok" if passed == total else "fail"
-            if status == "fail":
-                exit_code = 1
-            print(f"{suite:<25} {passed}/{total}  {status}")
-
-    if by_suite_kind["skill"]:
-        print("\n## Skills\n")
-        for suite, cases in sorted(by_suite_kind["skill"].items()):
-            passed = sum(1 for c in cases if c.grading.failed == 0 and c.run.exit_code == 0)
-            total = len(cases)
-            status = "ok" if passed == total else "fail"
-            if status == "fail":
-                exit_code = 1
-            print(f"{suite:<25} {passed}/{total}  {status}")
-
-    total_cases = len(results)
-    passed_cases = sum(1 for r in results if r.grading.failed == 0 and r.run.exit_code == 0)
-    pct = int(round(100 * passed_cases / total_cases)) if total_cases else 0
-    print(f"\n{passed_cases}/{total_cases} pass ({pct}%) on {model or 'default'}")
-    _print_failures(results, verbose)
-    return exit_code
+    def format_failures(self) -> str:
+        lines = []
+        for row in self.build_table_rows():
+            for report in row["failures"]:
+                lines.append(f"\n{report.nodeid}")
+                if report.longreprtext:
+                    lines.append(f"  {report.longreprtext}")
+        return "\n".join(lines)
 
 
-def _print_failures(results: list[CaseResult], verbose: bool) -> None:
-    failures: list[CaseResult] = []
-    for r in results:
-        if r.plan.suite_kind == "skill" and r.plan.variant == "baseline":
-            continue
-        if r.grading.failed > 0 or r.run.exit_code != 0:
-            failures.append(r)
-    if failures:
-        print("\n### Failures\n")
-        for r in failures:
-            label = f"{r.plan.suite_name} > {r.plan.case_id} > {r.plan.variant}"
-            print(f"\n**{label}**")
-            if r.run.exit_code != 0:
-                print(f"- RUN ERROR ({r.run.exit_code}): {r.run.error}")
-            for exp in r.grading.expectations:
-                if not exp["passed"]:
-                    print(f"- FAIL: {exp['text']}")
-                    print(f"  Evidence: {exp.get('evidence', '(none)')}")
-    if verbose:
-        print("\n### Passing assertions (verbose)\n")
-        for r in results:
-            for exp in r.grading.expectations:
-                if exp["passed"]:
-                    print(f"- PASS [{r.plan.suite_name}/{r.plan.case_id}]: {exp['text']}")
-                    print(f"  Evidence: {exp.get('evidence', '(none)')}")
+# --- Pytest plugin hooks ---
+
+_reporter: EvalReporter | None = None
 
 
-def _fmt_score(g: Grading) -> str:
-    if g.total == 0:
-        return "n/a"
-    pct = int(round(100 * g.passed / g.total))
-    return f"{g.passed}/{g.total} ({pct}%)"
+def pytest_configure(config) -> None:
+    global _reporter
+    # Verbose flag is registered by root conftest.py via --verbose
+    _reporter = EvalReporter(verbose=False)
 
 
-class RichReporter:
-    def __init__(self) -> None:
-        from rich.console import Console
-        from rich.live import Live
-        from rich.table import Table
+def pytest_report_header(config) -> None:
+    """Pick up --verbose from root conftest after all options are registered."""
+    if _reporter is not None:
+        _reporter.verbose = config.getoption("verbose", default=False)
 
-        self._Console = Console
-        self._Live = Live
-        self._Table = Table
-        self._console = Console()
-        self._rows: dict[tuple[str, str, str], dict] = {}
-        self._live = None
 
-    def _table(self):
-        t = self._Table(title="Eval Runs")
-        t.add_column("Suite")
-        t.add_column("Case")
-        t.add_column("Variant")
-        t.add_column("Status")
-        t.add_column("Duration", justify="right")
-        t.add_column("Tokens", justify="right")
-        t.add_column("Pass Rate", justify="right")
-        for _key, row in self._rows.items():
-            t.add_row(*row["cells"])
-        return t
+def pytest_runtest_logreport(report) -> None:
+    if _reporter is None:
+        return
+    if report.when != "call":
+        return
+    _reporter.record_result(report)
 
-    def start(self, total: int) -> None:
-        self._live = self._Live(self._table(), console=self._console, refresh_per_second=4)
-        self._live.__enter__()
 
-    def case_started(self, plan: RunPlan) -> None:
-        key = (plan.suite_name, plan.case_id, plan.variant)
-        self._rows[key] = {
-            "cells": [
-                plan.suite_name,
-                plan.case_id,
-                plan.variant,
-                "[yellow]running[/yellow]",
-                "—",
-                "—",
-                "—",
-            ]
-        }
-        if self._live:
-            self._live.update(self._table())
+def pytest_terminal_summary(terminalreporter, config) -> None:
+    if _reporter is None:
+        return
+    rows = _reporter.build_table_rows()
+    if not rows:
+        return
 
-    def case_finished(self, result: CaseResult) -> None:
-        key = (result.plan.suite_name, result.plan.case_id, result.plan.variant)
-        if result.run.exit_code != 0:
-            status = "[red]error[/red]"
-        elif result.grading.failed > 0:
-            status = "[red]fail[/red]"
-        else:
-            status = "[green]pass[/green]"
-        tokens = f"{result.run.input_tokens + result.run.output_tokens}"
-        self._rows[key] = {
-            "cells": [
-                result.plan.suite_name,
-                result.plan.case_id,
-                result.plan.variant,
-                status,
-                f"{result.run.duration_s:.1f}s",
-                tokens,
-                _fmt_score(result.grading),
-            ]
-        }
-        if self._live:
-            self._live.update(self._table())
+    tw = terminalreporter._tw
+    tw.sep("=", "Eval Summary")
+    tw.line()
+    tw.line(_reporter.format_table())
 
-    def finish(self, results: list[CaseResult], verbose: bool, model: str | None = None) -> int:
-        if self._live:
-            self._live.__exit__(None, None, None)
-            self._live = None
-        return _print_summary(results, verbose, model=model)
+    failure_text = _reporter.format_failures()
+    if failure_text.strip():
+        tw.line()
+        tw.sep("=", "FAILURES")
+        tw.line(failure_text)
