@@ -533,3 +533,54 @@ def test_turn_count_lte_fails():
     run.turn_count = 3
     exps = _grade_deterministic([{"turn_count_lte": 1}], run)
     assert exps[0]["passed"] is False
+
+
+def test_files_written_include_passes_on_match():
+    run = _run(files_written={"references/specs/foo.md": "x"})
+    exps = _grade_deterministic(
+        [{"files_written_include": "references/specs/*.md"}], run
+    )
+    assert exps[0]["passed"] is True
+
+
+def test_files_written_include_fails_when_nothing_matches():
+    run = _run(files_written={"other.txt": "x"})
+    exps = _grade_deterministic(
+        [{"files_written_include": "references/specs/*.md"}], run
+    )
+    assert exps[0]["passed"] is False
+
+
+def test_files_written_exclude_passes_when_no_match():
+    run = _run(files_written={"notes.md": "x"})
+    exps = _grade_deterministic(
+        [{"files_written_exclude": "package.json"}], run
+    )
+    assert exps[0]["passed"] is True
+
+
+def test_files_written_exclude_fails_on_match():
+    run = _run(files_written={"package.json": "{}"})
+    exps = _grade_deterministic(
+        [{"files_written_exclude": "package.json"}], run
+    )
+    assert exps[0]["passed"] is False
+
+
+def test_files_written_count_zero_passes_when_no_files():
+    run = _run(files_written={})
+    exps = _grade_deterministic([{"files_written_count": 0}], run)
+    assert exps[0]["passed"] is True
+
+
+def test_files_written_count_zero_fails_when_files_exist():
+    run = _run(files_written={"a.md": "x", "sub/b.md": "y"})
+    exps = _grade_deterministic([{"files_written_count": 0}], run)
+    assert exps[0]["passed"] is False
+    assert "2" in exps[0]["evidence"]
+
+
+def test_files_written_count_exact_match():
+    run = _run(files_written={"a.md": "x", "b.md": "y"})
+    exps = _grade_deterministic([{"files_written_count": 2}], run)
+    assert exps[0]["passed"] is True

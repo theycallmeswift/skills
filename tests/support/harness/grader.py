@@ -358,6 +358,39 @@ def _grade_turn_count_lte(a: dict, run: RunResult) -> dict:
     }
 
 
+@_primitive("files_written_include")
+def _grade_files_written_include(a: dict, run: RunResult) -> dict:
+    pattern = a["files_written_include"]
+    matches = [p for p in run.files_written if fnmatch.fnmatch(p, pattern)]
+    return {
+        "text": f"files_written_include: {pattern}",
+        "passed": bool(matches),
+        "evidence": (f"matched: {matches}" if matches else f"no files matched (wrote {len(run.files_written)})"),
+    }
+
+
+@_primitive("files_written_exclude")
+def _grade_files_written_exclude(a: dict, run: RunResult) -> dict:
+    pattern = a["files_written_exclude"]
+    matches = [p for p in run.files_written if fnmatch.fnmatch(p, pattern)]
+    return {
+        "text": f"files_written_exclude: {pattern}",
+        "passed": not matches,
+        "evidence": ("no matches" if not matches else f"forbidden matches: {matches}"),
+    }
+
+
+@_primitive("files_written_count")
+def _grade_files_written_count(a: dict, run: RunResult) -> dict:
+    target = a["files_written_count"]
+    actual = len(run.files_written)
+    return {
+        "text": f"files_written_count: {target}",
+        "passed": actual == target,
+        "evidence": f"wrote {actual} file(s)",
+    }
+
+
 @_primitive("lint")  # TEMPORARY alias until Task 9 renames to script_name
 def _grade_lint_primitive(a: dict, run: RunResult) -> dict:
     return _grade_lint(a["lint"], run)
