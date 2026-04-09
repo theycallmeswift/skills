@@ -3,7 +3,7 @@ from pathlib import Path
 
 import pytest
 
-from tests.support.harness.discovery import EvalSuite, build_run_plans, load_eval_file
+from tests.support.harness.discovery import EvalSuite, build_run_plans, discover_suites, load_eval_file
 from tests.support.harness.models import EvalCase
 
 
@@ -425,6 +425,28 @@ def test_run_plan_carries_tier(tmp_path):
     )
     plans = build_run_plans([suite], project_root=tmp_path, baseline=False, tier="eval")
     assert plans[0].tier == "eval"
+
+
+def test_flat_discovery_finds_skill_suite(tmp_path):
+    (tmp_path / "skills" / "ghostwrite").mkdir(parents=True)
+    (tmp_path / "tests").mkdir()
+    (tmp_path / "tests" / "ghostwrite.json").write_text(
+        json.dumps({"name": "ghostwrite", "evals": [{"id": "x", "turns": ["hi"]}]})
+    )
+    suites = discover_suites(tmp_path / "tests", skills_root=tmp_path / "skills")
+    assert len(suites) == 1
+    assert suites[0].kind == "skill"
+    assert suites[0].name == "ghostwrite"
+
+
+def test_flat_discovery_treats_unknown_stem_as_core(tmp_path):
+    (tmp_path / "skills").mkdir()
+    (tmp_path / "tests").mkdir()
+    (tmp_path / "tests" / "skill-triggers.json").write_text(
+        json.dumps({"name": "skill-triggers", "evals": [{"id": "x", "turns": ["hi"]}]})
+    )
+    suites = discover_suites(tmp_path / "tests", skills_root=tmp_path / "skills")
+    assert suites[0].kind == "core"
 
 
 def test_schema_accepts_new_primitives(tmp_path):

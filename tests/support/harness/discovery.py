@@ -104,9 +104,23 @@ def load_eval_file(path: Path, kind: EvalKind) -> EvalSuite:
     )
 
 
-def discover_suites(tests_root: Path, names: list[str] | None = None) -> list[EvalSuite]:
+def discover_suites(
+    tests_root: Path,
+    names: list[str] | None = None,
+    skills_root: Path | None = None,
+) -> list[EvalSuite]:
+    if skills_root is None:
+        skills_root = tests_root.parent / "skills"
+
     suites: list[EvalSuite] = []
 
+    # Flat layout: tests/*.json
+    for path in sorted(tests_root.glob("*.json")):
+        stem = path.stem
+        kind: EvalKind = "skill" if (skills_root / stem).is_dir() else "core"
+        suites.append(load_eval_file(path, kind=kind))
+
+    # Legacy fallback (remove after Phase 5 migration): tests/skills/*/evals.json
     skills_dir = tests_root / "skills"
     if skills_dir.is_dir():
         for skill_dir in sorted(skills_dir.iterdir()):
@@ -147,7 +161,10 @@ def build_run_plans(
 
     for suite in suites:
         for case in suite.cases:
-            eval_dir = suite.source_path.parent
+            if suite.source_path.parent.name == "tests":
+                eval_dir = suite.source_path.parent / "fixtures"
+            else:
+                eval_dir = suite.source_path.parent  # legacy layout
             case_files = [eval_dir / f for f in case.files]
 
             if suite.kind == "skill":
