@@ -258,6 +258,41 @@ def _grade_not_contains(a: dict, run: RunResult) -> dict:
     }
 
 
+@_primitive("output_len_lte")
+def _grade_output_len_lte(a: dict, run: RunResult) -> dict:
+    cap = a["output_len_lte"]
+    sources = _resolve_source(run, a.get("on"))
+    length = sum(len(s) for s in sources)
+    return {
+        "text": f"output_len_lte: {cap}",
+        "passed": length <= cap,
+        "evidence": f"length={length}",
+    }
+
+
+@_primitive("output_len_gte")
+def _grade_output_len_gte(a: dict, run: RunResult) -> dict:
+    floor = a["output_len_gte"]
+    sources = _resolve_source(run, a.get("on"))
+    length = sum(len(s) for s in sources)
+    return {
+        "text": f"output_len_gte: {floor}",
+        "passed": length >= floor,
+        "evidence": f"length={length}",
+    }
+
+
+@_primitive("token_usage_lte")
+def _grade_token_usage_lte(a: dict, run: RunResult) -> dict:
+    cap = a["token_usage_lte"]
+    total = run.input_tokens + run.output_tokens
+    return {
+        "text": f"token_usage_lte: {cap}",
+        "passed": total <= cap,
+        "evidence": f"total_tokens={total}",
+    }
+
+
 @_primitive("lint")  # TEMPORARY alias until Task 9 renames to script_name
 def _grade_lint_primitive(a: dict, run: RunResult) -> dict:
     return _grade_lint(a["lint"], run)

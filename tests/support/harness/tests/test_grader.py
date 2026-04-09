@@ -396,3 +396,47 @@ def test_parse_grader_fallback_plain_json():
 def test_parse_grader_fallback_empty_raises():
     with pytest.raises(RuntimeError, match="empty"):
         _parse_grader_fallback("")
+
+
+def test_output_len_lte_passes_under_bound():
+    run = _run(final_message="short")
+    exps = _grade_deterministic([{"output_len_lte": 100}], run)
+    assert exps[0]["passed"] is True
+
+
+def test_output_len_lte_fails_over_bound():
+    run = _run(final_message="x" * 200)
+    exps = _grade_deterministic([{"output_len_lte": 100}], run)
+    assert exps[0]["passed"] is False
+    assert "200" in exps[0]["evidence"]
+
+
+def test_output_len_gte_enforces_minimum():
+    run = _run(final_message="short")
+    exps = _grade_deterministic([{"output_len_gte": 100}], run)
+    assert exps[0]["passed"] is False
+
+
+def test_output_len_respects_on_stdout():
+    run = _run(stdout="x" * 50, final_message="")
+    exps = _grade_deterministic(
+        [{"output_len_lte": 40, "on": "stdout"}], run
+    )
+    assert exps[0]["passed"] is False
+
+
+def test_token_usage_lte_passes():
+    run = _run()
+    run.input_tokens = 1000
+    run.output_tokens = 500
+    exps = _grade_deterministic([{"token_usage_lte": 2000}], run)
+    assert exps[0]["passed"] is True
+
+
+def test_token_usage_lte_fails_over_cap():
+    run = _run()
+    run.input_tokens = 5000
+    run.output_tokens = 6000
+    exps = _grade_deterministic([{"token_usage_lte": 10000}], run)
+    assert exps[0]["passed"] is False
+    assert "11000" in exps[0]["evidence"]
