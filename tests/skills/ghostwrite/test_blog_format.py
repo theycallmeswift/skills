@@ -3,7 +3,7 @@ import textwrap
 import pytest
 
 from tests.support.harness.setup import skill_setup
-from tests.skills.ghostwrite.core_checks import assert_core_rules
+from tests.skills.ghostwrite.ghostwrite_helpers import assert_core_rules
 
 SOURCE = textwrap.dedent("""\
     MLH ran Global Hack Week in March 2026. It was our biggest one yet -- \
