@@ -2,36 +2,37 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Address all PR review feedback and fix the 23 failing eval tests from the pytest eval rewrite.
+**Goal:** Address PR review feedback from the pytest eval rewrite. Test failures are out of scope — they'll be investigated separately.
 
-**Architecture:** Mechanical renames and refactors first (no behavior change, unit tests verify), then test assertion adjustments for LLM-behavior-dependent evals, then docs and build improvements.
+**Architecture:** Mechanical renames and refactors first (no behavior change, unit tests verify), then harness code quality, then docs and build improvements.
 
-**Tech Stack:** Python 3.12, pytest 8+, claude-agent-sdk
+**Tech Stack:** Python 3.12, pytest 8+, claude-agent-sdk, pydantic
 
 ---
 
 ## File Map
 
 **Harness files to modify:**
-- `tests/support/harness/matchers.py` — rename `passes_rubric` → `llm_judge`
+- `tests/support/harness/matchers.py` — rename `passes_rubric` → `llm_judge`, add `parse()` method and `content` param
 - `tests/support/harness/_rubric_judge.py` — refactor for readability
 - `tests/support/harness/reporter.py` — remove unhelpful comments
-- `tests/conftest.py` — no changes needed (already correct)
 
-**Test files to modify:**
-- `tests/skills/ghostwrite/core_checks.py` — rename file → `ghostwrite_helpers.py`, remove output length check
-- `tests/skills/ghostwrite/test_blog_format.py` — update import, add per-format length test, fix backslashes
-- `tests/skills/ghostwrite/test_email_format.py` — update import, add per-format length test, fix backslashes
-- `tests/skills/ghostwrite/test_linkedin_format.py` — update import, add per-format length test, fix bold test, fix backslashes
-- `tests/skills/ghostwrite/test_slack_format.py` — update import, add per-format length test, fix backslashes
-- `tests/skills/ghostwrite/test_refuses_from_scratch.py` — update import
-- `tests/skills/scope/conftest.py` — increase timeout
-- `tests/skills/prompt-engineer/test_fix_bad_prompt.py` — relax assertions
+**New harness files:**
+- `tests/support/harness/extractor.py` — LLM-based structured field extraction (Pydantic + Haiku)
+
+**Test files to modify (rename only — no behavior changes):**
+- `tests/skills/ghostwrite/core_checks.py` — rename file → `ghostwrite_helpers.py`
+- `tests/skills/ghostwrite/test_blog_format.py` — update import, fix backslashes
+- `tests/skills/ghostwrite/test_email_format.py` — update import, fix backslashes
+- `tests/skills/ghostwrite/test_linkedin_format.py` — update import, fix backslashes
+- `tests/skills/ghostwrite/test_slack_format.py` — update import, fix backslashes
+- `tests/skills/ghostwrite/test_refuses_from_scratch.py` — update import (if applicable)
 - `tests/skills/summarize/structural_checks.py` — rename method call
 - `tests/skills/summarize/test_local_pdf.py` — rename method call
 - `tests/skills/summarize/test_pasted_text.py` — rename method call (if used)
 - `tests/skills/summarize/test_web_article.py` — rename method call (if used)
 - `tests/skills/scope/test_scoping_process.py` — rename method call
+- `tests/skills/prompt-engineer/test_fix_bad_prompt.py` — rename method call
 - `tests/skills/prompt-engineer/test_structured_extraction.py` — rename method call
 - `tests/core/test_no_ai_attribution.py` — rename method call (if used)
 - `tests/core/test_skill_triggers.py` — rename method call (if used)
@@ -40,9 +41,6 @@
 - `pyproject.toml` — remove `*_test.py` pattern
 - `Makefile` — add parallel flag
 - `docs/evals.md` — consolidate tables, add example output, rename method in docs
-
-**Harness unit tests to update:**
-- `tests/support/harness/tests/test_matchers.py` — no changes (doesn't test `passes_rubric`)
 
 ---
 
@@ -81,7 +79,7 @@ The docstring and implementation stay the same — only the method name changes.
 
 - [ ] **Step 3: Update every test file that calls `passes_rubric`**
 
-In every file found in Step 1, replace `passes_rubric(` with `llm_judge(` and `.passes_rubric(` with `.llm_judge(`. This is a mechanical find-and-replace across all files. Key files:
+In every file found in Step 1, replace `.passes_rubric(` with `.llm_judge(`. This is a mechanical find-and-replace across all files. Key files:
 
 - `tests/skills/ghostwrite/test_blog_format.py`
 - `tests/skills/ghostwrite/test_email_format.py`
@@ -135,11 +133,7 @@ PR feedback: "Let's rename this file to be more descriptive: `ghostwrite_helpers
 
 **Files:**
 - Rename: `tests/skills/ghostwrite/core_checks.py` → `tests/skills/ghostwrite/ghostwrite_helpers.py`
-- Modify: `tests/skills/ghostwrite/test_blog_format.py:6`
-- Modify: `tests/skills/ghostwrite/test_email_format.py:6`
-- Modify: `tests/skills/ghostwrite/test_linkedin_format.py:6`
-- Modify: `tests/skills/ghostwrite/test_slack_format.py:6`
-- Modify: `tests/skills/ghostwrite/test_refuses_from_scratch.py` (if it imports)
+- Modify: all ghostwrite test files that import from `core_checks`
 
 - [ ] **Step 1: Check all imports of core_checks**
 
@@ -183,309 +177,7 @@ git commit -m "refactor: rename core_checks.py to ghostwrite_helpers.py"
 
 ---
 
-### Task 3: Fix ghostwrite output length assertions
-
-3 tests fail because `output_len_lte(len(source_text))` is too strict — blog posts with headers and formatting can reasonably be longer than raw bullet notes. Move the length check out of shared helpers and into per-format tests with appropriate thresholds.
-
-**Files:**
-- Modify: `tests/skills/ghostwrite/ghostwrite_helpers.py` (formerly `core_checks.py`)
-- Modify: `tests/skills/ghostwrite/test_blog_format.py`
-- Modify: `tests/skills/ghostwrite/test_email_format.py`
-- Modify: `tests/skills/ghostwrite/test_linkedin_format.py`
-- Modify: `tests/skills/ghostwrite/test_slack_format.py`
-
-- [ ] **Step 1: Remove output length check from ghostwrite_helpers.py**
-
-Remove the last line of `assert_core_rules`:
-
-```python
-# delete this line from ghostwrite_helpers.py
-    assert result.output_len_lte(len(source_text), on="final_message")
-```
-
-The function signature stays the same (`result, source_text`) — `source_text` is still used by the caller but no longer checked for length inside the helper. Actually, `source_text` is not used anywhere else in the function, so also remove it from the signature:
-
-```python
-# old
-def assert_core_rules(result, source_text: str):
-    """Core voice rules that apply to every ghostwrite output (from lint.py)."""
-
-# new
-def assert_core_rules(result):
-    """Core voice rules that apply to every ghostwrite output."""
-```
-
-- [ ] **Step 2: Update all callers to drop source_text argument**
-
-In every test file that calls `assert_core_rules(result, SOURCE)`, change to `assert_core_rules(result)`:
-
-`tests/skills/ghostwrite/test_blog_format.py`:
-```python
-# old
-def test_core_rules(result):
-    assert_core_rules(result, SOURCE)
-
-# new
-def test_core_rules(result):
-    assert_core_rules(result)
-```
-
-Repeat for:
-- `tests/skills/ghostwrite/test_email_format.py`
-- `tests/skills/ghostwrite/test_linkedin_format.py`
-- `tests/skills/ghostwrite/test_slack_format.py`
-
-- [ ] **Step 3: Add per-format output length tests**
-
-Add a `test_output_length` function to each format test file with format-appropriate thresholds. Blog posts can be longer than input (headers, structure add length). Emails and LinkedIn should be roughly same length or shorter. Slack must be radically shorter.
-
-`tests/skills/ghostwrite/test_blog_format.py` — blog posts add structure, allow 1.5x:
-```python
-def test_output_length(result):
-    assert result.output_len_lte(int(len(SOURCE) * 1.5), on="final_message")
-```
-
-`tests/skills/ghostwrite/test_email_format.py` — emails should be concise, allow 1.2x:
-```python
-def test_output_length(result):
-    assert result.output_len_lte(int(len(SOURCE) * 1.2), on="final_message")
-```
-
-`tests/skills/ghostwrite/test_linkedin_format.py` — LinkedIn should be concise, allow 1.2x:
-```python
-def test_output_length(result):
-    assert result.output_len_lte(int(len(SOURCE) * 1.2), on="final_message")
-```
-
-`tests/skills/ghostwrite/test_slack_format.py` — Slack must be radically shorter, allow 1.0x:
-```python
-def test_output_length(result):
-    assert result.output_len_lte(len(SOURCE), on="final_message")
-```
-
-- [ ] **Step 4: Run harness unit tests**
-
-Run: `uv run pytest tests/support/harness/tests/ -v`
-Expected: all pass
-
-- [ ] **Step 5: Commit**
-
-```bash
-git add tests/skills/ghostwrite/
-git commit -m "fix: move output length check to per-format tests with appropriate thresholds"
-```
-
----
-
-### Task 4: Fix LinkedIn bold test
-
-The test `test_no_markdown_bold` asserts zero bold text (`**text**`), but the SKILL.md says "Bold only for genuinely critical phrases (1-3 per post max)" — some bold IS allowed. The test is stricter than the skill.
-
-**Files:**
-- Modify: `tests/skills/ghostwrite/test_linkedin_format.py:29-30`
-
-- [ ] **Step 1: Fix the assertion**
-
-```python
-# old
-def test_no_markdown_bold(result):
-    assert result.not_matches_regex(r"\*\*[^*]+\*\*", on="final_message")
-
-# new
-def test_limited_markdown_bold(result):
-    """LinkedIn skill allows bold for 1-3 genuinely critical phrases max."""
-    assert result.matches_regex(r"\*\*[^*]+\*\*", on="final_message", min=0, max=3)
-```
-
-- [ ] **Step 2: Commit**
-
-```bash
-git add tests/skills/ghostwrite/test_linkedin_format.py
-git commit -m "fix: allow up to 3 bold phrases in LinkedIn test per SKILL.md"
-```
-
----
-
-### Task 5: Fix prompt engineer test assertions
-
-3 tests fail due to overly strict assertions that don't account for LLM output variation.
-
-**Files:**
-- Modify: `tests/skills/prompt-engineer/test_fix_bad_prompt.py:30-39`
-
-- [ ] **Step 1: Broaden the Changes section regex**
-
-The current regex looks for `**changes**`, `## changes`, or `## what changed` at the start of a line. The LLM might use other formats like `**What I changed**`, `Changes:`, or inline changes description. Broaden to also match `**what` patterns and `changes:`:
-
-```python
-# old
-def test_has_changes_section(result):
-    assert result.matches_regex(
-        r"(?im)(^\*\*changes\*\*|^##?\s*changes|^##?\s*what changed)",
-        on="final_message",
-    )
-
-# new
-def test_has_changes_section(result):
-    assert result.matches_regex(
-        r"(?im)(^\*\*changes\*\*|^\*\*what\s+(i\s+)?changed\*\*|^##?\s*changes|^##?\s*what\s+(i\s+)?changed|^changes:)",
-        on="final_message",
-    )
-```
-
-- [ ] **Step 2: Fix the removes_padding test**
-
-The test checks that "helpful AI assistant" doesn't appear anywhere in `final_message`. But the LLM might quote the original prompt to show what was wrong before presenting the rewrite. Use `llm_judge` instead of a literal match — what matters is the *rewritten prompt* doesn't contain padding, not that the explanation avoids quoting the original.
-
-```python
-# old
-def test_removes_padding(result):
-    assert result.not_matches_regex(
-        r"(?i)helpful AI assistant", on="final_message"
-    )
-    assert result.not_matches_regex(r"\bPlease\b", on="final_message")
-    assert result.not_matches_regex(r"\bThank you\b", on="final_message")
-
-# new
-def test_removes_padding(result):
-    assert result.llm_judge(
-        "The rewritten prompt inside the code block does not contain "
-        "politeness padding like 'please', 'thank you', or vague roles "
-        "like 'helpful AI assistant'. It is acceptable for the explanation "
-        "outside the code block to quote the original text.",
-        on="final_message",
-    )
-```
-
-- [ ] **Step 3: Commit**
-
-```bash
-git add tests/skills/prompt-engineer/test_fix_bad_prompt.py
-git commit -m "fix: relax prompt engineer assertions for LLM output variation"
-```
-
----
-
-### Task 6: Fix scope eval fixture
-
-The scope eval has two issues: (1) fixture uses `scope="session"` while depending on module-scoped `run_eval`, which risks a `ScopeMismatch`; (2) 6-turn conversation may exceed the 300s default timeout, causing the agent to never reach the spec-writing turns.
-
-**Files:**
-- Modify: `tests/skills/scope/conftest.py`
-- Modify: `tests/support/harness/runner.py:141` (add `timeout_s` param to `run_eval`)
-
-- [ ] **Step 1: Add `timeout_s` parameter to `run_eval`**
-
-In `tests/support/harness/runner.py`, add `timeout_s` to the `run_eval` function signature and pass it through to `run_claude`:
-
-```python
-# old
-def run_eval(
-    project_root: Path,
-    turns: list[str],
-    setup: _Callable[[Path], None] | None = None,
-    cleanup: _Callable[[Path], None] | None = None,
-    model: str | None = None,
-) -> "EvalResult":
-
-# new
-def run_eval(
-    project_root: Path,
-    turns: list[str],
-    setup: _Callable[[Path], None] | None = None,
-    cleanup: _Callable[[Path], None] | None = None,
-    model: str | None = None,
-    timeout_s: float = 300,
-) -> "EvalResult":
-```
-
-And pass it through in the `run_claude` call:
-
-```python
-# old
-run = _asyncio.run(
-    run_claude(
-        turns=actual_turns,
-        cwd=cwd,
-        context_paths=[],
-        project_root=project_root,
-        model=model,
-    )
-)
-
-# new
-run = _asyncio.run(
-    run_claude(
-        turns=actual_turns,
-        cwd=cwd,
-        context_paths=[],
-        project_root=project_root,
-        model=model,
-        timeout_s=timeout_s,
-    )
-)
-```
-
-- [ ] **Step 2: Fix scope conftest.py fixture scope and timeout**
-
-Change `scope="session"` to `scope="module"` to match `run_eval`'s scope, and add an increased timeout for the 6-turn conversation:
-
-```python
-import textwrap
-
-import pytest
-
-from tests.support.harness.setup import cleanup_globs, skill_setup
-
-
-@pytest.fixture(scope="module")
-def result(run_eval, project_root):
-    return run_eval(
-        turns=[
-            textwrap.dedent("""\
-                Scope a GitHub webhook system for MechaSwift that listens for \
-                PR events and posts summaries to Slack. It should handle retries, \
-                filter by repo, and be configurable per-channel. We're using \
-                Node.js and already have a Slack bot token.\
-            """),
-            textwrap.dedent("""\
-                Purpose is surfacing PR activity in Slack so reviews don't stall. \
-                Internal eng team, around 15 people. We run a long-running Node.js \
-                service on Fly.io and have Redis available there. Per-repo allowlist \
-                routing each repo to one channel. Events we care about: opened, \
-                ready_for_review, closed. Crash-safety and retries are required -- \
-                no in-memory-only queues. Config via a single YAML file at startup, \
-                no hot reload. Out of scope: two-way interaction, review assignment, \
-                backfill, config UI.\
-            """),
-            "Go with your recommendation. Walk me through the design.",
-            "Looks good, keep going.",
-            "Design is approved. Write the spec.",
-            "Spec looks good. Nothing else for now.",
-        ],
-        setup=skill_setup("scope", project_root),
-        cleanup=cleanup_globs("references/specs/2026-*-github-webhook*.md"),
-        timeout_s=600,
-    )
-```
-
-Note: changing from `session` to `module` scope means each test file in `tests/skills/scope/` runs the eval independently. This costs one extra eval run but avoids scope mismatch issues. The two test files (`test_scoping_process.py` and `test_spec_structure.py`) test different aspects of the same eval, so running twice is acceptable.
-
-- [ ] **Step 3: Run harness unit tests**
-
-Run: `uv run pytest tests/support/harness/tests/ -v`
-Expected: all pass
-
-- [ ] **Step 4: Commit**
-
-```bash
-git add tests/support/harness/runner.py tests/skills/scope/conftest.py
-git commit -m "fix: add timeout_s param to run_eval, fix scope fixture scope and timeout"
-```
-
----
-
-### Task 7: Refactor `_rubric_judge.py` for readability
+### Task 3: Refactor `_rubric_judge.py` for readability
 
 PR feedback: "This function is tough to read. Let's refactor for readability." The `_judge_async` function mixes streaming, structured output parsing, and fallback logic in one dense block.
 
@@ -494,7 +186,7 @@ PR feedback: "This function is tough to read. Let's refactor for readability." T
 
 - [ ] **Step 1: Refactor the module**
 
-Rewrite `_rubric_judge.py` with clearer structure — separate the prompt building, response collection, and result parsing:
+Rewrite `_rubric_judge.py` with clearer structure — separate the response collection from result parsing:
 
 ```python
 import asyncio
@@ -590,19 +282,18 @@ git commit -m "refactor: improve _rubric_judge.py readability"
 
 ---
 
-### Task 8: Clean up reporter.py
+### Task 4: Clean up reporter.py
 
-PR feedback: "These comments don't seem helpful." Remove comments that just restate the code.
+PR feedback: "These comments don't seem helpful." Remove comments that restate the code.
 
 **Files:**
 - Modify: `tests/support/harness/reporter.py`
 
 - [ ] **Step 1: Remove unhelpful comments**
 
-Remove the inline comments that restate what the code does. Keep the module docstring and the `_parse_module` docstring since those explain non-obvious logic. Specifically, remove:
+Remove inline comments that restate what the code does. Keep the module docstring and `_parse_module` docstring. Specifically, remove:
 
 ```python
-# Remove these comments:
 # {module_nodeid: [report, ...]}
 # {module_nodeid: max_duration}
 # Extract the module path (everything before ::)
@@ -764,17 +455,15 @@ git commit -m "cleanup: remove unhelpful comments from reporter.py"
 
 ---
 
-### Task 9: Fix pyproject.toml and trailing backslashes
+### Task 5: Fix pyproject.toml and trailing backslashes
 
-PR feedback: "`test_` not `_test`" — remove the `*_test.py` discovery pattern. Also: "The trailing `\`s on every line is strange."
+PR feedback: "`test_` not `_test`" and "The trailing `\`s on every line is strange."
 
 **Files:**
 - Modify: `pyproject.toml:19`
-- Modify: `tests/skills/ghostwrite/test_blog_format.py`
-- Modify: `tests/skills/ghostwrite/test_email_format.py`
-- Modify: `tests/skills/ghostwrite/test_linkedin_format.py`
-- Modify: `tests/skills/ghostwrite/test_slack_format.py`
-- Modify: `tests/skills/scope/conftest.py`
+- Modify: ghostwrite test files (SOURCE strings)
+- Modify: `tests/skills/scope/conftest.py` (turns strings)
+- Modify: `tests/skills/prompt-engineer/test_fix_bad_prompt.py` (turns strings)
 
 - [ ] **Step 1: Fix pyproject.toml**
 
@@ -788,20 +477,16 @@ python_files = ["test_*.py"]
 
 - [ ] **Step 2: Remove trailing backslashes from test strings**
 
-The `textwrap.dedent` + trailing `\` pattern forces lines to join. Use regular multi-line strings instead — `dedent` handles the indentation and Python string literals naturally join adjacent lines.
+The `textwrap.dedent` + trailing `\` pattern forces lines to join into one long line. Use regular multi-line strings instead — `dedent` handles indentation and the newlines are fine for prompt input.
 
-In each ghostwrite test file, replace the SOURCE string. Example for `test_blog_format.py`:
+In each ghostwrite test file, remove the trailing `\` from each line in the SOURCE string. Example for `tests/skills/ghostwrite/test_blog_format.py`:
 
 ```python
 # old
 SOURCE = textwrap.dedent("""\
     MLH ran Global Hack Week in March 2026. It was our biggest one yet -- \
     18,000 participants across 120 countries over 7 days. We tried a new \
-    format this time where each day had a themed challenge (Day 1 was AI, \
-    Day 2 was open source, Day 3 was hardware, etc). The daily themes drove \
-    way more engagement than the old format where everything was open-ended. \
-    Completion rates went from 34% to 61%. The most popular challenge was \
-    the Day 5 "ship a CLI tool" challenge with 4,200 submissions. We're \
+    ...
     going to keep the themed format for future GHWs.\
 """)
 
@@ -809,25 +494,18 @@ SOURCE = textwrap.dedent("""\
 SOURCE = textwrap.dedent("""\
     MLH ran Global Hack Week in March 2026. It was our biggest one yet --
     18,000 participants across 120 countries over 7 days. We tried a new
-    format this time where each day had a themed challenge (Day 1 was AI,
-    Day 2 was open source, Day 3 was hardware, etc). The daily themes drove
-    way more engagement than the old format where everything was open-ended.
-    Completion rates went from 34% to 61%. The most popular challenge was
-    the Day 5 "ship a CLI tool" challenge with 4,200 submissions. We're
+    ...
     going to keep the themed format for future GHWs.
 """)
 ```
 
-Apply the same pattern to the SOURCE strings in:
+Apply to all SOURCE strings and turns strings in:
+- `tests/skills/ghostwrite/test_blog_format.py`
 - `tests/skills/ghostwrite/test_email_format.py`
 - `tests/skills/ghostwrite/test_linkedin_format.py`
 - `tests/skills/ghostwrite/test_slack_format.py`
-
-And to the turns strings in:
 - `tests/skills/scope/conftest.py`
 - `tests/skills/prompt-engineer/test_fix_bad_prompt.py`
-
-**Important:** Removing `\` changes the string content — lines will now have `\n` between them instead of being joined. This means `len(SOURCE)` will be slightly different, which affects the `test_output_length` tests. Since we already set format-appropriate thresholds in Task 3, this is fine.
 
 - [ ] **Step 3: Run harness unit tests**
 
@@ -843,7 +521,53 @@ git commit -m "cleanup: remove *_test.py pattern, remove trailing backslashes fr
 
 ---
 
-### Task 10: Add Makefile parallelism
+### Task 6: Add `dedent` to harness unit tests
+
+PR feedback: "Use `dedent` on multi-line strings like this for readability. Remember this for python code in the future."
+
+**Files:**
+- Modify: `tests/support/harness/tests/test_rubric.py` (if multi-line strings exist without dedent)
+- Modify: any other harness test files with multi-line strings
+
+- [ ] **Step 1: Find multi-line strings without dedent**
+
+Run: `grep -n '"""' tests/support/harness/tests/*.py`
+
+Review each file for multi-line strings that aren't wrapped in `textwrap.dedent()`.
+
+- [ ] **Step 2: Wrap multi-line strings in dedent**
+
+Add `import textwrap` and wrap any multi-line string literals in `textwrap.dedent()`. Example:
+
+```python
+# old
+prompt = """
+    You are a strict rubric grader.
+    Evaluate the content.
+"""
+
+# new
+prompt = textwrap.dedent("""\
+    You are a strict rubric grader.
+    Evaluate the content.
+""")
+```
+
+- [ ] **Step 3: Run harness unit tests**
+
+Run: `uv run pytest tests/support/harness/tests/ -v`
+Expected: all pass
+
+- [ ] **Step 4: Commit**
+
+```bash
+git add tests/support/harness/tests/
+git commit -m "cleanup: use dedent for multi-line strings in harness tests"
+```
+
+---
+
+### Task 7: Add Makefile parallelism
 
 PR feedback: "There's no parallelism in the tests." Add `pytest-xdist` for parallel test execution.
 
@@ -884,7 +608,7 @@ test:
 	uv run pytest tests/skills/ tests/core/ -n auto $(ARGS)
 ```
 
-The `-n auto` flag runs tests in parallel using all available CPU cores. Each test module gets its own worker, so module-scoped fixtures (which run the agent once per file) naturally parallelize.
+`-n auto` runs tests in parallel using all available CPU cores. Each test module gets its own worker, so module-scoped fixtures naturally parallelize.
 
 - [ ] **Step 3: Install and verify**
 
@@ -900,16 +624,238 @@ git commit -m "feat: add parallel test execution with pytest-xdist"
 
 ---
 
-### Task 11: Update docs/evals.md
+### Task 8: Add structured output extractor
+
+Add LLM-based structured field extraction so tests can parse skill output into Pydantic models and validate/assert on individual fields. Uses Haiku with constrained decoding (same pattern as `_rubric_judge.py`).
+
+**Files:**
+- Create: `tests/support/harness/extractor.py`
+- Modify: `tests/support/harness/matchers.py` — add `parse()` method, add `content` param to `llm_judge`
+- Create: `tests/support/harness/tests/test_extractor.py`
+
+- [ ] **Step 1: Write the failing test for extractor**
+
+Create `tests/support/harness/tests/test_extractor.py`. This test uses a mock to avoid real LLM calls:
+
+```python
+import textwrap
+from unittest.mock import patch
+
+from pydantic import BaseModel, Field, field_validator
+
+from tests.support.harness.extractor import extract_fields
+
+
+class SimpleOutput(BaseModel):
+    title: str
+    summary: str
+    items: list[str] = Field(min_length=1, max_length=5)
+
+
+def test_extract_fields_from_mock():
+    mock_result = {"title": "Test", "summary": "A summary", "items": ["one", "two"]}
+    with patch("tests.support.harness.extractor._extract_async") as mock_extract:
+        mock_extract.return_value = mock_result
+        result = extract_fields("some content", SimpleOutput)
+        assert isinstance(result, SimpleOutput)
+        assert result.title == "Test"
+        assert result.items == ["one", "two"]
+
+
+class StrictOutput(BaseModel):
+    name: str
+    count: int
+
+    @field_validator("count")
+    @classmethod
+    def count_positive(cls, v: int) -> int:
+        if v < 0:
+            raise ValueError("count must be positive")
+        return v
+
+
+def test_extract_fields_validates_with_pydantic():
+    mock_result = {"name": "Test", "count": -1}
+    with patch("tests.support.harness.extractor._extract_async") as mock_extract:
+        mock_extract.return_value = mock_result
+        try:
+            extract_fields("some content", StrictOutput)
+            assert False, "Should have raised ValidationError"
+        except Exception as e:
+            assert "count must be positive" in str(e)
+
+
+def test_extract_fields_generates_schema():
+    """Verify model_json_schema() produces a usable schema."""
+    schema = SimpleOutput.model_json_schema()
+    assert "title" in schema["properties"]
+    assert "summary" in schema["properties"]
+    assert "items" in schema["properties"]
+```
+
+- [ ] **Step 2: Run test to verify it fails**
+
+Run: `uv run pytest tests/support/harness/tests/test_extractor.py -v`
+Expected: FAIL with `ModuleNotFoundError: No module named 'tests.support.harness.extractor'`
+
+- [ ] **Step 3: Write the extractor module**
+
+Create `tests/support/harness/extractor.py`:
+
+```python
+import asyncio
+import json
+
+from pydantic import BaseModel
+from claude_agent_sdk import (
+    AssistantMessage,
+    ClaudeAgentOptions,
+    ResultMessage,
+    query,
+)
+
+DEFAULT_EXTRACT_MODEL = "claude-haiku-4-5-20251001"
+
+_EXTRACT_PROMPT = """\
+Extract structured fields from the CONTENT below into the specified JSON schema.
+Return ONLY a JSON object matching the schema. No commentary.
+
+CONTENT:
+{content}
+"""
+
+
+async def _extract_async(content: str, schema: dict, model: str) -> dict:
+    """Send content to an LLM with a JSON schema constraint, return parsed dict."""
+    prompt = _EXTRACT_PROMPT.format(content=content[:40_000])
+    output_format = {"type": "json_schema", "schema": schema}
+    options = ClaudeAgentOptions(model=model, output_format=output_format)
+
+    structured: dict | None = None
+    raw_parts: list[str] = []
+
+    async for message in query(prompt=prompt, options=options):
+        if isinstance(message, ResultMessage):
+            if getattr(message, "structured_output", None):
+                structured = message.structured_output
+            elif getattr(message, "result", None):
+                raw_parts.append(message.result)
+        elif isinstance(message, AssistantMessage):
+            for block in message.content:
+                if hasattr(block, "text"):
+                    raw_parts.append(block.text)
+
+    if structured is not None:
+        return structured
+
+    raw = "".join(raw_parts).strip()
+    if raw.startswith("```"):
+        raw = raw.split("```")[1]
+        if raw.startswith("json"):
+            raw = raw[4:]
+        raw = raw.strip().rstrip("`")
+
+    return json.loads(raw)
+
+
+def extract_fields(
+    content: str,
+    model_class: type[BaseModel],
+    llm_model: str | None = None,
+) -> BaseModel:
+    """Extract structured fields from text using an LLM, validate with Pydantic.
+
+    Sends the content to Haiku with the model's JSON schema as a constraint.
+    The LLM extracts field values, then Pydantic validates the result.
+    """
+    schema = model_class.model_json_schema()
+    raw = asyncio.run(
+        _extract_async(content, schema, llm_model or DEFAULT_EXTRACT_MODEL)
+    )
+    return model_class.model_validate(raw)
+```
+
+- [ ] **Step 4: Run test to verify it passes**
+
+Run: `uv run pytest tests/support/harness/tests/test_extractor.py -v`
+Expected: all pass
+
+- [ ] **Step 5: Add `parse()` and `content` param to EvalResult**
+
+In `tests/support/harness/matchers.py`, add to the `EvalResult` class:
+
+```python
+def parse(self, model: type, on: str = "final_message"):
+    """Extract structured fields from output using an LLM, validate with Pydantic.
+
+    Uses Haiku to read the output and fill in the model's fields.
+    Raises ValidationError if the extracted data doesn't match the schema.
+    """
+    from .extractor import extract_fields
+
+    sources = _resolve_source(self._run, on)
+    text = "\n".join(sources)
+    return extract_fields(text, model)
+```
+
+And update the existing `llm_judge` method (renamed from `passes_rubric` in Task 1) to accept an optional `content` parameter:
+
+```python
+# old
+def llm_judge(
+    self, item: str, on: str, model: str | None = None
+) -> bool:
+    from ._rubric_judge import judge_rubric_item
+
+    sources = _resolve_source(self._run, on)
+    content = "\n".join(sources)
+    return judge_rubric_item(item, content, model=model)
+
+# new
+def llm_judge(
+    self, item: str, on: str | None = None, content: str | None = None,
+    model: str | None = None,
+) -> bool:
+    """Send item + content to an LLM judge, return pass/fail.
+
+    Pass `on` (source selector like "final_message") or `content` (raw text).
+    """
+    from ._rubric_judge import judge_rubric_item
+
+    if content is None:
+        if on is None:
+            raise ValueError("llm_judge requires either `on` or `content`")
+        sources = _resolve_source(self._run, on)
+        content = "\n".join(sources)
+
+    return judge_rubric_item(item, content, model=model)
+```
+
+- [ ] **Step 6: Run all harness unit tests**
+
+Run: `uv run pytest tests/support/harness/tests/ -v`
+Expected: all pass
+
+- [ ] **Step 7: Commit**
+
+```bash
+git add tests/support/harness/extractor.py tests/support/harness/matchers.py
+git add tests/support/harness/tests/test_extractor.py
+git commit -m "feat: add LLM-based structured output extractor with EvalResult.parse()"
+```
+
+---
+
+### Task 9: Update docs/evals.md
 
 PR feedback: consolidate tables, add example output.
 
 **Files:**
 - Modify: `docs/evals.md`
 
-- [ ] **Step 1: Consolidate matcher tables and add example output**
+- [ ] **Step 1: Rewrite evals.md**
 
-Rewrite `docs/evals.md` with a single combined table and an example test run:
+Replace `docs/evals.md` with a version that has a single combined matcher table, documents the new `parse()` and `content` param, and includes example output:
 
 ```markdown
 # Evals
@@ -960,7 +906,8 @@ def test_something(result):
 | `not_contains(text, on)` | yes | Literal absent |
 | `output_len_lte(n, on)` | yes | Character count <= n |
 | `output_len_gte(n, on)` | yes | Character count >= n |
-| `llm_judge(item, on, model=None)` | yes | LLM judge (default Haiku) grades pass/fail |
+| `llm_judge(item, on=None, content=None)` | optional | LLM judge (Haiku) grades pass/fail. Pass `on` for a source or `content` for raw text |
+| `parse(model, on="final_message")` | yes | Extract fields into a Pydantic model via LLM. Raises ValidationError on shape mismatch |
 | `tool_called(name)` | no | Tool name in trace (substring match) |
 | `not_tool_called(name)` | no | Tool name absent |
 | `skill_invoked(name)` | no | Skill tool fired with matching name |
@@ -972,24 +919,42 @@ def test_something(result):
 | `file_contains(path_glob, text=None, regex=None)` | no | File matching glob contains text/regex |
 | `not_file_contains(path_glob, text=None, regex=None)` | no | Negation |
 
+## Structured output parsing
+
+For skills with defined output templates (e.g. summarize, scope), use `parse()` to extract fields into a Pydantic model. Structural validation happens in Pydantic validators. Semantic checks use `llm_judge` on extracted fields.
+
+```python
+from pydantic import BaseModel, Field
+
+class SummarizeOutput(BaseModel):
+    title: str
+    tldr: str
+    cliff_notes: list[str] = Field(min_length=1, max_length=8)
+    share: str
+    comment: str
+
+def test_structure(result):
+    result.parse(SummarizeOutput)  # raises if shape is wrong
+
+def test_tldr_quality(result):
+    output = result.parse(SummarizeOutput)
+    assert result.llm_judge(
+        "The TL;DR leads with the single most important takeaway",
+        content=output.tldr,
+    )
+```
+
 ## Setup helpers
 
 ```python
 from tests.support.harness.setup import skill_setup, copy_files, cleanup_globs, compose
 
-# Copy skill dir + AGENTS.md, prepend SKILL.md preamble
 setup=skill_setup("summarize", project_root)
-
-# Copy test fixtures into temp cwd
 setup=copy_files("tests/support/fixtures/test-paper.pdf", project_root=project_root)
-
-# Compose multiple setup functions
 setup=compose(
     skill_setup("summarize", project_root),
     copy_files("tests/support/fixtures/test-paper.pdf", project_root=project_root),
 )
-
-# Cleanup files after run
 cleanup=cleanup_globs("references/specs/2026-*-demo*.md")
 ```
 
@@ -1020,12 +985,12 @@ ghostwrite       test_refuses_from_scratch   2/2      8.9s
 
 ```bash
 git add docs/evals.md
-git commit -m "docs: consolidate evals.md tables, add example output"
+git commit -m "docs: consolidate evals.md tables, add parse() docs and example output"
 ```
 
 ---
 
-### Task 12: Final verification
+### Task 10: Final verification
 
 - [ ] **Step 1: Run all harness unit tests**
 
