@@ -6,8 +6,8 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 from .discovery import build_run_plans, discover_suites
-from .grader import grade
-from .models import RunPlan
+from .grader import grade, grade_rubric
+from .models import Grading, RunPlan
 from .reporter import CaseResult, Reporter
 from .runner import run_claude
 
@@ -21,6 +21,19 @@ def _artifact_dir(root: Path, plan: RunPlan, run_id: str) -> Path:
         base = root / run_id / plan.suite_name / f"eval-{plan.case_id}" / plan.variant
     base.mkdir(parents=True, exist_ok=True)
     return base
+
+
+def _should_rubric_grade(plan: RunPlan, project_root: Path) -> bool:
+    if plan.tier != "eval":
+        return False
+    if plan.suite_kind != "skill":
+        return False
+    # Don't re-grade lift baselines against the rubric — the rubric is a
+    # quality bar on the with-skill variant.
+    if plan.variant == "baseline":
+        return False
+    rubric_path = project_root / "skills" / plan.suite_name / "RUBRIC.md"
+    return rubric_path.exists()
 
 
 async def _run_one(
@@ -54,6 +67,13 @@ async def _run_one(
                 original_prompt=original_prompt,
                 input_limit=plan.case.grader_input_limit,
             )
+
+            if _should_rubric_grade(plan, project_root=project_root):
+                rubric_path = project_root / "skills" / plan.suite_name / "RUBRIC.md"
+                rubric_grading = await grade_rubric(run, rubric_path)
+                grading = Grading.from_expectations(
+                    grading.expectations + rubric_grading.expectations
+                )
 
             adir = _artifact_dir(artifact_root, plan, run_id)
             (adir / "outputs").mkdir(exist_ok=True)

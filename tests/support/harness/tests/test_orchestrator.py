@@ -5,7 +5,8 @@ from pathlib import Path
 import pytest
 
 from tests.support.harness import orchestrator
-from tests.support.harness.models import Grading
+from tests.support.harness.models import EvalCase, Grading, RunPlan
+from tests.support.harness.orchestrator import _should_rubric_grade
 from tests.support.harness.reporter import DotsReporter
 from tests.support.harness.runner import RunResult
 
@@ -118,3 +119,42 @@ def test_run_evals_returns_1_when_assertion_fails(tmp_path, monkeypatch):
         )
     )
     assert exit_code == 1
+
+
+def _plan(tier: str, kind: str, suite_name: str) -> RunPlan:
+    return RunPlan(
+        suite_name=suite_name,
+        suite_kind=kind,
+        case_id="c1",
+        variant="run",
+        turns=["hi"],
+        context_paths=[],
+        case=EvalCase(id="c1", turns=["hi"]),
+        tier=tier,
+    )
+
+
+def test_rubric_grading_skipped_on_fast_tier(tmp_path):
+    # Even if a rubric exists, fast tier must not grade it.
+    plan = _plan("test", "skill", "ghostwrite")
+    assert _should_rubric_grade(plan, project_root=tmp_path) is False
+
+
+def test_rubric_grading_skipped_when_no_rubric_file(tmp_path):
+    plan = _plan("eval", "skill", "ghostwrite")
+    # No skills/ghostwrite/RUBRIC.md on disk.
+    assert _should_rubric_grade(plan, project_root=tmp_path) is False
+
+
+def test_rubric_grading_runs_on_deep_tier_when_rubric_exists(tmp_path):
+    (tmp_path / "skills" / "ghostwrite").mkdir(parents=True)
+    (tmp_path / "skills" / "ghostwrite" / "RUBRIC.md").write_text("## Critical\n\n- x\n")
+    plan = _plan("eval", "skill", "ghostwrite")
+    assert _should_rubric_grade(plan, project_root=tmp_path) is True
+
+
+def test_rubric_grading_skipped_for_core_suites(tmp_path):
+    (tmp_path / "skills" / "skill-triggers").mkdir(parents=True)
+    (tmp_path / "skills" / "skill-triggers" / "RUBRIC.md").write_text("## Critical\n\n- x\n")
+    plan = _plan("eval", "core", "skill-triggers")
+    assert _should_rubric_grade(plan, project_root=tmp_path) is False
