@@ -6,11 +6,11 @@ from tests.support.harness.setup import skill_setup
 from tests.skills.ghostwrite.ghostwrite_helpers import assert_core_rules
 
 SOURCE = textwrap.dedent("""\
-    We just wrapped the 2026 Spring Season of the MLH Fellowship. 620 fellows \
-    shipped production code at 45 partner companies. Completion rate was 94%. \
-    Three fellows got return offers before the program ended. The new cohort \
-    model we piloted let us run two tracks (open source and production) without \
-    doubling ops headcount. Next season opens applications June 1.\
+    We just wrapped the 2026 Spring Season of the MLH Fellowship. 620 fellows
+    shipped production code at 45 partner companies. Completion rate was 94%.
+    Three fellows got return offers before the program ended. The new cohort
+    model we piloted let us run two tracks (open source and production) without
+    doubling ops headcount. Next season opens applications June 1.
 """)
 
 

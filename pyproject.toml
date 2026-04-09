@@ -18,7 +18,7 @@ dev = [
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 testpaths = ["tests", "skills"]
-python_files = ["test_*.py", "*_test.py"]
+python_files = ["test_*.py"]
 addopts = "--import-mode=importlib"
 
 [tool.ruff]

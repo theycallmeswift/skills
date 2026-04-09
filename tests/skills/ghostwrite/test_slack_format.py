@@ -6,10 +6,10 @@ from tests.support.harness.setup import skill_setup
 from tests.skills.ghostwrite.ghostwrite_helpers import assert_core_rules
 
 SOURCE = textwrap.dedent("""\
-    Hey team, I wanted to flag that the sponsorship deck for Hack the North \
-    needs to go out by Friday. The numbers are finalized -- 1,200 hackers, \
-    38 sponsors confirmed, NPS of 87 from last year. Can someone on the \
-    partnerships team send the updated version to the organizers?\
+    Hey team, I wanted to flag that the sponsorship deck for Hack the North
+    needs to go out by Friday. The numbers are finalized -- 1,200 hackers,
+    38 sponsors confirmed, NPS of 87 from last year. Can someone on the
+    partnerships team send the updated version to the organizers?
 """)
 
 

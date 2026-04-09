@@ -6,14 +6,14 @@ from tests.support.harness.setup import skill_setup
 from tests.skills.ghostwrite.ghostwrite_helpers import assert_core_rules
 
 SOURCE = textwrap.dedent("""\
-    MLH ran Global Hack Week in March 2026. It was our biggest one yet -- \
-    18,000 participants across 120 countries over 7 days. We tried a new \
-    format this time where each day had a themed challenge (Day 1 was AI, \
-    Day 2 was open source, Day 3 was hardware, etc). The daily themes drove \
-    way more engagement than the old format where everything was open-ended. \
-    Completion rates went from 34% to 61%. The most popular challenge was \
-    the Day 5 "ship a CLI tool" challenge with 4,200 submissions. We're \
-    going to keep the themed format for future GHWs.\
+    MLH ran Global Hack Week in March 2026. It was our biggest one yet --
+    18,000 participants across 120 countries over 7 days. We tried a new
+    format this time where each day had a themed challenge (Day 1 was AI,
+    Day 2 was open source, Day 3 was hardware, etc). The daily themes drove
+    way more engagement than the old format where everything was open-ended.
+    Completion rates went from 34% to 61%. The most popular challenge was
+    the Day 5 "ship a CLI tool" challenge with 4,200 submissions. We're
+    going to keep the themed format for future GHWs.
 """)
 
 

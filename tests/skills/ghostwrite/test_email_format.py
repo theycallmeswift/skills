@@ -6,13 +6,13 @@ from tests.support.harness.setup import skill_setup
 from tests.skills.ghostwrite.ghostwrite_helpers import assert_core_rules
 
 SOURCE = textwrap.dedent("""\
-    Hey so I wanted to reach out because we just wrapped up Season 3 of the \
-    Fellowship and the numbers were really strong. We had 450 fellows complete \
-    the program which is up 30% from last season. 92% of them said they'd \
-    recommend it to a friend. I think this is a great opportunity for us to \
-    talk about renewing the sponsorship for next season and maybe even \
-    expanding the scope of what we do together. Let me know if you'd be open \
-    to hopping on a call next week to discuss.\
+    Hey so I wanted to reach out because we just wrapped up Season 3 of the
+    Fellowship and the numbers were really strong. We had 450 fellows complete
+    the program which is up 30% from last season. 92% of them said they'd
+    recommend it to a friend. I think this is a great opportunity for us to
+    talk about renewing the sponsorship for next season and maybe even
+    expanding the scope of what we do together. Let me know if you'd be open
+    to hopping on a call next week to discuss.
 """)
 
 

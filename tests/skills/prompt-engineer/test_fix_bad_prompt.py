@@ -13,14 +13,14 @@ def result(run_eval, project_root):
                 This prompt isn't working, can you fix it?
 
                 ```
-                You are a helpful AI assistant that helps users. Please be very \
-                thorough but also concise. I would really appreciate it if you \
-                could analyze the following customer feedback and tell me what \
-                you think about it. Make sure to consider all aspects and provide \
+                You are a helpful AI assistant that helps users. Please be very
+                thorough but also concise. I would really appreciate it if you
+                could analyze the following customer feedback and tell me what
+                you think about it. Make sure to consider all aspects and provide
                 a detailed yet brief summary. Thank you so much!
 
                 {feedback}
-                ```\
+                ```
             """),
         ],
         setup=skill_setup("prompt-engineer", project_root),
