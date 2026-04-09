@@ -11,7 +11,6 @@ def main() -> int:
     parser = argparse.ArgumentParser(prog="tests.support.harness")
     parser.add_argument("names", nargs="*", help="filter by suite name")
     parser.add_argument("--verbose", action="store_true")
-    parser.add_argument("--no-baseline", action="store_true")
     parser.add_argument(
         "--tier",
         choices=["test", "eval"],
@@ -33,7 +32,7 @@ def main() -> int:
         run_evals(
             project_root=project_root,
             names=args.names or None,
-            baseline=(args.tier == "eval") and not args.no_baseline,
+            baseline=(args.tier == "eval"),
             verbose=args.verbose,
             reporter=reporter,
             model=args.model,
