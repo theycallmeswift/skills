@@ -105,3 +105,90 @@ async def test_run_claude_smoke(tmp_path):
     assert "pong" in result.stdout.lower()
     assert result.duration_s > 0
     assert result.input_tokens > 0
+
+
+def test_run_eval_calls_setup_and_cleanup(tmp_path, monkeypatch):
+    from tests.support.harness.matchers import EvalResult
+    from tests.support.harness.runner import RunResult, run_eval
+
+    setup_called = []
+    cleanup_called = []
+
+    def fake_setup(cwd):
+        setup_called.append(str(cwd))
+        (cwd / "setup.txt").write_text("done")
+
+    def fake_cleanup(cwd):
+        cleanup_called.append(str(cwd))
+
+    async def fake_run_claude(turns, cwd, context_paths, project_root, timeout_s=300, model=None):
+        # Verify setup ran before agent
+        assert (cwd / "setup.txt").exists()
+        return RunResult(
+            stdout="hello",
+            files_written={},
+            input_tokens=1,
+            output_tokens=1,
+            duration_s=0.01,
+            exit_code=0,
+            tool_trace=[],
+            turn_count=len(turns),
+            final_message="hello",
+        )
+
+    import tests.support.harness.runner as runner_mod
+    monkeypatch.setattr(runner_mod, "run_claude", fake_run_claude)
+
+    result = run_eval(
+        project_root=tmp_path,
+        turns=["test"],
+        setup=fake_setup,
+        cleanup=fake_cleanup,
+    )
+
+    assert isinstance(result, EvalResult)
+    assert result.final_message == "hello"
+    assert len(setup_called) == 1
+    assert len(cleanup_called) == 1
+
+
+def test_run_eval_reads_preamble_file(tmp_path, monkeypatch):
+    from tests.support.harness.runner import RunResult, run_eval
+
+    captured_turns = []
+
+    def fake_setup(cwd):
+        (cwd / ".skill_preamble").write_text("Read SKILL.md first.\n\n")
+
+    async def fake_run_claude(turns, cwd, context_paths, project_root, timeout_s=300, model=None):
+        captured_turns.extend(turns)
+        return RunResult(
+            stdout="ok",
+            files_written={},
+            input_tokens=1,
+            output_tokens=1,
+            duration_s=0.01,
+            exit_code=0,
+            tool_trace=[],
+            turn_count=len(turns),
+            final_message="ok",
+        )
+
+    import tests.support.harness.runner as runner_mod
+    monkeypatch.setattr(runner_mod, "run_claude", fake_run_claude)
+
+    run_eval(
+        project_root=tmp_path,
+        turns=["Summarize this article"],
+    )
+    # Without setup writing a preamble, turns pass through unchanged
+    assert captured_turns == ["Summarize this article"]
+
+    captured_turns.clear()
+    run_eval(
+        project_root=tmp_path,
+        turns=["Summarize this article"],
+        setup=fake_setup,
+    )
+    assert captured_turns[0].startswith("Read SKILL.md first.")
+    assert "Summarize this article" in captured_turns[0]

@@ -182,3 +182,47 @@ async def run_claude(
         error=error,
         final_message="".join(final_message_parts),
     )
+
+
+import asyncio as _asyncio
+import tempfile as _tempfile
+from collections.abc import Callable as _Callable
+
+
+def run_eval(
+    project_root: Path,
+    turns: list[str],
+    setup: _Callable[[Path], None] | None = None,
+    cleanup: _Callable[[Path], None] | None = None,
+    model: str | None = None,
+) -> "EvalResult":
+    """High-level eval runner: temp dir, setup, agent run, cleanup, return EvalResult."""
+    from .matchers import EvalResult
+
+    with _tempfile.TemporaryDirectory(prefix="eval-cwd-") as tmp:
+        cwd = Path(tmp)
+
+        if setup is not None:
+            setup(cwd)
+
+        # Check for preamble written by skill_setup
+        preamble_path = cwd / ".skill_preamble"
+        actual_turns = list(turns)
+        if preamble_path.exists():
+            preamble = preamble_path.read_text()
+            actual_turns[0] = preamble + actual_turns[0]
+
+        run = _asyncio.run(
+            run_claude(
+                turns=actual_turns,
+                cwd=cwd,
+                context_paths=[],
+                project_root=project_root,
+                model=model,
+            )
+        )
+
+        if cleanup is not None:
+            cleanup(cwd)
+
+    return EvalResult(run)
