@@ -584,3 +584,46 @@ def test_files_written_count_exact_match():
     run = _run(files_written={"a.md": "x", "b.md": "y"})
     exps = _grade_deterministic([{"files_written_count": 2}], run)
     assert exps[0]["passed"] is True
+
+
+def test_file_contains_text_literal_passes():
+    run = _run(files_written={"references/specs/foo.md": "Out of scope: X"})
+    exps = _grade_deterministic(
+        [{"file_contains": {"path": "references/specs/*.md", "text": "Out of scope"}}],
+        run,
+    )
+    assert exps[0]["passed"] is True
+
+
+def test_file_contains_text_fails_when_no_matching_file():
+    run = _run(files_written={"other.txt": "irrelevant"})
+    exps = _grade_deterministic(
+        [{"file_contains": {"path": "*.md", "text": "x"}}], run
+    )
+    assert exps[0]["passed"] is False
+    assert "no files matched" in exps[0]["evidence"]
+
+
+def test_file_contains_text_fails_when_text_absent():
+    run = _run(files_written={"a.md": "no match here"})
+    exps = _grade_deterministic(
+        [{"file_contains": {"path": "*.md", "text": "needed"}}], run
+    )
+    assert exps[0]["passed"] is False
+
+
+def test_file_contains_regex_passes():
+    run = _run(files_written={"a.md": "allowlist entry"})
+    exps = _grade_deterministic(
+        [{"file_contains": {"path": "*.md", "regex": r"(?i)(allowlist|routing)"}}], run
+    )
+    assert exps[0]["passed"] is True
+
+
+def test_file_contains_requires_exactly_one_of_text_or_regex():
+    run = _run(files_written={"a.md": "x"})
+    exps = _grade_deterministic(
+        [{"file_contains": {"path": "*.md", "text": "x", "regex": "x"}}], run
+    )
+    assert exps[0]["passed"] is False
+    assert "exactly one" in exps[0]["evidence"]

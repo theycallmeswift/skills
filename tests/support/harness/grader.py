@@ -391,6 +391,45 @@ def _grade_files_written_count(a: dict, run: RunResult) -> dict:
     }
 
 
+@_primitive("file_contains")
+def _grade_file_contains(a: dict, run: RunResult) -> dict:
+    spec = a["file_contains"]
+    path_glob = spec["path"]
+    text = spec.get("text")
+    pattern = spec.get("regex")
+    if (text is None) == (pattern is None):
+        return {
+            "text": f"file_contains: {path_glob}",
+            "passed": False,
+            "evidence": "invalid assertion: must set exactly one of `text` or `regex`",
+        }
+    matches = [(p, c) for p, c in run.files_written.items() if fnmatch.fnmatch(p, path_glob)]
+    if not matches:
+        return {
+            "text": f"file_contains: {path_glob}",
+            "passed": False,
+            "evidence": f"no files matched glob (wrote {len(run.files_written)})",
+        }
+    for path, content in matches:
+        if text is not None and text in content:
+            return {
+                "text": f"file_contains: {path_glob} text={text!r}",
+                "passed": True,
+                "evidence": f"found in {path}",
+            }
+        if pattern is not None and re.search(pattern, content):
+            return {
+                "text": f"file_contains: {path_glob} regex={pattern!r}",
+                "passed": True,
+                "evidence": f"regex matched in {path}",
+            }
+    return {
+        "text": f"file_contains: {path_glob}",
+        "passed": False,
+        "evidence": f"no matching file contained the target (checked {[p for p, _ in matches]})",
+    }
+
+
 @_primitive("lint")  # TEMPORARY alias until Task 9 renames to script_name
 def _grade_lint_primitive(a: dict, run: RunResult) -> dict:
     return _grade_lint(a["lint"], run)
