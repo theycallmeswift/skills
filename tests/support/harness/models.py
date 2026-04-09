@@ -27,6 +27,7 @@ class EvalSuite:
 
 
 RunVariant = Literal["with_skill", "baseline", "run"]
+RunTier = Literal["test", "eval"]
 
 
 @dataclass
@@ -38,6 +39,7 @@ class RunPlan:
     turns: list[str]
     context_paths: list[Path]
     case: EvalCase  # full case for grader/reporter access
+    tier: RunTier = "test"
 
 
 @dataclass

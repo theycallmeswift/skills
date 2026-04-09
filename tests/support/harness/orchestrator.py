@@ -109,6 +109,7 @@ async def run_evals(
     verbose: bool,
     reporter: Reporter,
     model: str | None = None,
+    tier: str = "test",
 ) -> int:
     tests_root = project_root / "tests"
     suites = discover_suites(tests_root, names=names)
@@ -116,7 +117,7 @@ async def run_evals(
         print(f"No eval suites found under {tests_root}")
         return 1
 
-    plans = build_run_plans(suites, project_root=project_root, baseline=baseline)
+    plans = build_run_plans(suites, project_root=project_root, baseline=baseline, tier=tier)
     artifact_root = project_root / "tmp" / "evals"
     artifact_root.mkdir(parents=True, exist_ok=True)
     run_id = datetime.now(UTC).strftime("%Y-%m-%dT%H-%M-%S")

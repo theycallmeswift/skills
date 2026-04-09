@@ -3,7 +3,8 @@ from pathlib import Path
 
 import pytest
 
-from tests.support.harness.discovery import EvalSuite, load_eval_file
+from tests.support.harness.discovery import EvalSuite, build_run_plans, load_eval_file
+from tests.support.harness.models import EvalCase
 
 
 def _write_suite(tmp_path: Path, cleanup: list[str]) -> Path:
@@ -413,6 +414,17 @@ def _write(tmp_path: Path, data: dict) -> Path:
     p = tmp_path / "demo.json"
     p.write_text(json.dumps(data))
     return p
+
+
+def test_run_plan_carries_tier(tmp_path):
+    suite = EvalSuite(
+        name="demo",
+        kind="core",
+        source_path=tmp_path / "demo.json",
+        cases=[EvalCase(id="c1", turns=["hi"])],
+    )
+    plans = build_run_plans([suite], project_root=tmp_path, baseline=False, tier="eval")
+    assert plans[0].tier == "eval"
 
 
 def test_schema_accepts_new_primitives(tmp_path):

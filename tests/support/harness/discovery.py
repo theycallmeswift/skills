@@ -140,6 +140,7 @@ def build_run_plans(
     suites: list[EvalSuite],
     project_root: Path,
     baseline: bool,
+    tier: str = "test",
 ) -> list[RunPlan]:
     plans: list[RunPlan] = []
     agents_md = project_root / "AGENTS.md"
@@ -161,6 +162,7 @@ def build_run_plans(
                         turns=_with_preamble(case.turns, suite.name),
                         context_paths=with_skill_paths,
                         case=case,
+                        tier=tier,
                     )
                 )
                 if baseline and case.intent == "lift":
@@ -173,6 +175,7 @@ def build_run_plans(
                             turns=list(case.turns),
                             context_paths=[agents_md, *case_files],
                             case=case,
+                            tier=tier,
                         )
                     )
             else:  # core
@@ -185,6 +188,7 @@ def build_run_plans(
                         turns=list(case.turns),
                         context_paths=[agents_md, *case_files],
                         case=case,
+                        tier=tier,
                     )
                 )
 

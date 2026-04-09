@@ -13,6 +13,12 @@ def main() -> int:
     parser.add_argument("--verbose", action="store_true")
     parser.add_argument("--no-baseline", action="store_true")
     parser.add_argument(
+        "--tier",
+        choices=["test", "eval"],
+        default="test",
+        help="test = fast deterministic. eval = deep with rubric grading.",
+    )
+    parser.add_argument(
         "--model",
         default=None,
         help="Override the model used by the agent SDK (e.g. claude-haiku-4-5-20251001). "
@@ -27,10 +33,11 @@ def main() -> int:
         run_evals(
             project_root=project_root,
             names=args.names or None,
-            baseline=not args.no_baseline,
+            baseline=(args.tier == "eval") and not args.no_baseline,
             verbose=args.verbose,
             reporter=reporter,
             model=args.model,
+            tier=args.tier,
         )
     )
 
