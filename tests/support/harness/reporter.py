@@ -13,24 +13,19 @@ class EvalReporter:
 
     def __init__(self, verbose: bool = False) -> None:
         self.verbose = verbose
-        # {module_nodeid: [report, ...]}
         self._results: dict[str, list] = defaultdict(list)
-        # {module_nodeid: max_duration}
         self._durations: dict[str, float] = defaultdict(float)
 
     def record_result(self, report) -> None:
-        # Extract the module path (everything before ::)
         module = report.nodeid.split("::")[0]
         self._results[module].append(report)
         if report.duration > self._durations[module]:
             self._durations[module] = report.duration
 
     def _parse_module(self, module: str) -> tuple[str, str]:
-        """Extract skill name and test name from module path."""
+        """Extract (skill_name, test_name) from a module path."""
         parts = PurePosixPath(module).parts
-        # tests/skills/<skill>/test_xxx.py -> (skill, test_xxx)
-        # tests/core/test_xxx.py -> (core, test_xxx)
-        filename = PurePosixPath(module).stem  # test_xxx
+        filename = PurePosixPath(module).stem
         if "skills" in parts:
             idx = list(parts).index("skills")
             skill = parts[idx + 1] if idx + 1 < len(parts) else "unknown"
@@ -102,12 +97,10 @@ _reporter: EvalReporter | None = None
 
 def pytest_configure(config) -> None:
     global _reporter
-    # Verbose flag is registered by root conftest.py via --verbose
     _reporter = EvalReporter(verbose=False)
 
 
 def pytest_report_header(config) -> None:
-    """Pick up --verbose from root conftest after all options are registered."""
     if _reporter is not None:
         _reporter.verbose = config.getoption("verbose", default=False)
 
