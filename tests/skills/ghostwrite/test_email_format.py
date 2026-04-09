@@ -2,8 +2,8 @@ import textwrap
 
 import pytest
 
-from tests.support.harness.setup import skill_setup
 from tests.skills.ghostwrite.ghostwrite_helpers import assert_core_rules
+from tests.support.harness.setup import skill_setup
 
 SOURCE = textwrap.dedent("""\
     Hey so I wanted to reach out because we just wrapped up Season 3 of the

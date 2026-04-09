@@ -1,7 +1,7 @@
 import pytest
 
-from tests.support.harness.setup import compose, copy_files, skill_setup
 from tests.skills.summarize.structural_checks import assert_structure
+from tests.support.harness.setup import compose, copy_files, skill_setup
 
 
 @pytest.fixture(scope="module")

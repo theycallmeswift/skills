@@ -1,13 +1,13 @@
 import asyncio
 import json
 
-from pydantic import BaseModel
 from claude_agent_sdk import (
     AssistantMessage,
     ClaudeAgentOptions,
     ResultMessage,
     query,
 )
+from pydantic import BaseModel
 
 DEFAULT_EXTRACT_MODEL = "claude-haiku-4-5-20251001"
 

@@ -1,6 +1,3 @@
-import re
-from fnmatch import fnmatch
-
 from tests.support.harness.matchers import EvalResult
 from tests.support.harness.runner import RunResult
 

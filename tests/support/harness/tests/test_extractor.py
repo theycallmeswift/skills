@@ -1,7 +1,7 @@
-import textwrap
 from unittest.mock import patch
 
-from pydantic import BaseModel, Field, field_validator
+import pytest
+from pydantic import BaseModel, Field, ValidationError, field_validator
 
 from tests.support.harness.extractor import extract_fields
 
@@ -38,11 +38,8 @@ def test_extract_fields_validates_with_pydantic():
     mock_result = {"name": "Test", "count": -1}
     with patch("tests.support.harness.extractor._extract_async") as mock_extract:
         mock_extract.return_value = mock_result
-        try:
+        with pytest.raises(ValidationError, match="count must be positive"):
             extract_fields("some content", StrictOutput)
-            assert False, "Should have raised ValidationError"
-        except Exception as e:
-            assert "count must be positive" in str(e)
 
 
 def test_extract_fields_generates_schema():

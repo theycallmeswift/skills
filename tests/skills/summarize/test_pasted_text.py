@@ -2,8 +2,8 @@ import textwrap
 
 import pytest
 
-from tests.support.harness.setup import skill_setup
 from tests.skills.summarize.structural_checks import assert_structure
+from tests.support.harness.setup import skill_setup
 
 
 @pytest.fixture(scope="module")

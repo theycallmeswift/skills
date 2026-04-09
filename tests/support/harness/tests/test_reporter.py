@@ -1,5 +1,3 @@
-import textwrap
-
 from tests.support.harness.reporter import EvalReporter
 
 
