@@ -185,6 +185,29 @@ def test_skill_invoked_fails_when_no_skill_tool_at_all():
     assert "no Skill tool" in exps[0]["evidence"]
 
 
+def test_skill_not_invoked_passes_when_absent():
+    run = _run_with_trace([{"name": "Read", "input": {}, "turn": 1}])
+    exps = _grade_deterministic([{"skill_not_invoked": "ghostwrite"}], run)
+    assert exps[0]["passed"] is True
+
+
+def test_skill_not_invoked_fails_when_skill_fired():
+    run = _run_with_trace(
+        [{"name": "Skill", "input": {"skill": "ghostwrite"}, "turn": 1}]
+    )
+    exps = _grade_deterministic([{"skill_not_invoked": "ghostwrite"}], run)
+    assert exps[0]["passed"] is False
+    assert "ghostwrite" in exps[0]["evidence"]
+
+
+def test_skill_not_invoked_accepts_prefixed_name():
+    run = _run_with_trace(
+        [{"name": "Skill", "input": {"skill": "mechaswift:ghostwrite"}, "turn": 2}]
+    )
+    exps = _grade_deterministic([{"skill_not_invoked": "ghostwrite"}], run)
+    assert exps[0]["passed"] is False
+
+
 def _run_with_stdout(stdout: str) -> RunResult:
     return RunResult(
         stdout=stdout,

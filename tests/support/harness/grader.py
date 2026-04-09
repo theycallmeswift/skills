@@ -197,6 +197,23 @@ def _grade_skill_invoked(a: dict, run: RunResult) -> dict:
     return {"text": f"skill_invoked: {skill}", "passed": False, "evidence": evidence}
 
 
+@_primitive("skill_not_invoked")
+def _grade_skill_not_invoked(a: dict, run: RunResult) -> dict:
+    skill = a["skill_not_invoked"]
+    hit = _match_skill_invocation(run.tool_trace, skill)
+    if hit is None:
+        return {
+            "text": f"skill_not_invoked: {skill}",
+            "passed": True,
+            "evidence": f"no {skill} Skill invocation in trace",
+        }
+    return {
+        "text": f"skill_not_invoked: {skill}",
+        "passed": False,
+        "evidence": f"Skill tool fired with '{hit['input'].get('skill', '?')}' on turn {hit.get('turn', '?')}",
+    }
+
+
 @_primitive("regex")
 def _grade_regex(a: dict, run: RunResult) -> dict:
     pattern = a["regex"]
