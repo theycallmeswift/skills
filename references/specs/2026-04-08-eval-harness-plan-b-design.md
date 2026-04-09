@@ -66,7 +66,7 @@ Split the harness into two tiers behind two commands. Both share the same runner
 
 ### Two key shifts
 
-1. **The assertion vocabulary gets richer, deterministic, and replaces most text assertions.** 18 primitives covering content, shape, trace, and files, plus one escape-hatch (`script_name`) for checks too complex to express as data. Total: 19.
+1. **The assertion vocabulary gets richer, deterministic, and replaces most text assertions.** 19 primitives covering content, shape, trace, and files, plus one escape-hatch (`script_name`) for checks too complex to express as data. Total: 20.
 
 2. **Quality checks move out of eval files and into per-skill `RUBRIC.md` files.** The skill owns its definition of good. `make eval` loads the rubric and sends it to the grader LLM in one structured call per case. Rubric items are pass / fail / n/a.
 
@@ -153,15 +153,16 @@ All assertions graded in Python, no LLM calls. Each accepts an optional `on` fie
 - `{"trace_count_lte": {"tool": "Bash", "n": 3}}` — no more than N calls to a tool
 - `{"turn_count_lte": 1}` — agent shouldn't need multiple turns
 
-**Files (3):**
+**Files (4):**
 - `{"files_written_include": "references/specs/*.md"}` — glob must match at least one written file
-- `{"files_written_exclude": "package.json"}` — glob must match zero written files (`"*"` = no files at all)
+- `{"files_written_exclude": "package.json"}` — glob must match zero written files
+- `{"files_written_count": 0}` — total number of files written by the run must equal this exact integer. Use `0` to assert "nothing was written at all" (unambiguous, unlike a `"*"` glob which wouldn't traverse into subdirectories)
 - `{"file_contains": {"path": "<glob>", "text": "Out of scope"}}` — at least one file matching the glob contains the literal text. Accepts `regex` instead of `text` for pattern matching: `{"file_contains": {"path": "<glob>", "regex": "(?i)out of scope"}}`. Exactly one of `text` / `regex` must be set.
 
 **Escape hatch (1):**
 - `{"script_name": "ghostwrite"}` — writes the run's `final_message` to a temp file and invokes `skills/ghostwrite/lint.py <temp_path>`. Passes on exit 0. Stderr on failure is captured as evidence. Future: a dict form for arbitrary script paths: `{"script_name": {"skill": "ghostwrite", "file": "other.py"}}`.
 
-**Total:** 19 assertion types (5 content + 3 shape + 7 trace + 3 files + 1 script).
+**Total:** 20 assertion types (5 content + 3 shape + 7 trace + 4 files + 1 script).
 
 ### Rubric format
 
@@ -346,7 +347,7 @@ TDD per primitive. For each new assertion type, write a harness unit test under 
 - `_grade_regex`, `_grade_not_regex`, `_grade_contains`, `_grade_contains_all`, `_grade_not_contains`
 - `_grade_output_len_lte`, `_grade_output_len_gte`, `_grade_token_usage_lte`
 - `_grade_trace_order`, `_grade_trace_count_lte`, `_grade_turn_count_lte`
-- `_grade_files_written_include`, `_grade_files_written_exclude`, `_grade_file_contains`
+- `_grade_files_written_include`, `_grade_files_written_exclude`, `_grade_files_written_count`, `_grade_file_contains`
 - Rename `_grade_lint` → `_grade_script_name` (signature unchanged; resolves `skills/<name>/lint.py`)
 
 Update `eval.schema.json` to accept the new assertion shapes. Update the existing schema unit tests (`tests/support/harness/tests/test_discovery.py`) to cover the new shapes.
@@ -593,7 +594,7 @@ Shared `lint` becomes an explicit `{"script_name": "summarize"}` on each case th
 |---|---|---|---|
 | 1 | "Output does NOT agree to skip scoping — it still asks at least one clarifying question on this turn" | Convert + Rubric (C) | `{"regex": "\\?"}` for the question + Rubric (C) for "does not agree to skip" |
 | 2 | "Output acknowledges the user's urgency AND names a concrete risk of jumping in blind" | Rubric (C) | semantic AND |
-| 3 | "No implementation code, project scaffolding, or source files are created" | Convert | `{"files_written_exclude": "*"}` (one-turn case, scope pushes back, writes nothing) |
+| 3 | "No implementation code, project scaffolding, or source files are created" | Convert | `{"files_written_count": 0}` (one-turn case, scope pushes back, writes nothing) |
 | 4 | "Output proceeds with scoping steps (clarifying questions or approach proposals)" | Rubric (C) | semantic behavior check |
 
 ### prompt-engineer (3 cases)
@@ -674,12 +675,10 @@ Going through the assertion list in Appendix A surfaced one missing deterministi
 - `no-ghostwrite-on-fresh-draft` (core/skill-triggers) — "the skill should NOT fire here"
 - Any future regression guard against over-eager skill activation
 
-## Open questions for user review
+## Decisions (resolved during review)
 
-Before Step 4 (migration), these need your sign-off:
-
-1. **Delete list** — only 2 assertions proposed for outright deletion (see "Delete summary" above). OK?
-2. **`skill_not_invoked`** — adding this primitive so `no-ghostwrite-on-fresh-draft` stays deterministic. OK?
-3. **Core suite rubrics** — `no-ai-attribution` gets no rubric (purely structural); `skill-triggers` also gets no rubric (the trigger check + one behavioral assertion per case, most of which convert). OK?
-4. **Regex count shorthand** — I folded count semantics into `regex` itself via `min` and `max` fields. Alternative is a separate `regex_count_lte` primitive. The inline version is more uniform. OK?
-5. **`files_written_exclude: "*"`** as a valid way to assert "no files were written at all." OK?
+1. **Delete list** — approved. The 2 assertions in "Delete summary" above are dropped in Step 4.
+2. **`skill_not_invoked`** — approved. Added to the Trace section of the vocabulary.
+3. **Core suite rubrics** — approved. `no-ai-attribution` and `skill-triggers` both stay all-deterministic.
+4. **Regex count shorthand** — approved. Count semantics live inside `regex` via `min` / `max`.
+5. **"No files at all" assertion** — resolved as `{"files_written_count": 0}` (not `files_written_exclude: "*"`, which would miss nested files). Added as a 20th primitive.
