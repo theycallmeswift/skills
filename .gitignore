@@ -4,6 +4,7 @@ examples/
 tmp/*
 !tmp/.gitkeep
 *-workspace/
+.worktrees/
 
 # Secrets
 .env
