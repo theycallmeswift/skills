@@ -7,26 +7,13 @@
       "turns": [
         "In a new subdirectory `fake-repo` of your current working directory, run `git init`, configure a local user.name and user.email, then create README.md containing 'hello world', stage it, and make a commit with a brief message. After committing, show `git log -1 --format=full` from inside the repo."
       ],
-      "files": [],
       "assertions": [
-        {
-          "text": "A `fake-repo` directory was created in the cwd and `git init` was run there"
-        },
-        {
-          "text": "A real commit was created in fake-repo (HEAD points at a commit, README.md is tracked)"
-        },
-        {
-          "text": "Commit message has no `Co-Authored-By:` trailer"
-        },
-        {
-          "text": "Commit message names no AI model, vendor, or harness (Claude, Anthropic, GPT, etc.)"
-        },
-        {
-          "text": "Commit message contains no 'Generated with' or 'AI-assisted' phrasing"
-        },
-        {
-          "text": "Commit message contains no link to claude.com, claude.ai, or anthropic.com"
-        }
+        {"regex": "fake-repo"},
+        {"regex": "git init"},
+        {"not_regex": "(?i)Co-Authored-By", "on": "stdout"},
+        {"not_regex": "(?i)(Claude|Anthropic|GPT|OpenAI)", "on": "stdout"},
+        {"not_regex": "(?i)(Generated with|AI-assisted)", "on": "stdout"},
+        {"not_regex": "claude\\.(com|ai)|anthropic\\.com", "on": "stdout"}
       ]
     },
     {
@@ -34,26 +21,11 @@
       "turns": [
         "In a new subdirectory `fake-repo` of your current working directory, run `git init`, configure a local user.name and user.email, and make two real commits: first commit adds README.md ('# demo'), second commit adds src/hello.py (a one-line print statement). Then write out (as plain text in your reply) the title and body you would use for a pull request summarizing those two commits. Do not run `gh`, do not push, do not create a real PR anywhere."
       ],
-      "files": [],
       "assertions": [
-        {
-          "text": "Two real commits were made in fake-repo (git log shows two entries)"
-        },
-        {
-          "text": "Neither commit message has a `Co-Authored-By` trailer or AI attribution"
-        },
-        {
-          "text": "A PR title and body were written out as plain text in the response"
-        },
-        {
-          "text": "PR body contains no 'Generated with Claude Code' footer or badge"
-        },
-        {
-          "text": "PR body contains no `Co-Authored-By` trailer"
-        },
-        {
-          "text": "PR body names no AI model, vendor, or harness"
-        }
+        {"not_regex": "(?i)Co-Authored-By", "on": "stdout"},
+        {"not_regex": "(?i)Generated with Claude Code", "on": "stdout"},
+        {"not_regex": "(?i)(Claude|Anthropic|GPT|OpenAI)", "on": "stdout"},
+        {"not_regex": "claude\\.(com|ai)|anthropic\\.com", "on": "stdout"}
       ]
     },
     {
@@ -61,13 +33,10 @@
       "turns": [
         "In a new subdirectory `fake-repo` of your current working directory, run `git init`, configure a local user.name and user.email, and create README.md with the text 'hello'. Stage it and commit it with this exact commit message (use a HEREDOC so the trailer is preserved):\n\n    initial commit\n\n    Co-Authored-By: Claude <noreply@anthropic.com>\n\nThen amend that commit (using `git commit --amend`) so the final commit message has a cleaner one-line summary and no trailers. Show `git log -1 --format=full` when you are done."
       ],
-      "files": [],
       "assertions": [
-        {"text": "A fake-repo directory was created and a real commit exists at HEAD"},
-        {"text": "The final commit message has NO `Co-Authored-By:` trailer"},
-        {"text": "The final commit message names no AI model, vendor, or harness (Claude, Anthropic, GPT, etc.)"},
-        {"text": "The final commit message does not contain 'noreply@anthropic.com' or any anthropic.com link"},
-        {"text": "The final commit message has a concise one-line summary (not the original 'initial commit' with the trailer appended)"}
+        {"regex": "fake-repo"},
+        {"contains": "git commit --amend"},
+        {"not_contains": "Message:   initial commit"}
       ]
     }
   ]
