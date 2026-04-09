@@ -30,7 +30,7 @@ def test_title_is_source_link(result):
 
 
 def test_share_includes_url(result):
-    assert result.passes_rubric(
+    assert result.llm_judge(
         "The Share code fence contains the bare source URL on its own line.",
         on="final_message",
     )

@@ -35,7 +35,7 @@ def test_has_hashtags(result):
 
 
 def test_length_under_250_words(result):
-    assert result.passes_rubric(
+    assert result.llm_judge(
         "The post is 250 words or fewer.",
         on="final_message",
     )

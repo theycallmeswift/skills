@@ -4,7 +4,7 @@ def assert_structure(result):
     assert result.matches_regex(r"(?m)^# \S", on="final_message")
 
     # Summary paragraph between title and first bullet list
-    assert result.passes_rubric(
+    assert result.llm_judge(
         "There is a non-list paragraph between the title and the first bullet list",
         on="final_message",
     )

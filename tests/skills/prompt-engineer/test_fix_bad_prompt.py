@@ -47,7 +47,7 @@ def test_removes_padding(result):
 
 
 def test_specifies_output_format(result):
-    assert result.passes_rubric(
+    assert result.llm_judge(
         "The rewritten prompt includes a concrete output format "
         "(e.g. bullet points, JSON, specific structure).",
         on="final_message",
@@ -55,7 +55,7 @@ def test_specifies_output_format(result):
 
 
 def test_resolves_contradiction(result):
-    assert result.passes_rubric(
+    assert result.llm_judge(
         "The rewritten prompt does not contain the contradiction "
         "'thorough but concise' or equivalent conflicting instructions.",
         on="final_message",

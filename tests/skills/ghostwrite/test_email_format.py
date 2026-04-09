@@ -29,7 +29,7 @@ def test_core_rules(result):
 
 
 def test_leads_with_the_ask(result):
-    assert result.passes_rubric(
+    assert result.llm_judge(
         "The first sentence contains the results, the news, or the ask. "
         "There is no preamble like 'I wanted to reach out' or 'I hope this finds you well'.",
         on="final_message",
@@ -51,7 +51,7 @@ def test_sign_off(result):
 
 
 def test_no_section_headers(result):
-    assert result.passes_rubric(
+    assert result.llm_judge(
         "The email uses narrative transitions between topics, not bold headers or section dividers.",
         on="final_message",
     )

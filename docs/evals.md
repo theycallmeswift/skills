@@ -49,7 +49,7 @@ def test_something(result):
 | `not_contains(text, on)` | Literal absent |
 | `output_len_lte(n, on)` | Character count <= n |
 | `output_len_gte(n, on)` | Character count >= n |
-| `passes_rubric(item, on, model=None)` | LLM judge (default Haiku) grades pass/fail |
+| `llm_judge(item, on, model=None)` | LLM judge (default Haiku) grades pass/fail |
 
 **Trace** (no `on` parameter):
 

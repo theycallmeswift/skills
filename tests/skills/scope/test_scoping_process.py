@@ -2,7 +2,7 @@ from fnmatch import fnmatch
 
 
 def test_asks_clarifying_questions(result):
-    assert result.passes_rubric(
+    assert result.llm_judge(
         "Early in the conversation, the agent asks clarifying questions "
         "before proposing a design.",
         on="stdout",
@@ -10,14 +10,14 @@ def test_asks_clarifying_questions(result):
 
 
 def test_proposes_approaches(result):
-    assert result.passes_rubric(
+    assert result.llm_judge(
         "The agent proposes 2-3 distinct approaches with trade-offs.",
         on="stdout",
     )
 
 
 def test_gives_recommendation(result):
-    assert result.passes_rubric(
+    assert result.llm_judge(
         "The agent includes a clear recommendation with reasoning "
         "for which approach to use.",
         on="stdout",

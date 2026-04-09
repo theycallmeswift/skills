@@ -20,14 +20,14 @@ def test_structure(result):
 
 
 def test_title_from_content(result):
-    assert result.passes_rubric(
+    assert result.llm_judge(
         "Title is based on the document/paper title or filename, not a generic placeholder",
         on="final_message",
     )
 
 
 def test_share_no_url(result):
-    assert result.passes_rubric(
+    assert result.llm_judge(
         "The Share code fence does not contain a URL (file input has nothing to link).",
         on="final_message",
     )

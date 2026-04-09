@@ -34,14 +34,14 @@ def test_has_section_headers(result):
 
 
 def test_has_call_to_action(result):
-    assert result.passes_rubric(
+    assert result.llm_judge(
         "The post ends with a clear call-to-action.",
         on="final_message",
     )
 
 
 def test_uses_concrete_examples(result):
-    assert result.passes_rubric(
+    assert result.llm_judge(
         "The post references specific numbers, tools, or names from the source "
         "rather than vague claims like 'huge turnout' or 'great results'.",
         on="final_message",

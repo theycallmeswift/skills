@@ -148,7 +148,7 @@ class EvalResult:
 
     # --- Rubric matcher ---
 
-    def passes_rubric(
+    def llm_judge(
         self, item: str, on: str, model: str | None = None
     ) -> bool:
         """Send item + content to an LLM judge, return pass/fail.

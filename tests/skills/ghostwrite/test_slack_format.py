@@ -30,14 +30,14 @@ def test_no_greeting(result):
 
 
 def test_no_bullets_or_headers(result):
-    assert result.passes_rubric(
+    assert result.llm_judge(
         "The message is prose only. No bullet lists, numbered lists, bold text, or markdown headers.",
         on="final_message",
     )
 
 
 def test_under_60_words(result):
-    assert result.passes_rubric(
+    assert result.llm_judge(
         "The message is 60 words or fewer.",
         on="final_message",
     )
@@ -48,7 +48,7 @@ def test_no_sign_off(result):
 
 
 def test_leads_with_request(result):
-    assert result.passes_rubric(
+    assert result.llm_judge(
         "The first sentence is the request or the key point, not background context.",
         on="final_message",
     )

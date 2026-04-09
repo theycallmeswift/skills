@@ -19,7 +19,7 @@ def result(run_eval, project_root):
 
 
 def test_refuses_to_draft(result):
-    assert result.passes_rubric(
+    assert result.llm_judge(
         "Output does NOT contain a full LinkedIn post draft. Instead, it explains "
         "that ghostwrite is a rewriter and asks the user to provide source content.",
         on="final_message",
@@ -27,7 +27,7 @@ def test_refuses_to_draft(result):
 
 
 def test_no_fabrication(result):
-    assert result.passes_rubric(
+    assert result.llm_judge(
         "Output does not invent a company name, fabricate partnership details, "
         "or use [Bracket Placeholders] to fill gaps.",
         on="final_message",

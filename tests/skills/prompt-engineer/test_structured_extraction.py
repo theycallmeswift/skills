@@ -43,7 +43,7 @@ def test_no_generic_assistant_role(result):
 
 
 def test_json_only_output(result):
-    assert result.passes_rubric(
+    assert result.llm_judge(
         "The produced prompt instructs the target LLM to return only JSON "
         "with no prose wrapper, markdown fences, or commentary.",
         on="final_message",
@@ -51,7 +51,7 @@ def test_json_only_output(result):
 
 
 def test_handles_missing_fields(result):
-    assert result.passes_rubric(
+    assert result.llm_judge(
         "The produced prompt specifies what to do when a required field is "
         "missing or not found in the document (e.g. return null, omit, or "
         "indicate unknown).",
@@ -60,7 +60,7 @@ def test_handles_missing_fields(result):
 
 
 def test_handles_long_input(result):
-    assert result.passes_rubric(
+    assert result.llm_judge(
         "The produced prompt addresses how to handle long or multi-page "
         "document input (e.g. process the full document, chunking, or "
         "explicit length handling).",
