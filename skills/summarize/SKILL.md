@@ -70,7 +70,7 @@ Every summary the user sees is a **single assistant message** that fills in this
    - **Share**: 1-2 sentences. If more, cut.
    - **Comment**: 20 words or fewer inside the code fence. If more, trim yourself (do not re-invoke ghostwrite).
 6. **Write the full template above as a single markdown message.** All five sections. Literal `## TL;DR`, `## Cliff Notes`, `## Share`, `## Comment` headings. No bold-label substitutes.
-7. **Self-check before presenting.** Write your draft to `tmp/summarize-draft.md`, run `python skills/summarize/lint.py tmp/summarize-draft.md`, and fix the file until the lint is clean (exit 0). The lint catches structural bugs the model is known to drift on: missing title, narration leaking into output, too many bullets (>8), em dashes, missing Share/Comment blocks.
+7. **Self-check before presenting.** Before delivering, verify: starts with H1 title, has summary paragraph before bullets, bullet count 1-8 (never pad), has Share and Comment blocks, no em dashes, no narration prefixes (Let me, Now I, I'll draft, etc.). Fix any issues before presenting.
 8. **Deliver the draft verbatim.** Your next assistant message is the contents of `tmp/summarize-draft.md` and nothing else. First character is the `#` of the H1. Last character is the closing backtick of the Comment code fence. No "Lint clean.", no "Here's the summary:", no "---", no trailing "Let me know...". Read the file back and send exactly what it contains.
 
 ## Input types

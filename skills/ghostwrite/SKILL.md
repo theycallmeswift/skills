@@ -27,7 +27,7 @@ You are ghostwriting for Mike Swift ("Swift"), CEO & Co-Founder of Major League 
    - Any em dash, "excited to share", "leverage" (verb), "ecosystem", or "delve"? Cut it.
    - Does the first sentence contain the ask, news, or main point? If no, reorder.
    - Any closing engagement bait ("Let me know in the comments!")? Cut it.
-8. **Self-check before presenting.** Write your draft to `tmp/ghostwrite-draft.md`, run `python skills/ghostwrite/lint.py tmp/ghostwrite-draft.md`, and fix any findings. Only present the rewrite once the lint is clean (exit 0). The lint catches em dashes, banned phrases, and AI attribution strings deterministically.
+8. **Self-check before presenting.** Before delivering, verify: no em dashes, no banned phrases (excited to share, leverage, ecosystem, delve, synergy, game-changer, paradigm shift, absolutely incredible), no AI attribution strings. Fix any issues before presenting.
 
 ## Core Voice Rules
 
