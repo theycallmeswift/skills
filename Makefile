@@ -1,16 +1,13 @@
-.PHONY: install test eval test-harness lint format
+.PHONY: install test test-harness lint format
 
 install:
 	uv sync
 
 test:
-	uv run python -m tests.support.harness --tier test $(ARGS)
-
-eval:
-	uv run python -m tests.support.harness --tier eval $(ARGS)
+	uv run pytest tests/skills/ tests/core/ $(ARGS)
 
 test-harness:
-	uv run pytest -v
+	uv run pytest tests/support/harness/tests/ $(ARGS)
 
 lint:
 	uv run ruff check --fix .
