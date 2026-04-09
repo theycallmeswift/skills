@@ -18,23 +18,23 @@ tests/
   skills/
     conftest.py                            # marks skill tests
     ghostwrite/
-      test_sponsor_email.py                # lift: rewrite email in Swift's voice
-      test_linkedin_from_scratch.py        # lift: refuse to draft without source
+      test_sponsor_email.py                # rewrite email in Swift's voice
+      test_linkedin_from_scratch.py        # refuse to draft without source
     summarize/
-      test_devto_article.py                # regression: summarize a live dev.to article
-      test_rust_tab_orchestrator.py        # regression: summarize specific URL
-      test_anthropic_character.py          # regression: summarize anthropic.com page
-      test_local_pdf.py                    # regression: summarize a PDF file
-      test_pasted_text.py                  # regression: summarize raw pasted content
-      test_short_input.py                  # regression: don't pad short input
+      test_devto_article.py                # summarize a live dev.to article
+      test_rust_tab_orchestrator.py        # summarize specific URL
+      test_anthropic_character.py          # summarize anthropic.com page
+      test_local_pdf.py                    # summarize a PDF file
+      test_pasted_text.py                  # summarize raw pasted content
+      test_short_input.py                  # don't pad short input
     scope/
-      test_github_webhook_slack.py         # regression: full multi-turn scoping flow
-      test_vague_notifications.py          # lift: ask clarifying questions first
-      test_skip_design.py                  # lift: push back on skipping scoping
+      test_github_webhook_slack.py         # full multi-turn scoping flow
+      test_vague_notifications.py          # ask clarifying questions first
+      test_skip_design.py                  # push back on skipping scoping
     prompt-engineer/
-      test_contract_extraction.py          # regression: structured JSON extraction prompt
-      test_fix_bad_prompt.py               # lift: diagnose and fix a broken prompt
-      test_vague_summarization.py          # regression: ask before drafting
+      test_contract_extraction.py          # structured JSON extraction prompt
+      test_fix_bad_prompt.py               # diagnose and fix a broken prompt
+      test_vague_summarization.py          # ask before drafting
   core/
     conftest.py                            # marks core tests
     test_no_ai_attribution.py              # 3 cases: throwaway-commit, pr-draft, amend
@@ -44,56 +44,85 @@ tests/
       test-paper.pdf                       # test data files
     harness/
       runner.py                            # agent execution via Agent SDK
+      setup.py                             # setup/cleanup helpers (skill_setup, copy_files, etc.)
       matchers.py                          # EvalResult class with assertion methods
-      reporter.py                          # pytest plugin for lift reporting
+      reporter.py                          # pytest plugin for grouped reporting
       models.py                            # RunResult dataclass
       tests/                               # unit tests for harness internals
         test_matchers.py
         test_runner.py
         test_reporter.py
+        test_setup.py
 ```
 
 ## `run_eval` Fixture
 
-Provided in `tests/conftest.py`. Creates a temp directory, seeds it with context files, runs the agent, returns an `EvalResult`.
+The `run_eval` function is defined in the harness (`tests/support/harness/runner.py`) and exposed as a pytest fixture via `tests/conftest.py`. This keeps the logic testable — harness unit tests can call `run_eval` directly without pytest fixtures.
 
 ```python
+# tests/support/harness/runner.py
+def run_eval(
+    project_root: Path,
+    turns: list[str],                               # user messages, sent sequentially
+    setup: Callable[[Path], None] | None = None,    # called with temp cwd before run
+    cleanup: Callable[[Path], None] | None = None,  # called with temp cwd after run
+    model: str | None = None,                       # override runner model
+) -> EvalResult:
+    ...
+
+# tests/conftest.py
 @pytest.fixture(scope="module")
 def run_eval(project_root, request):
-    def _run(
-        skill: str | None = None,    # loads skills/<name>/ into context
-        turns: list[str] = None,     # user messages, sent sequentially
-        files: list[str] = None,     # paths relative to test file, copied into temp cwd
-        cleanup: list[str] = None,   # globs to delete after run
-        model: str | None = None,    # override runner model
-    ) -> EvalResult:
-        ...
+    def _run(**kwargs):
+        return harness_run_eval(project_root=project_root, **kwargs)
     return _run
+```
+
+`setup` and `cleanup` are callables that receive the temp directory `Path`. This keeps `run_eval` generic — the harness doesn't need to know about skills, file copying, or glob patterns. Common setup patterns are provided as helpers:
+
+```python
+# tests/support/harness/setup.py
+def skill_setup(skill: str, project_root: Path) -> Callable[[Path], None]:
+    """Copy skill dir + AGENTS.md into temp cwd, prepend SKILL.md preamble."""
+    ...
+
+def copy_files(*paths: str) -> Callable[[Path], None]:
+    """Copy files into temp cwd."""
+    ...
+
+def cleanup_globs(*patterns: str) -> Callable[[Path], None]:
+    """Delete files matching globs."""
+    ...
+
+def compose(*fns: Callable[[Path], None]) -> Callable[[Path], None]:
+    """Run multiple setup/cleanup functions in sequence."""
+    ...
 ```
 
 Behavior:
 
 - Creates a temp directory for the run
-- Copies `AGENTS.md` into it
-- If `skill` is set, copies `skills/<name>/` into it and prepends the "read and follow SKILL.md" preamble to the first turn
-- Resolves `files` relative to the calling test file's directory, copies them in
+- Calls `setup(tmp_dir)` if provided
 - Sends `turns` sequentially through the Agent SDK
 - Captures stdout, tool trace, files written, tokens, exit code
 - Returns an `EvalResult`
-- Cleans up `cleanup` globs and temp directory after the module finishes
+- Calls `cleanup(tmp_dir)` if provided
+
+Unit tests for `run_eval` live in `tests/support/harness/tests/test_runner.py`.
 
 ## Test Patterns
 
-### Regression case (single run)
+### Skill test
 
 ```python
 # tests/skills/summarize/test_devto_article.py
+from tests.support.harness.setup import skill_setup
 
 @pytest.fixture(scope="module")
-def result(run_eval):
+def result(run_eval, project_root):
     return run_eval(
-        skill="summarize",
         turns=["Summarize the top article on dev.to that isn't a challenge or contest announcement"],
+        setup=skill_setup("summarize", project_root),
     )
 
 def test_has_source_link(result):
@@ -112,46 +141,73 @@ def test_no_websearch(result):
     assert result.not_tool_called("WebSearch")
 ```
 
-### Lift case (with_skill vs baseline)
+### Skill test with file fixtures
 
 ```python
-# tests/skills/ghostwrite/test_sponsor_email.py
+# tests/skills/summarize/test_local_pdf.py
+from tests.support.harness.setup import skill_setup, copy_files, compose
 
 @pytest.fixture(scope="module")
-def result(run_eval):
+def result(run_eval, project_root):
     return run_eval(
-        skill="ghostwrite",
-        turns=["Rewrite this as an email to our sponsor contact Sarah: ..."],
+        turns=["Summarize this PDF: test-paper.pdf"],
+        setup=compose(
+            skill_setup("summarize", project_root),
+            copy_files("tests/support/fixtures/test-paper.pdf"),
+        ),
     )
 
-@pytest.fixture(scope="module")
-def baseline(run_eval):
-    return run_eval(
-        turns=["Rewrite this as an email to our sponsor contact Sarah: ..."],
-    )
-
-def test_greeting(result):
-    assert result.matches_regex(r"(?m)^Hey, Sarah --", on="final_message")
-
-def test_sign_off(result):
-    assert result.matches_regex(
-        r"(?m)(- Swift|Happy Hacking,\s*\nSwift)\s*$", on="final_message"
-    )
-
-def test_preserves_facts(result):
+def test_title_from_content(result):
     assert result.passes_rubric(
-        "Preserves all key facts: 450 fellows, 30% increase, 92% recommendation rate",
+        "Title is based on the document/paper title or filename, not a generic placeholder",
         on="final_message",
     )
 
-def test_no_em_dash(result):
-    assert result.not_contains("—", on="final_message")
+def test_no_brightdata(result):
+    assert result.not_tool_called("brightdata")
 
-def test_baseline_lacks_greeting(baseline):
-    assert not baseline.matches_regex(r"(?m)^Hey, Sarah --", on="final_message")
+def test_uses_read(result):
+    assert result.tool_called("Read")
 ```
 
-### Core case (no skill, grouped)
+### Skill test with cleanup
+
+```python
+# tests/skills/scope/test_github_webhook_slack.py
+from tests.support.harness.setup import skill_setup, cleanup_globs
+
+@pytest.fixture(scope="module")
+def result(run_eval, project_root):
+    return run_eval(
+        turns=[
+            "Scope a GitHub webhook system for MechaSwift...",
+            "Purpose is surfacing PR activity in Slack...",
+            "Go with your recommendation. Walk me through the design.",
+            "Looks good, keep going.",
+            "Design is approved. Write the spec.",
+            "Spec looks good. Nothing else for now.",
+        ],
+        setup=skill_setup("scope", project_root),
+        cleanup=cleanup_globs("references/specs/2026-*-github-webhook*.md"),
+    )
+
+def test_proposes_approaches(result):
+    assert result.passes_rubric(
+        "Output proposes 2-3 distinct approaches with trade-offs",
+        on="final_message",
+    )
+
+def test_writes_spec_file(result):
+    assert any(fnmatch(f, "references/specs/*.md") for f in result.files_written)
+
+def test_no_implementation_code(result):
+    assert not any(fnmatch(f, "*.py") for f in result.files_written)
+    assert not any(fnmatch(f, "*.js") for f in result.files_written)
+    assert not any(fnmatch(f, "*.ts") for f in result.files_written)
+    assert "package.json" not in result.files_written
+```
+
+### Core test (no skill, grouped)
 
 ```python
 # tests/core/test_no_ai_attribution.py
@@ -238,16 +294,62 @@ make test                                          # all evals
 make test ARGS="tests/skills/ghostwrite/"          # one skill
 make test ARGS="-k sponsor_email"                  # one case
 make test ARGS="--model claude-haiku-4-5-20251001" # specific model
-make test ARGS="--eval-verbose"                    # show evidence
+make test ARGS="--verbose"                         # show evidence
 make test-harness                                  # harness unit tests only
 ```
+
+### Example output
+
+```
+$ make test
+uv run pytest tests/skills/ tests/core/
+
+Skill            Test                       Result   Time
+ghostwrite       test_sponsor_email         3/4      15.2s
+ghostwrite       test_linkedin_scratch      3/3      12.8s
+summarize        test_devto_article         4/4      18.1s
+summarize        test_rust_tab_orchestrator 4/4      17.5s
+scope            test_vague_notifications   1/3      14.5s
+scope            test_github_webhook_slack  7/7      22.3s
+core             test_skill_triggers        6/6      11.3s
+core             test_no_ai_attribution     4/4      16.4s
+                                            32/35    48.1s
+
+================================ FAILURES ================================
+
+tests/skills/ghostwrite/test_sponsor_email.py::test_sign_off
+  AssertionError: matches_regex failed on final_message
+    pattern: (?m)(- Swift|Happy Hacking,\s*\nSwift)\s*$
+    final_message (last 200 chars):
+      ...Let me know if you'd like to hop on a call next week.
+
+      Best regards,
+      Mike
+
+tests/skills/scope/test_vague_notifications.py::test_asks_clarifying_question
+  AssertionError: passes_rubric failed on final_message
+    rubric: "Output asks at least one clarifying question before proposing approaches"
+    judge_reasoning: "The output immediately proposes three notification
+      architectures without asking any clarifying questions about the user's
+      requirements, audience, or constraints."
+
+tests/skills/scope/test_vague_notifications.py::test_no_full_design
+  AssertionError: passes_rubric failed on final_message
+    rubric: "Output does not propose a full design without first gathering requirements"
+    judge_reasoning: "The output presents three complete architectural approaches
+      with trade-offs, which constitutes a full design proposal."
+
+================== 3 failed, 32 passed in 48.1s ==================
+```
+
+Each row is one agent run (module-scoped fixture). Multiple assertions against the same run are aggregated into the Result column. Failures print full detail below the table.
 
 ## CLI Options
 
 Registered in `tests/conftest.py`:
 
 - `--model` — override the model the agent uses for runs
-- `--eval-verbose` — show passing assertion evidence in output
+- `--verbose` — show passing assertion evidence in output
 
 ## Reporter
 
@@ -259,9 +361,19 @@ pytest_plugins = ["tests.support.harness.reporter"]
 
 It hooks into pytest reporting to:
 
-- Group results by skill/core
-- For lift cases (files with both `result` and `baseline` fixtures), print a comparison table
-- Show assertion evidence when `--eval-verbose` is set
+- Print a summary table with one row per test file (skill, test name, pass/total, duration)
+- Print full failure details below the table
+- Show assertion evidence when `--verbose` is set
+
+## Future: Comparative Benchmarks
+
+Comparative benchmarking (skill vs no-skill, model A vs model B) is out of scope for this rewrite. A future `make benchmark` mode will add:
+
+- Parametrized runs across configurations (skill loaded/not, model variants)
+- Matrix reporter showing pass rates per config
+- Delta analysis
+
+The test infrastructure built here (runner, setup helpers, matchers) will serve as the foundation.
 
 ## Conventions
 
@@ -276,10 +388,11 @@ It hooks into pytest reporting to:
 - `tests/skills/conftest.py`
 - `tests/core/conftest.py`
 - `tests/support/harness/matchers.py`
+- `tests/support/harness/setup.py`
 - `tests/support/harness/reporter.py` (rewritten as pytest plugin)
 - 14 test files under `tests/skills/`
 - 2 test files under `tests/core/`
-- Harness unit tests: `tests/support/harness/tests/test_matchers.py`, `test_reporter.py`
+- Harness unit tests: `tests/support/harness/tests/test_matchers.py`, `test_reporter.py`, `test_setup.py`
 
 ### Files moved
 
