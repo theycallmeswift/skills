@@ -73,6 +73,7 @@ def _run_with_trace(trace):
         exit_code=0,
         tool_trace=trace,
         turn_count=1,
+        final_message="",
     )
 
 
