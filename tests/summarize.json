@@ -1,8 +1,5 @@
 {
   "name": "summarize",
-  "shared_assertions": [
-    {"lint": "summarize"}
-  ],
   "evals": [
     {
       "id": "devto-top-article",
@@ -10,10 +7,8 @@
       "turns": [
         "Summarize the top article on dev.to that isn't a challenge or contest announcement"
       ],
-      "files": [],
       "assertions": [
-        {"text": "Output contains a clickable markdown link to the source dev.to URL somewhere near the title (the title line itself being a link is acceptable)"},
-        {"text": "The shareable snippet block includes the source URL (either inline or on its own line)"},
+        {"script_name": "summarize"},
         {"tool_called": "scrape_as_markdown"},
         {"tool_not_called": "WebFetch"},
         {"tool_not_called": "WebSearch"}
@@ -25,11 +20,9 @@
       "turns": [
         "Summarize this article: https://dev.to/tasenikol/when-chrome-ate-my-ram-designing-a-pressure-aware-tab-orchestrator-with-rust-1g05"
       ],
-      "files": [],
       "assertions": [
-        {"text": "Output contains a clickable markdown link to the source URL (https://dev.to/tasenikol/...) near the title"},
-        {"text": "The shareable snippet block includes the source URL (either inline or on its own line)"},
-        {"text": "Key points reference specific content from the article: Rust, Chrome tabs, memory pressure, or tab orchestration (not generic commentary)"},
+        {"script_name": "summarize"},
+        {"regex": "\\[.*\\]\\(https://dev\\.to/tasenikol/[^)]+\\)"},
         {"tool_called": "scrape_as_markdown"},
         {"tool_not_called": "WebFetch"},
         {"tool_not_called": "WebSearch"}
@@ -41,11 +34,9 @@
       "turns": [
         "Summarize this page for me https://www.anthropic.com/research/claude-character"
       ],
-      "files": [],
       "assertions": [
-        {"text": "Output contains a clickable markdown link to the source URL (https://www.anthropic.com/research/claude-character) near the title"},
-        {"text": "The shareable snippet block includes the source URL (either inline or on its own line)"},
-        {"text": "Key points reference specific content from the article: Claude's character, personality, Anthropic's approach to model personality, or related concrete themes (not generic AI commentary)"},
+        {"script_name": "summarize"},
+        {"regex": "\\[.*\\]\\(https://www\\.anthropic\\.com/research/claude-character[^)]*\\)"},
         {"tool_called": "scrape_as_markdown"},
         {"tool_not_called": "WebFetch"},
         {"tool_not_called": "WebSearch"}
@@ -59,9 +50,7 @@
       ],
       "files": ["test-paper.pdf"],
       "assertions": [
-        {"text": "Title is based on the document/paper title or filename (not a URL and not a generic placeholder like 'Summary' or 'Document')"},
-        {"text": "The shareable snippet block contains no URL — this is a local PDF with no source URL to share"},
-        {"text": "Key points are grounded in the PDF content, not invented or generic"},
+        {"script_name": "summarize"},
         {"tool_called": "Read"},
         {"tool_not_called": "WebFetch"},
         {"tool_not_called": "WebSearch"},
@@ -70,15 +59,12 @@
     },
     {
       "id": "paste-raw-text",
+      "intent": "regression",
       "turns": [
         "Summarize this for me:\n\nThe rise of the pull request has fundamentally reshaped how software teams collaborate. Originally introduced by GitHub in 2008 as a lightweight way to propose changes across forks, the pull request has evolved into the primary unit of code review, discussion, and integration in modern engineering workflows. Teams argue about PR size, PR templates, PR etiquette, and how long a PR can sit in review before it becomes stale. Companies have built entire product lines around PR automation — linters that comment inline, bots that auto-assign reviewers based on CODEOWNERS, dashboards that show how long each PR spent waiting at each stage.\n\nBut the pull request has a dark side. Large PRs are where bugs hide, because reviewers skim when they should read. Small PRs fragment context, forcing reviewers to hold a mental model across six tabs. Teams that merge PRs too fast ship bugs; teams that merge too slow ship nothing. The median PR in a busy repository sits in review for two days, and those two days are where velocity goes to die. Solving the pull request problem has become a cottage industry: trunk-based development advocates, stacked diff tools like Graphite, and AI review bots all claim to have the answer.\n\nThe real answer is probably boring: small, focused changes; reviewers who actually read; and a team culture that treats a pending PR as a shared problem, not one person's backlog item."
       ],
-      "files": [],
-      "intent": "regression",
       "assertions": [
-        {"text": "Title is based on the pasted content (e.g. mentions pull requests, code review, or a related specific concept), not a generic placeholder like 'Summary' or 'Document'"},
-        {"text": "Key points reflect the pasted text (PR size, review time, trunk-based development, reviewer behavior, stacked diffs, etc.), not invented topics"},
-        {"text": "The shareable snippet block contains no URL — this is pasted text input with no source URL to share"},
+        {"script_name": "summarize"},
         {"tool_not_called": "scrape_as_markdown"},
         {"tool_not_called": "scrape_batch"},
         {"tool_not_called": "WebFetch"},
@@ -91,14 +77,8 @@
       "turns": [
         "Summarize this note:\n\nWe decided to push the Q3 demo day to the week of September 15. The reason is that the new partner onboarding flow won't be ready in time for the original date. Marketing has been told. Calendar invites will go out Friday."
       ],
-      "files": [],
-      "use_shared_assertions": false,
       "assertions": [
-        {"text": "Output contains a clear title for the note (H1 or other visually distinct title line)"},
-        {"text": "Output contains a short 1-2 sentence summary near the top naming the Q3 demo day date change as the core fact"},
-        {"text": "If a bulleted list of points is present, every bullet is directly supported by the 4-sentence input (mentions demo day, Sept 15, partner onboarding, marketing, or calendar invites) and none are invented"},
-        {"text": "The summary and key points (not the shareable snippet or forum comment — those are explicitly opinionated takeaways) do NOT pad with generic project-management commentary not present in the input, such as risk commentary, schedule advice, or prescriptive framing"},
-        {"lint": "summarize"},
+        {"script_name": "summarize"},
         {"tool_not_called": "scrape_as_markdown"},
         {"tool_not_called": "WebFetch"}
       ]
