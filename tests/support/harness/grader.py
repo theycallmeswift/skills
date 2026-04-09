@@ -1,8 +1,10 @@
+import fnmatch
 import json
 import subprocess
 import sys
 import tempfile
 from pathlib import Path
+from typing import Callable
 
 from claude_agent_sdk import AssistantMessage, ClaudeAgentOptions, ResultMessage, query
 
@@ -14,6 +16,27 @@ DEFAULT_GRADER_MODEL = "claude-haiku-4-5-20251001"
 DEFAULT_STDOUT_LIMIT = 40_000
 DEFAULT_FILE_LIMIT = 10_000
 DEFAULT_TRACE_LIMIT = 50
+
+
+def _resolve_source(run: RunResult, on: str | None) -> list[str]:
+    """Return the list of text sources to run an assertion against.
+
+    - None or "final_message": the final assistant text (what the user sees)
+    - "stdout": the concatenated run output
+    - "files.<glob>": contents of every written file whose relative path matches the glob
+    """
+    if on is None or on == "final_message":
+        return [getattr(run, "final_message", "") or ""]
+    if on == "stdout":
+        return [run.stdout or ""]
+    if on.startswith("files."):
+        pattern = on[len("files."):]
+        return [
+            content
+            for path, content in run.files_written.items()
+            if fnmatch.fnmatch(path, pattern)
+        ]
+    raise ValueError(f"unknown `on` target: {on!r}")
 
 
 def _truncate_tail(s: str, limit: int) -> str:
@@ -104,79 +127,87 @@ def _match_skill_invocation(trace: list[dict], skill: str) -> dict | None:
     return None
 
 
+_PrimitiveFn = Callable[[dict, RunResult], dict]
+
+_PRIMITIVES: dict[str, _PrimitiveFn] = {}
+
+
+def _primitive(key: str) -> Callable[[_PrimitiveFn], _PrimitiveFn]:
+    def decorator(fn: _PrimitiveFn) -> _PrimitiveFn:
+        _PRIMITIVES[key] = fn
+        return fn
+    return decorator
+
+
+@_primitive("tool_called")
+def _grade_tool_called(a: dict, run: RunResult) -> dict:
+    needle = a["tool_called"]
+    hit = _match_tool(run.tool_trace, needle)
+    if hit is not None:
+        return {
+            "text": f"tool_called: {needle}",
+            "passed": True,
+            "evidence": f"matched tool '{hit['name']}' on turn {hit.get('turn', '?')}",
+        }
+    return {
+        "text": f"tool_called: {needle}",
+        "passed": False,
+        "evidence": f"no matching tool in trace ({len(run.tool_trace)} entries)",
+    }
+
+
+@_primitive("tool_not_called")
+def _grade_tool_not_called(a: dict, run: RunResult) -> dict:
+    needle = a["tool_not_called"]
+    hit = _match_tool(run.tool_trace, needle)
+    if hit is None:
+        return {
+            "text": f"tool_not_called: {needle}",
+            "passed": True,
+            "evidence": f"no matching tool in trace ({len(run.tool_trace)} entries)",
+        }
+    return {
+        "text": f"tool_not_called: {needle}",
+        "passed": False,
+        "evidence": f"found '{hit['name']}' on turn {hit.get('turn', '?')}",
+    }
+
+
+@_primitive("skill_invoked")
+def _grade_skill_invoked(a: dict, run: RunResult) -> dict:
+    skill = a["skill_invoked"]
+    hit = _match_skill_invocation(run.tool_trace, skill)
+    if hit is not None:
+        return {
+            "text": f"skill_invoked: {skill}",
+            "passed": True,
+            "evidence": f"Skill tool fired with skill='{hit['input'].get('skill', '?')}' on turn {hit.get('turn', '?')}",
+        }
+    has_any_skill = any(e.get("name") == "Skill" for e in run.tool_trace)
+    if has_any_skill:
+        fired = [
+            e.get("input", {}).get("skill", "?")
+            for e in run.tool_trace
+            if e.get("name") == "Skill"
+        ]
+        evidence = f"Skill tool fired but with different skills: {fired}"
+    else:
+        evidence = "no Skill tool invocations in trace"
+    return {"text": f"skill_invoked: {skill}", "passed": False, "evidence": evidence}
+
+
+@_primitive("lint")  # TEMPORARY alias until Task 9 renames to script_name
+def _grade_lint_primitive(a: dict, run: RunResult) -> dict:
+    return _grade_lint(a["lint"], run)
+
+
 def _grade_deterministic(assertions: list[dict], run: RunResult) -> list[dict]:
-    """Evaluate deterministic assertions against the tool trace."""
     out: list[dict] = []
     for a in assertions:
-        if "tool_called" in a:
-            needle = a["tool_called"]
-            hit = _match_tool(run.tool_trace, needle)
-            if hit is not None:
-                out.append(
-                    {
-                        "text": f"tool_called: {needle}",
-                        "passed": True,
-                        "evidence": f"matched tool '{hit['name']}' on turn {hit.get('turn', '?')}",
-                    }
-                )
-            else:
-                out.append(
-                    {
-                        "text": f"tool_called: {needle}",
-                        "passed": False,
-                        "evidence": f"no matching tool in trace ({len(run.tool_trace)} entries)",
-                    }
-                )
-        elif "tool_not_called" in a:
-            needle = a["tool_not_called"]
-            hit = _match_tool(run.tool_trace, needle)
-            if hit is None:
-                out.append(
-                    {
-                        "text": f"tool_not_called: {needle}",
-                        "passed": True,
-                        "evidence": f"no matching tool in trace ({len(run.tool_trace)} entries)",
-                    }
-                )
-            else:
-                out.append(
-                    {
-                        "text": f"tool_not_called: {needle}",
-                        "passed": False,
-                        "evidence": f"found '{hit['name']}' on turn {hit.get('turn', '?')}",
-                    }
-                )
-        elif "lint" in a:
-            out.append(_grade_lint(a["lint"], run))
-        elif "skill_invoked" in a:
-            skill = a["skill_invoked"]
-            hit = _match_skill_invocation(run.tool_trace, skill)
-            if hit is not None:
-                out.append(
-                    {
-                        "text": f"skill_invoked: {skill}",
-                        "passed": True,
-                        "evidence": f"Skill tool fired with skill='{hit['input'].get('skill', '?')}' on turn {hit.get('turn', '?')}",
-                    }
-                )
-            else:
-                has_any_skill = any(e.get("name") == "Skill" for e in run.tool_trace)
-                if has_any_skill:
-                    fired = [
-                        e.get("input", {}).get("skill", "?")
-                        for e in run.tool_trace
-                        if e.get("name") == "Skill"
-                    ]
-                    evidence = f"Skill tool fired but with different skills: {fired}"
-                else:
-                    evidence = "no Skill tool invocations in trace"
-                out.append(
-                    {
-                        "text": f"skill_invoked: {skill}",
-                        "passed": False,
-                        "evidence": evidence,
-                    }
-                )
+        for key, fn in _PRIMITIVES.items():
+            if key in a:
+                out.append(fn(a, run))
+                break
     return out
 
 
@@ -208,7 +239,7 @@ def _build_prompt(
     )
 
 
-_DETERMINISTIC_KEYS = ("tool_called", "tool_not_called", "skill_invoked", "lint")
+_DETERMINISTIC_KEYS = tuple(_PRIMITIVES.keys())
 
 
 def _repo_root() -> Path:
@@ -254,7 +285,7 @@ def _grade_lint(skill: str, run: RunResult) -> dict:
 
 
 def _is_deterministic(assertion: dict) -> bool:
-    return any(k in assertion for k in _DETERMINISTIC_KEYS)
+    return any(k in assertion for k in _PRIMITIVES)
 
 
 async def _grade_text_llm(

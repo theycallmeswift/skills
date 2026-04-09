@@ -8,11 +8,52 @@ from tests.support.harness.grader import (
     _build_prompt,
     _grade_deterministic,
     _parse_grader_fallback,
+    _resolve_source,
     _truncate_tail,
     grade,
 )
 from tests.support.harness.models import Grading
 from tests.support.harness.runner import RunResult
+
+
+def _run(stdout="", final_message="", files_written=None):
+    return RunResult(
+        stdout=stdout,
+        files_written=files_written or {},
+        input_tokens=0,
+        output_tokens=0,
+        duration_s=0.0,
+        exit_code=0,
+        tool_trace=[],
+        turn_count=1,
+        final_message=final_message,
+    )
+
+
+def test_resolve_source_defaults_to_final_message():
+    run = _run(stdout="STDOUT", final_message="FINAL")
+    assert _resolve_source(run, None) == ["FINAL"]
+
+
+def test_resolve_source_stdout():
+    run = _run(stdout="STDOUT", final_message="FINAL")
+    assert _resolve_source(run, "stdout") == ["STDOUT"]
+
+
+def test_resolve_source_final_message_explicit():
+    run = _run(stdout="STDOUT", final_message="FINAL")
+    assert _resolve_source(run, "final_message") == ["FINAL"]
+
+
+def test_resolve_source_files_glob_returns_all_matches():
+    run = _run(files_written={"a.md": "alpha", "b.md": "beta", "c.txt": "gamma"})
+    got = _resolve_source(run, "files.*.md")
+    assert sorted(got) == ["alpha", "beta"]
+
+
+def test_resolve_source_files_glob_no_matches_returns_empty():
+    run = _run(files_written={"a.md": "alpha"})
+    assert _resolve_source(run, "files.*.txt") == []
 
 
 def test_truncate_tail_keeps_end_and_adds_marker():
