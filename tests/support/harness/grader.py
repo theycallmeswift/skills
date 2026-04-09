@@ -310,6 +310,54 @@ def _grade_token_usage_lte(a: dict, run: RunResult) -> dict:
     }
 
 
+@_primitive("trace_order")
+def _grade_trace_order(a: dict, run: RunResult) -> dict:
+    expected = a["trace_order"]
+    names = [e.get("name", "") for e in run.tool_trace]
+    # Match each expected tool using substring containment (like _match_tool),
+    # advancing a cursor so order must be preserved. Missing expected = fail.
+    cursor = 0
+    missing: list[str] = []
+    for needle in expected:
+        found = False
+        for i in range(cursor, len(names)):
+            if needle in names[i]:
+                cursor = i + 1
+                found = True
+                break
+        if not found:
+            missing.append(needle)
+    passed = not missing
+    return {
+        "text": f"trace_order: {expected}",
+        "passed": passed,
+        "evidence": ("matched in order" if passed else f"missing or out of order: {missing}"),
+    }
+
+
+@_primitive("trace_count_lte")
+def _grade_trace_count_lte(a: dict, run: RunResult) -> dict:
+    spec = a["trace_count_lte"]
+    tool = spec["tool"]
+    cap = spec["n"]
+    count = sum(1 for e in run.tool_trace if tool in e.get("name", ""))
+    return {
+        "text": f"trace_count_lte: {tool} <= {cap}",
+        "passed": count <= cap,
+        "evidence": f"found {count} call(s) to {tool}",
+    }
+
+
+@_primitive("turn_count_lte")
+def _grade_turn_count_lte(a: dict, run: RunResult) -> dict:
+    cap = a["turn_count_lte"]
+    return {
+        "text": f"turn_count_lte: {cap}",
+        "passed": run.turn_count <= cap,
+        "evidence": f"ran {run.turn_count} turn(s)",
+    }
+
+
 @_primitive("lint")  # TEMPORARY alias until Task 9 renames to script_name
 def _grade_lint_primitive(a: dict, run: RunResult) -> dict:
     return _grade_lint(a["lint"], run)

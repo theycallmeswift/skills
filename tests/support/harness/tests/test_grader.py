@@ -463,3 +463,73 @@ def test_token_usage_lte_fails_over_cap():
     exps = _grade_deterministic([{"token_usage_lte": 10000}], run)
     assert exps[0]["passed"] is False
     assert "11000" in exps[0]["evidence"]
+
+
+def test_trace_order_passes_when_tools_in_order():
+    trace = [
+        {"name": "scrape_as_markdown", "input": {}, "turn": 1},
+        {"name": "Bash", "input": {}, "turn": 1},
+        {"name": "Write", "input": {}, "turn": 1},
+    ]
+    run = _run_with_trace(trace)
+    exps = _grade_deterministic(
+        [{"trace_order": ["scrape_as_markdown", "Write"]}], run
+    )
+    assert exps[0]["passed"] is True
+
+
+def test_trace_order_fails_when_out_of_order():
+    trace = [
+        {"name": "Write", "input": {}, "turn": 1},
+        {"name": "scrape_as_markdown", "input": {}, "turn": 1},
+    ]
+    run = _run_with_trace(trace)
+    exps = _grade_deterministic(
+        [{"trace_order": ["scrape_as_markdown", "Write"]}], run
+    )
+    assert exps[0]["passed"] is False
+
+
+def test_trace_order_fails_when_missing_tool():
+    trace = [{"name": "scrape_as_markdown", "input": {}, "turn": 1}]
+    run = _run_with_trace(trace)
+    exps = _grade_deterministic(
+        [{"trace_order": ["scrape_as_markdown", "Write"]}], run
+    )
+    assert exps[0]["passed"] is False
+    assert "Write" in exps[0]["evidence"]
+
+
+def test_trace_count_lte_passes_under_cap():
+    run = _run_with_trace(
+        [{"name": "Bash", "input": {}, "turn": 1} for _ in range(2)]
+    )
+    exps = _grade_deterministic(
+        [{"trace_count_lte": {"tool": "Bash", "n": 3}}], run
+    )
+    assert exps[0]["passed"] is True
+
+
+def test_trace_count_lte_fails_over_cap():
+    run = _run_with_trace(
+        [{"name": "Bash", "input": {}, "turn": 1} for _ in range(5)]
+    )
+    exps = _grade_deterministic(
+        [{"trace_count_lte": {"tool": "Bash", "n": 3}}], run
+    )
+    assert exps[0]["passed"] is False
+    assert "5" in exps[0]["evidence"]
+
+
+def test_turn_count_lte_passes():
+    run = _run_with_trace([])
+    run.turn_count = 1
+    exps = _grade_deterministic([{"turn_count_lte": 1}], run)
+    assert exps[0]["passed"] is True
+
+
+def test_turn_count_lte_fails():
+    run = _run_with_trace([])
+    run.turn_count = 3
+    exps = _grade_deterministic([{"turn_count_lte": 1}], run)
+    assert exps[0]["passed"] is False
