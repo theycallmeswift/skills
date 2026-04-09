@@ -1219,49 +1219,32 @@ git commit -m "feat: add root conftest.py with run_eval fixture and CLI options"
 
 ### Task 6: Ghostwrite Skill Tests
 
-Migrate `tests/ghostwrite.json` to two pytest test files. Inline the lint checks from `skills/ghostwrite/lint.py`.
+Migrate `tests/ghostwrite.json` to pytest test files. Inline the lint checks from `skills/ghostwrite/lint.py` into a shared helper. Each medium (email, LinkedIn, Slack, blog) gets its own test file with medium-specific assertions plus shared core rules. A separate file tests the "refuses to create from scratch" gate.
 
 **Files:**
-- Create: `tests/skills/ghostwrite/test_sponsor_email.py`
-- Create: `tests/skills/ghostwrite/test_linkedin_from_scratch.py`
+- Create: `tests/skills/ghostwrite/core_checks.py` (shared helper, not a test file)
+- Create: `tests/skills/ghostwrite/test_email_format.py`
+- Create: `tests/skills/ghostwrite/test_refuses_from_scratch.py`
+- Create: `tests/skills/ghostwrite/test_linkedin_format.py`
+- Create: `tests/skills/ghostwrite/test_slack_format.py`
+- Create: `tests/skills/ghostwrite/test_blog_format.py`
 - Read: `tests/ghostwrite.json` (source assertions)
 - Read: `skills/ghostwrite/lint.py` (checks to inline)
 
-The `script_name: ghostwrite` assertion from the JSON ran `lint.py` which checks: no em dashes, no banned phrases, no AI attribution. These become inline `assert` statements.
+- [ ] **Step 1: Create core_checks.py**
 
-- [ ] **Step 1: Create test_sponsor_email.py**
+Shared helper that every format test imports. Inlines the universal voice rules from `skills/ghostwrite/lint.py`.
 
 ```python
-# tests/skills/ghostwrite/test_sponsor_email.py
-import textwrap
-
-import pytest
-
-from tests.support.harness.setup import skill_setup
+# tests/skills/ghostwrite/core_checks.py
 
 
-@pytest.fixture(scope="module")
-def result(run_eval, project_root):
-    return run_eval(
-        turns=[
-            textwrap.dedent("""\
-                Rewrite this as an email to our sponsor contact Sarah:
-
-                Hey so I wanted to reach out because we just wrapped up Season 3 of the Fellowship and the numbers were really strong. We had 450 fellows complete the program which is up 30% from last season. 92% of them said they'd recommend it to a friend. I think this is a great opportunity for us to talk about renewing the sponsorship for next season and maybe even expanding the scope of what we do together. Let me know if you'd be open to hopping on a call next week to discuss.\
-            """),
-        ],
-        setup=skill_setup("ghostwrite", project_root),
-    )
-
-
-# --- Lint checks (inlined from skills/ghostwrite/lint.py) ---
-
-
-def test_no_em_dash(result):
+def assert_core_rules(result, source_text: str):
+    """Core voice rules that apply to every ghostwrite output (from lint.py)."""
+    # No em dashes — ever
     assert result.not_contains("\u2014", on="final_message")
 
-
-def test_no_banned_phrases(result):
+    # No banned phrases
     assert result.not_matches_regex(r"\bexcited to share\b", on="final_message")
     assert result.not_matches_regex(r"\bleverage[ds]?\b", on="final_message")
     assert result.not_matches_regex(r"\becosystem\b", on="final_message")
@@ -1270,15 +1253,63 @@ def test_no_banned_phrases(result):
     assert result.not_matches_regex(r"\bgame[- ]changer\b", on="final_message")
     assert result.not_matches_regex(r"\bparadigm shift\b", on="final_message")
     assert result.not_matches_regex(r"\babsolutely incredible\b", on="final_message")
+    assert result.not_matches_regex(r"Let me know in the comments", on="final_message")
 
-
-def test_no_ai_attribution(result):
+    # No AI attribution
     assert result.not_matches_regex(r"Generated with \[?Claude", on="final_message")
     assert result.not_matches_regex(r"Co-Authored-By:\s*Claude", on="final_message")
     assert result.not_matches_regex(r"\bAI-assisted\b", on="final_message")
 
+    # Output is shorter than input
+    assert result.output_len_lte(len(source_text), on="final_message")
+```
 
-# --- Content assertions (from evals.json) ---
+- [ ] **Step 2: Create test_email_format.py**
+
+Reuses the sponsor-email prompt from the original JSON eval.
+
+```python
+# tests/skills/ghostwrite/test_email_format.py
+import textwrap
+
+import pytest
+
+from tests.support.harness.setup import skill_setup
+from tests.skills.ghostwrite.core_checks import assert_core_rules
+
+SOURCE = textwrap.dedent("""\
+    Hey so I wanted to reach out because we just wrapped up Season 3 of the \
+    Fellowship and the numbers were really strong. We had 450 fellows complete \
+    the program which is up 30% from last season. 92% of them said they'd \
+    recommend it to a friend. I think this is a great opportunity for us to \
+    talk about renewing the sponsorship for next season and maybe even \
+    expanding the scope of what we do together. Let me know if you'd be open \
+    to hopping on a call next week to discuss.\
+""")
+
+
+@pytest.fixture(scope="module")
+def result(run_eval, project_root):
+    return run_eval(
+        turns=[f"Rewrite this as an email to our sponsor contact Sarah:\n\n{SOURCE}"],
+        setup=skill_setup("ghostwrite", project_root),
+    )
+
+
+def test_core_rules(result):
+    assert_core_rules(result, SOURCE)
+
+
+def test_leads_with_the_ask(result):
+    assert result.passes_rubric(
+        "The first sentence contains the results, the news, or the ask. "
+        "There is no preamble like 'I wanted to reach out' or 'I hope this finds you well'.",
+        on="final_message",
+    )
+
+
+def test_preserves_key_numbers(result):
+    assert result.contains_all(["450", "30%", "92%"], on="final_message")
 
 
 def test_greeting_format(result):
@@ -1291,20 +1322,19 @@ def test_sign_off(result):
     )
 
 
-def test_preserves_key_numbers(result):
-    assert result.contains_all(["450", "30%", "92%"], on="final_message")
-
-
-def test_output_length(result):
-    assert result.output_len_lte(600, on="final_message")
+def test_no_section_headers(result):
+    assert result.passes_rubric(
+        "The email uses narrative transitions between topics, not bold headers or section dividers.",
+        on="final_message",
+    )
 ```
 
-- [ ] **Step 2: Create test_linkedin_from_scratch.py**
+- [ ] **Step 3: Create test_refuses_from_scratch.py**
 
-The model should refuse to draft from scratch — lint checks (em dashes, attribution) don't apply since no content is produced.
+The model should refuse to draft from scratch — no content is produced so core rules don't apply.
 
 ```python
-# tests/skills/ghostwrite/test_linkedin_from_scratch.py
+# tests/skills/ghostwrite/test_refuses_from_scratch.py
 import textwrap
 
 import pytest
@@ -1317,7 +1347,8 @@ def result(run_eval, project_root):
     return run_eval(
         turns=[
             textwrap.dedent("""\
-                Write a LinkedIn post announcing that MLH is partnering with a new AI company to offer hackathon participants access to their API.\
+                Write a LinkedIn post announcing that MLH is partnering with a \
+                new AI company to offer hackathon participants access to their API.\
             """),
         ],
         setup=skill_setup("ghostwrite", project_root),
@@ -1326,41 +1357,262 @@ def result(run_eval, project_root):
 
 def test_refuses_to_draft(result):
     assert result.passes_rubric(
-        "Output does NOT contain a full LinkedIn post draft. Instead, it explains that ghostwrite is a rewriter and asks the user to provide source content.",
+        "Output does NOT contain a full LinkedIn post draft. Instead, it explains "
+        "that ghostwrite is a rewriter and asks the user to provide source content.",
+        on="final_message",
+    )
+
+
+def test_no_fabrication(result):
+    assert result.passes_rubric(
+        "Output does not invent a company name, fabricate partnership details, "
+        "or use [Bracket Placeholders] to fill gaps.",
         on="final_message",
     )
 ```
 
-- [ ] **Step 3: Verify tests are collected**
+- [ ] **Step 4: Create test_linkedin_format.py**
+
+Needs a new prompt with actual source content to rewrite as a LinkedIn post.
+
+```python
+# tests/skills/ghostwrite/test_linkedin_format.py
+import textwrap
+
+import pytest
+
+from tests.support.harness.setup import skill_setup
+from tests.skills.ghostwrite.core_checks import assert_core_rules
+
+SOURCE = textwrap.dedent("""\
+    We just wrapped the 2026 Spring Season of the MLH Fellowship. 620 fellows \
+    shipped production code at 45 partner companies. Completion rate was 94%. \
+    Three fellows got return offers before the program ended. The new cohort \
+    model we piloted let us run two tracks (open source and production) without \
+    doubling ops headcount. Next season opens applications June 1.\
+""")
+
+
+@pytest.fixture(scope="module")
+def result(run_eval, project_root):
+    return run_eval(
+        turns=[f"Rewrite this as a LinkedIn post:\n\n{SOURCE}"],
+        setup=skill_setup("ghostwrite", project_root),
+    )
+
+
+def test_core_rules(result):
+    assert_core_rules(result, SOURCE)
+
+
+def test_no_markdown_bold(result):
+    assert result.not_matches_regex(r"\*\*[^*]+\*\*", on="final_message")
+
+
+def test_has_hashtags(result):
+    assert result.matches_regex(r"#\w+", on="final_message", min=4, max=7)
+
+
+def test_length_under_250_words(result):
+    assert result.passes_rubric(
+        "The post is 250 words or fewer.",
+        on="final_message",
+    )
+
+
+def test_no_engagement_bait_closer(result):
+    assert result.not_matches_regex(
+        r"(?i)let me know in the comments", on="final_message"
+    )
+```
+
+- [ ] **Step 5: Create test_slack_format.py**
+
+Needs a new prompt with source content to rewrite as a Slack message.
+
+```python
+# tests/skills/ghostwrite/test_slack_format.py
+import textwrap
+
+import pytest
+
+from tests.support.harness.setup import skill_setup
+from tests.skills.ghostwrite.core_checks import assert_core_rules
+
+SOURCE = textwrap.dedent("""\
+    Hey team, I wanted to flag that the sponsorship deck for Hack the North \
+    needs to go out by Friday. The numbers are finalized -- 1,200 hackers, \
+    38 sponsors confirmed, NPS of 87 from last year. Can someone on the \
+    partnerships team send the updated version to the organizers?\
+""")
+
+
+@pytest.fixture(scope="module")
+def result(run_eval, project_root):
+    return run_eval(
+        turns=[f"Rewrite this as a Slack message:\n\n{SOURCE}"],
+        setup=skill_setup("ghostwrite", project_root),
+    )
+
+
+def test_core_rules(result):
+    assert_core_rules(result, SOURCE)
+
+
+def test_no_greeting(result):
+    assert result.not_matches_regex(r"(?i)^Hey (team|folks|everyone)", on="final_message")
+
+
+def test_no_bullets_or_headers(result):
+    assert result.passes_rubric(
+        "The message is prose only. No bullet lists, numbered lists, bold text, or markdown headers.",
+        on="final_message",
+    )
+
+
+def test_under_60_words(result):
+    assert result.passes_rubric(
+        "The message is 60 words or fewer.",
+        on="final_message",
+    )
+
+
+def test_no_sign_off(result):
+    assert result.not_matches_regex(r"(?m)(- Swift|Happy Hacking)", on="final_message")
+
+
+def test_leads_with_request(result):
+    assert result.passes_rubric(
+        "The first sentence is the request or the key point, not background context.",
+        on="final_message",
+    )
+```
+
+- [ ] **Step 6: Create test_blog_format.py**
+
+Needs a new prompt with source content to rewrite as a DEV blog post.
+
+```python
+# tests/skills/ghostwrite/test_blog_format.py
+import textwrap
+
+import pytest
+
+from tests.support.harness.setup import skill_setup
+from tests.skills.ghostwrite.core_checks import assert_core_rules
+
+SOURCE = textwrap.dedent("""\
+    MLH ran Global Hack Week in March 2026. It was our biggest one yet -- \
+    18,000 participants across 120 countries over 7 days. We tried a new \
+    format this time where each day had a themed challenge (Day 1 was AI, \
+    Day 2 was open source, Day 3 was hardware, etc). The daily themes drove \
+    way more engagement than the old format where everything was open-ended. \
+    Completion rates went from 34% to 61%. The most popular challenge was \
+    the Day 5 "ship a CLI tool" challenge with 4,200 submissions. We're \
+    going to keep the themed format for future GHWs.\
+""")
+
+
+@pytest.fixture(scope="module")
+def result(run_eval, project_root):
+    return run_eval(
+        turns=[f"Rewrite this as a blog post for DEV:\n\n{SOURCE}"],
+        setup=skill_setup("ghostwrite", project_root),
+    )
+
+
+def test_core_rules(result):
+    assert_core_rules(result, SOURCE)
+
+
+def test_has_section_headers(result):
+    assert result.matches_regex(r"(?m)^#{1,3}\s+\S", on="final_message", min=2)
+
+
+def test_has_call_to_action(result):
+    assert result.passes_rubric(
+        "The post ends with a clear call-to-action.",
+        on="final_message",
+    )
+
+
+def test_uses_concrete_examples(result):
+    assert result.passes_rubric(
+        "The post references specific numbers, tools, or names from the source "
+        "rather than vague claims like 'huge turnout' or 'great results'.",
+        on="final_message",
+    )
+```
+
+- [ ] **Step 7: Verify tests are collected**
 
 Run: `uv run pytest tests/skills/ghostwrite/ --co -q`
-Expected: Lists all test functions without errors
+Expected: Lists all test functions without errors (core_checks.py is not collected since it has no `test_` prefix)
 
-- [ ] **Step 4: Commit**
+- [ ] **Step 8: Commit**
 
 ```bash
-git add tests/skills/ghostwrite/test_sponsor_email.py tests/skills/ghostwrite/test_linkedin_from_scratch.py
-git commit -m "feat: add ghostwrite skill tests (migrated from evals.json)"
+git add tests/skills/ghostwrite/
+git commit -m "feat: add ghostwrite skill tests (5 format tests + shared core rules)"
 ```
 
 ---
 
 ### Task 7: Summarize Skill Tests
 
-Migrate `tests/summarize.json` to 3 pytest test files. Inline summarize lint checks. The three web-URL cases (dev.to, rust tab orchestrator, anthropic character) are combined into a single `test_web_article.py` using one stable URL — they test the same skill behavior (fetch + summarize). `test_short_input` is dropped as redundant with `test_pasted_text`.
+Migrate `tests/summarize.json` to 3 pytest test files. Inline summarize lint checks into a shared helper. The three web-URL cases are combined into `test_web_article.py` (one stable URL). `test_short_input` is dropped as redundant with `test_pasted_text`. Each test file calls shared structural checks plus input-type-specific assertions.
 
 **Files:**
+- Create: `tests/skills/summarize/structural_checks.py` (shared helper, not a test file)
 - Create: `tests/skills/summarize/test_web_article.py`
 - Create: `tests/skills/summarize/test_local_pdf.py`
 - Create: `tests/skills/summarize/test_pasted_text.py`
 - Read: `tests/summarize.json`
 - Read: `skills/summarize/lint.py`
 
-The `script_name: summarize` lint checks: title format, summary paragraph, bullet count (1-8), share block, comment block, no em dashes, no narration prefix. These become inline assertions.
+- [ ] **Step 1: Create structural_checks.py**
 
-- [ ] **Step 1: Create test_web_article.py**
+Shared helper inlining the universal structural checks from `skills/summarize/lint.py`.
 
-Combines the three web-URL cases (dev.to article, rust tab orchestrator, anthropic character) into one test file with one stable URL. They all test the same behavior: fetch a URL via Brightdata and produce a structured summary.
+```python
+# tests/skills/summarize/structural_checks.py
+
+
+def assert_structure(result):
+    """Structural checks that apply to every summarize output (from lint.py)."""
+    # Starts with H1 title
+    assert result.matches_regex(r"(?m)^# \S", on="final_message")
+
+    # Summary paragraph between title and first bullet list
+    assert result.passes_rubric(
+        "There is a non-list paragraph between the title and the first bullet list",
+        on="final_message",
+    )
+
+    # Bullet count 1-8 (no padding)
+    assert result.matches_regex(r"(?m)^- ", on="final_message", min=1, max=8)
+
+    # Share block present
+    assert result.matches_regex(
+        r"(?im)^\s*(?:#+\s*share\b|\*\*share\*\*)", on="final_message"
+    )
+
+    # Comment block present
+    assert result.matches_regex(
+        r"(?im)^\s*(?:#+\s*comment\b|\*\*comment\*\*)", on="final_message"
+    )
+
+    # No em dashes
+    assert result.not_contains("\u2014", on="final_message")
+
+    # No narration prefix leaked into output
+    assert result.not_matches_regex(
+        r"^(Let me|Now I|I'll draft|I have the|Here's the summary)",
+        on="final_message",
+    )
+```
+
+- [ ] **Step 2: Create test_web_article.py**
 
 ```python
 # tests/skills/summarize/test_web_article.py
@@ -1369,6 +1621,7 @@ import textwrap
 import pytest
 
 from tests.support.harness.setup import skill_setup
+from tests.skills.summarize.structural_checks import assert_structure
 
 
 @pytest.fixture(scope="module")
@@ -1383,50 +1636,22 @@ def result(run_eval, project_root):
     )
 
 
-# --- Structural checks (inlined from skills/summarize/lint.py) ---
+def test_structure(result):
+    assert_structure(result)
 
 
-def test_starts_with_title(result):
-    assert result.passes_rubric(
-        "Output starts with a markdown H1 title (# ) on the first non-empty line",
-        on="final_message",
-    )
-
-
-def test_has_summary_paragraph(result):
-    assert result.passes_rubric(
-        "There is a non-list paragraph between the title and the first bullet list",
-        on="final_message",
-    )
-
-
-def test_has_share_block(result):
-    assert result.matches_regex(r"(?im)^\s*(?:#+\s*share\b|\*\*share\*\*)", on="final_message")
-
-
-def test_has_comment_block(result):
-    assert result.matches_regex(r"(?im)^\s*(?:#+\s*comment\b|\*\*comment\*\*)", on="final_message")
-
-
-def test_no_em_dash(result):
-    assert result.not_contains("\u2014", on="final_message")
-
-
-def test_no_narration_prefix(result):
-    assert result.not_matches_regex(
-        r"^(Let me|Now I|I'll draft|I have the|Here's the summary)",
-        on="final_message",
-    )
-
-
-def test_has_source_link(result):
+def test_title_is_source_link(result):
     assert result.matches_regex(
         r"\[.*\]\(https://www\.anthropic\.com/research/claude-character[^)]*\)",
         on="final_message",
     )
 
 
-# --- Tool trace assertions ---
+def test_share_includes_url(result):
+    assert result.passes_rubric(
+        "The Share code fence contains the bare source URL on its own line.",
+        on="final_message",
+    )
 
 
 def test_uses_brightdata(result):
@@ -1441,15 +1666,14 @@ def test_no_websearch(result):
     assert result.not_tool_called("WebSearch")
 ```
 
-- [ ] **Step 2: Create test_local_pdf.py**
+- [ ] **Step 3: Create test_local_pdf.py**
 
 ```python
 # tests/skills/summarize/test_local_pdf.py
-import textwrap
-
 import pytest
 
 from tests.support.harness.setup import compose, copy_files, skill_setup
+from tests.skills.summarize.structural_checks import assert_structure
 
 
 @pytest.fixture(scope="module")
@@ -1463,6 +1687,10 @@ def result(run_eval, project_root):
     )
 
 
+def test_structure(result):
+    assert_structure(result)
+
+
 def test_title_from_content(result):
     assert result.passes_rubric(
         "Title is based on the document/paper title or filename, not a generic placeholder",
@@ -1470,27 +1698,26 @@ def test_title_from_content(result):
     )
 
 
-def test_no_em_dash(result):
-    assert result.not_contains("\u2014", on="final_message")
-
-
-def test_no_brightdata(result):
-    assert result.not_tool_called("brightdata")
+def test_share_no_url(result):
+    assert result.passes_rubric(
+        "The Share code fence does not contain a URL (file input has nothing to link).",
+        on="final_message",
+    )
 
 
 def test_uses_read(result):
     assert result.tool_called("Read")
 
 
+def test_no_brightdata(result):
+    assert result.not_tool_called("brightdata")
+
+
 def test_no_webfetch(result):
     assert result.not_tool_called("WebFetch")
-
-
-def test_no_websearch(result):
-    assert result.not_tool_called("WebSearch")
 ```
 
-- [ ] **Step 3: Create test_pasted_text.py**
+- [ ] **Step 4: Create test_pasted_text.py**
 
 ```python
 # tests/skills/summarize/test_pasted_text.py
@@ -1499,6 +1726,7 @@ import textwrap
 import pytest
 
 from tests.support.harness.setup import skill_setup
+from tests.skills.summarize.structural_checks import assert_structure
 
 
 @pytest.fixture(scope="module")
@@ -1519,8 +1747,8 @@ def result(run_eval, project_root):
     )
 
 
-def test_no_em_dash(result):
-    assert result.not_contains("\u2014", on="final_message")
+def test_structure(result):
+    assert_structure(result)
 
 
 def test_no_scrape(result):
@@ -1539,7 +1767,7 @@ def test_no_websearch(result):
     assert result.not_tool_called("WebSearch")
 ```
 
-- [ ] **Step 4: Move test-paper.pdf to support/fixtures/**
+- [ ] **Step 5: Move test-paper.pdf to support/fixtures/**
 
 The PDF currently lives at `tests/fixtures/test-paper.pdf`. The spec says it should be at `tests/support/fixtures/test-paper.pdf`. Check if it already exists there (it was referenced by the orchestrator at its current location). If the file is only at `tests/fixtures/`, move it:
 
@@ -1548,30 +1776,31 @@ mv tests/fixtures/test-paper.pdf tests/support/fixtures/test-paper.pdf
 rmdir tests/fixtures 2>/dev/null || true
 ```
 
-- [ ] **Step 5: Commit**
+- [ ] **Step 6: Commit**
 
 ```bash
 git add tests/skills/summarize/
-git commit -m "feat: add summarize skill tests (3 cases migrated from evals.json)"
+git commit -m "feat: add summarize skill tests (3 input types + shared structural checks)"
 ```
 
 ---
 
 ### Task 8: Scope Skill Tests
 
-Migrate `tests/scope.json` (3 cases) to 3 pytest test files.
+Migrate `tests/scope.json` to 2 pytest test files sharing one agent run. The happy-path 6-turn conversation exercises the full scoping workflow. One file tests the process (clarifying questions, approaches, recommendation), the other tests the spec output structure and content. The vague-notifications and skip-design edge cases are dropped — behavioral nuance is better handled by tuning the SKILL.md than by evals.
 
 **Files:**
-- Create: `tests/skills/scope/test_github_webhook_slack.py`
-- Create: `tests/skills/scope/test_vague_notifications.py`
-- Create: `tests/skills/scope/test_skip_design.py`
+- Create: `tests/skills/scope/test_scoping_process.py`
+- Create: `tests/skills/scope/test_spec_structure.py`
+- Create: `tests/skills/scope/conftest.py` (shared fixture for both files)
 
-- [ ] **Step 1: Create test_github_webhook_slack.py**
+The shared fixture lives in a local `conftest.py` so both test files get the same module-scoped agent run without duplicating the 6-turn prompt.
+
+- [ ] **Step 1: Create conftest.py with shared fixture**
 
 ```python
-# tests/skills/scope/test_github_webhook_slack.py
+# tests/skills/scope/conftest.py
 import textwrap
-from fnmatch import fnmatch
 
 import pytest
 
@@ -1583,10 +1812,20 @@ def result(run_eval, project_root):
     return run_eval(
         turns=[
             textwrap.dedent("""\
-                Scope a GitHub webhook system for MechaSwift that listens for PR events and posts summaries to Slack. It should handle retries, filter by repo, and be configurable per-channel. We're using Node.js and already have a Slack bot token.\
+                Scope a GitHub webhook system for MechaSwift that listens for \
+                PR events and posts summaries to Slack. It should handle retries, \
+                filter by repo, and be configurable per-channel. We're using \
+                Node.js and already have a Slack bot token.\
             """),
             textwrap.dedent("""\
-                Purpose is surfacing PR activity in Slack so reviews don't stall. Internal eng team, around 15 people. We run a long-running Node.js service on Fly.io and have Redis available there. Per-repo allowlist routing each repo to one channel. Events we care about: opened, ready_for_review, closed. Crash-safety and retries are required -- no in-memory-only queues. Config via a single YAML file at startup, no hot reload. Out of scope: two-way interaction, review assignment, backfill, config UI.\
+                Purpose is surfacing PR activity in Slack so reviews don't stall. \
+                Internal eng team, around 15 people. We run a long-running Node.js \
+                service on Fly.io and have Redis available there. Per-repo allowlist \
+                routing each repo to one channel. Events we care about: opened, \
+                ready_for_review, closed. Crash-safety and retries are required -- \
+                no in-memory-only queues. Config via a single YAML file at startup, \
+                no hot reload. Out of scope: two-way interaction, review assignment, \
+                backfill, config UI.\
             """),
             "Go with your recommendation. Walk me through the design.",
             "Looks good, keep going.",
@@ -1596,157 +1835,141 @@ def result(run_eval, project_root):
         setup=skill_setup("scope", project_root),
         cleanup=cleanup_globs("references/specs/2026-*-github-webhook*.md"),
     )
+```
+
+- [ ] **Step 2: Create test_scoping_process.py**
+
+Tests that the agent followed the scoping workflow: asked questions, proposed approaches, gave a recommendation, and only wrote a spec (no code).
+
+```python
+# tests/skills/scope/test_scoping_process.py
+from fnmatch import fnmatch
 
 
-# --- File assertions ---
+def test_asks_clarifying_questions(result):
+    assert result.passes_rubric(
+        "Early in the conversation, the agent asks clarifying questions "
+        "before proposing a design.",
+        on="stdout",
+    )
 
 
-def test_writes_spec_file(result):
-    assert any(fnmatch(f, "references/specs/*.md") for f in result.files_written)
+def test_proposes_approaches(result):
+    assert result.passes_rubric(
+        "The agent proposes 2-3 distinct approaches with trade-offs.",
+        on="stdout",
+    )
 
 
-def test_no_package_json(result):
-    assert "package.json" not in result.files_written
+def test_gives_recommendation(result):
+    assert result.passes_rubric(
+        "The agent includes a clear recommendation with reasoning "
+        "for which approach to use.",
+        on="stdout",
+    )
 
 
 def test_no_implementation_code(result):
     assert not any(fnmatch(f, "*.py") for f in result.files_written)
     assert not any(fnmatch(f, "*.js") for f in result.files_written)
     assert not any(fnmatch(f, "*.ts") for f in result.files_written)
+    assert "package.json" not in result.files_written
 
 
-# --- Spec content assertions ---
+def test_writes_exactly_one_spec(result):
+    specs = [f for f in result.files_written if fnmatch(f, "references/specs/*.md")]
+    assert len(specs) == 1
+```
+
+- [ ] **Step 3: Create test_spec_structure.py**
+
+Tests the shape and content of the written spec file.
+
+```python
+# tests/skills/scope/test_spec_structure.py
 
 
-def test_spec_mentions_routing(result):
+def test_has_goal_section(result):
+    assert result.file_contains("references/specs/*.md", regex=r"(?im)^##\s*Goal")
+
+
+def test_has_non_goals_section(result):
+    assert result.file_contains("references/specs/*.md", regex=r"(?im)^##\s*Non.?Goals")
+
+
+def test_has_approach_section(result):
+    assert result.file_contains("references/specs/*.md", regex=r"(?im)^##\s*Approach")
+
+
+def test_has_components_section(result):
+    assert result.file_contains("references/specs/*.md", regex=r"(?im)^##\s*Components")
+
+
+def test_has_testing_section(result):
+    assert result.file_contains("references/specs/*.md", regex=r"(?im)^##\s*Testing")
+
+
+def test_mentions_routing(result):
     assert result.file_contains(
         "references/specs/*.md",
         regex=r"(?i)(allowlist|routing table|repo.{0,10}channel)",
     )
 
 
-def test_spec_mentions_durable_queue(result):
+def test_mentions_durable_queue(result):
     assert result.file_contains(
         "references/specs/*.md",
         regex=r"(?i)(Redis|BullMQ|persistent queue|durable queue)",
     )
 
 
-def test_spec_mentions_events(result):
+def test_mentions_events(result):
     assert result.file_contains("references/specs/*.md", text="opened")
     assert result.file_contains("references/specs/*.md", text="ready_for_review")
     assert result.file_contains("references/specs/*.md", text="closed")
 
 
-def test_spec_mentions_out_of_scope(result):
+def test_mentions_out_of_scope(result):
     assert result.file_contains(
         "references/specs/*.md", regex=r"(?i)out of scope"
     )
 
 
-def test_spec_mentions_infrastructure(result):
+def test_mentions_infrastructure(result):
     assert result.file_contains("references/specs/*.md", text="Fly.io")
     assert result.file_contains("references/specs/*.md", text="Node.js")
 
 
-def test_spec_mentions_yaml_config(result):
+def test_mentions_yaml_config(result):
     assert result.file_contains("references/specs/*.md", regex=r"(?i)YAML")
 ```
 
-- [ ] **Step 2: Create test_vague_notifications.py**
+- [ ] **Step 4: Verify tests are collected**
 
-```python
-# tests/skills/scope/test_vague_notifications.py
-import pytest
+Run: `uv run pytest tests/skills/scope/ --co -q`
+Expected: Lists all test functions from both files
 
-from tests.support.harness.setup import skill_setup
-
-
-@pytest.fixture(scope="module")
-def result(run_eval, project_root):
-    return run_eval(
-        turns=["Scope a notifications feature"],
-        setup=skill_setup("scope", project_root),
-    )
-
-
-def test_asks_clarifying_question(result):
-    assert result.matches_regex(r"\?", on="final_message")
-
-
-def test_not_too_many_questions(result):
-    assert result.matches_regex(r"\?", on="final_message", max=2)
-
-
-def test_no_spec_written(result):
-    from fnmatch import fnmatch
-
-    assert not any(
-        fnmatch(f, "references/specs/*") for f in result.files_written
-    )
-
-
-def test_no_implementation_code(result):
-    from fnmatch import fnmatch
-
-    assert not any(fnmatch(f, "*.py") for f in result.files_written)
-    assert not any(fnmatch(f, "*.js") for f in result.files_written)
-    assert "package.json" not in result.files_written
-```
-
-- [ ] **Step 3: Create test_skip_design.py**
-
-```python
-# tests/skills/scope/test_skip_design.py
-import textwrap
-
-import pytest
-
-from tests.support.harness.setup import skill_setup
-
-
-@pytest.fixture(scope="module")
-def result(run_eval, project_root):
-    return run_eval(
-        turns=[
-            textwrap.dedent("""\
-                I need a rate limiter for our API. Don't bother with the design stuff, just scope it quickly and start building.\
-            """),
-        ],
-        setup=skill_setup("scope", project_root),
-    )
-
-
-def test_asks_question(result):
-    assert result.matches_regex(r"\?", on="final_message")
-
-
-def test_no_files_written(result):
-    assert len(result.files_written) == 0
-```
-
-- [ ] **Step 4: Commit**
+- [ ] **Step 5: Commit**
 
 ```bash
 git add tests/skills/scope/
-git commit -m "feat: add scope skill tests (3 cases migrated from evals.json)"
+git commit -m "feat: add scope skill tests (process + spec structure from one agent run)"
 ```
 
 ---
 
 ### Task 9: Prompt-Engineer Skill Tests
 
-Migrate `tests/prompt-engineer.json` (3 cases) to 3 pytest test files.
+Migrate `tests/prompt-engineer.json` to 2 pytest test files. The vague-summarization case is dropped — the skill adds real value in draft mode (structured extraction) and fix mode (diagnosis + rewrite), not in gatekeeping vague input.
 
 **Files:**
-- Create: `tests/skills/prompt-engineer/test_contract_extraction.py`
+- Create: `tests/skills/prompt-engineer/test_structured_extraction.py`
 - Create: `tests/skills/prompt-engineer/test_fix_bad_prompt.py`
-- Create: `tests/skills/prompt-engineer/test_vague_summarization.py`
 
-- [ ] **Step 1: Create test_contract_extraction.py**
+- [ ] **Step 1: Create test_structured_extraction.py**
 
 ```python
-# tests/skills/prompt-engineer/test_contract_extraction.py
+# tests/skills/prompt-engineer/test_structured_extraction.py
 import textwrap
 
 import pytest
@@ -1759,14 +1982,16 @@ def result(run_eval, project_root):
     return run_eval(
         turns=[
             textwrap.dedent("""\
-                Write me a prompt for an LLM that extracts the parties, effective date, and termination clauses from a contract PDF. The output should be JSON so we can stick it in a database.\
+                Write me a prompt for an LLM that extracts the parties, \
+                effective date, and termination clauses from a contract PDF. \
+                The output should be JSON so we can stick it in a database.\
             """),
         ],
         setup=skill_setup("prompt-engineer", project_root),
     )
 
 
-def test_contains_code_block(result):
+def test_has_code_block(result):
     assert result.matches_regex(r"```[\s\S]*?```", on="final_message")
 
 
@@ -1785,6 +2010,32 @@ def test_mentions_required_fields(result):
 def test_no_generic_assistant_role(result):
     assert result.not_matches_regex(
         r"(?i)You are (a|an) (helpful|friendly)\s*(AI\s*)?assistant",
+        on="final_message",
+    )
+
+
+def test_json_only_output(result):
+    assert result.passes_rubric(
+        "The produced prompt instructs the target LLM to return only JSON "
+        "with no prose wrapper, markdown fences, or commentary.",
+        on="final_message",
+    )
+
+
+def test_handles_missing_fields(result):
+    assert result.passes_rubric(
+        "The produced prompt specifies what to do when a required field is "
+        "missing or not found in the document (e.g. return null, omit, or "
+        "indicate unknown).",
+        on="final_message",
+    )
+
+
+def test_handles_long_input(result):
+    assert result.passes_rubric(
+        "The produced prompt addresses how to handle long or multi-page "
+        "document input (e.g. process the full document, chunking, or "
+        "explicit length handling).",
         on="final_message",
     )
 ```
@@ -1808,7 +2059,11 @@ def result(run_eval, project_root):
                 This prompt isn't working, can you fix it?
 
                 ```
-                You are a helpful AI assistant that helps users. Please be very thorough but also concise. I would really appreciate it if you could analyze the following customer feedback and tell me what you think about it. Make sure to consider all aspects and provide a detailed yet brief summary. Thank you so much!
+                You are a helpful AI assistant that helps users. Please be very \
+                thorough but also concise. I would really appreciate it if you \
+                could analyze the following customer feedback and tell me what \
+                you think about it. Make sure to consider all aspects and provide \
+                a detailed yet brief summary. Thank you so much!
 
                 {feedback}
                 ```\
@@ -1818,40 +2073,51 @@ def result(run_eval, project_root):
     )
 
 
-def test_contains_code_block(result):
+def test_has_code_block(result):
     assert result.matches_regex(r"```[\s\S]*?```", on="final_message")
-```
-
-- [ ] **Step 3: Create test_vague_summarization.py**
-
-```python
-# tests/skills/prompt-engineer/test_vague_summarization.py
-import pytest
-
-from tests.support.harness.setup import skill_setup
 
 
-@pytest.fixture(scope="module")
-def result(run_eval, project_root):
-    return run_eval(
-        turns=["I need a prompt for summarization."],
-        setup=skill_setup("prompt-engineer", project_root),
+def test_has_changes_section(result):
+    assert result.matches_regex(
+        r"(?im)(^\*\*changes\*\*|^##?\s*changes|^##?\s*what changed)",
+        on="final_message",
     )
 
 
-def test_asks_clarifying_question(result):
-    assert result.matches_regex(r"\?", on="final_message", max=2)
+def test_removes_padding(result):
+    assert result.not_matches_regex(
+        r"(?i)helpful AI assistant", on="final_message"
+    )
+    assert result.not_matches_regex(r"\bPlease\b", on="final_message")
+    assert result.not_matches_regex(r"\bThank you\b", on="final_message")
 
 
-def test_no_code_block(result):
-    assert result.not_matches_regex(r"```[\s\S]*?```", on="final_message")
+def test_specifies_output_format(result):
+    assert result.passes_rubric(
+        "The rewritten prompt includes a concrete output format "
+        "(e.g. bullet points, JSON, specific structure).",
+        on="final_message",
+    )
+
+
+def test_resolves_contradiction(result):
+    assert result.passes_rubric(
+        "The rewritten prompt does not contain the contradiction "
+        "'thorough but concise' or equivalent conflicting instructions.",
+        on="final_message",
+    )
 ```
+
+- [ ] **Step 3: Verify tests are collected**
+
+Run: `uv run pytest tests/skills/prompt-engineer/ --co -q`
+Expected: Lists all test functions without errors
 
 - [ ] **Step 4: Commit**
 
 ```bash
 git add tests/skills/prompt-engineer/
-git commit -m "feat: add prompt-engineer skill tests (3 cases migrated from evals.json)"
+git commit -m "feat: add prompt-engineer skill tests (structured extraction + fix bad prompt)"
 ```
 
 ---
@@ -2438,11 +2704,11 @@ Expected: All tests PASS
 - [ ] **Step 2: Dry-run eval collection**
 
 Run: `uv run pytest tests/skills/ tests/core/ --co -q`
-Expected: Lists all 16 test files with their test functions, no import errors
+Expected: Lists all 14 test files with their test functions, no import errors
 
 - [ ] **Step 3: Run a single eval (smoke test)**
 
-Run: `make test ARGS="tests/skills/summarize/test_short_input.py -v"`
+Run: `make test ARGS="tests/skills/summarize/test_web_article.py -v"`
 Expected: Tests run against the agent and produce results (pass or fail based on agent behavior)
 
 - [ ] **Step 4: Verify make targets**
