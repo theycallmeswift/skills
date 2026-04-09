@@ -149,15 +149,33 @@ class EvalResult:
     # --- Rubric matcher ---
 
     def llm_judge(
-        self, item: str, on: str, model: str | None = None
+        self, item: str, on: str | None = None, content: str | None = None,
+        model: str | None = None,
     ) -> bool:
         """Send item + content to an LLM judge, return pass/fail.
 
-        Uses Haiku by default. The judge sees the item text and the
-        targeted content, returns a structured pass/fail verdict.
+        Pass `on` (source selector like "final_message") or `content` (raw text).
         """
         from ._rubric_judge import judge_rubric_item
 
-        sources = _resolve_source(self._run, on)
-        content = "\n".join(sources)
+        if content is None:
+            if on is None:
+                raise ValueError("llm_judge requires either `on` or `content`")
+            sources = _resolve_source(self._run, on)
+            content = "\n".join(sources)
+
         return judge_rubric_item(item, content, model=model)
+
+    # --- Structured extraction ---
+
+    def parse(self, model: type, on: str = "final_message"):
+        """Extract structured fields from output using an LLM, validate with Pydantic.
+
+        Uses Haiku to read the output and fill in the model's fields.
+        Raises ValidationError if the extracted data doesn't match the schema.
+        """
+        from .extractor import extract_fields
+
+        sources = _resolve_source(self._run, on)
+        text = "\n".join(sources)
+        return extract_fields(text, model)
