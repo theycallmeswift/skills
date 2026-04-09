@@ -13,12 +13,12 @@ from tests.support.harness.runner import RunResult
 
 def _make_project(tmp_path: Path) -> Path:
     root = tmp_path / "proj"
-    (root / "tests" / "skills" / "demo").mkdir(parents=True)
+    (root / "tests").mkdir(parents=True)
     (root / "skills" / "demo").mkdir(parents=True)
     (root / "skills" / "demo" / "SKILL.md").write_text("demo skill")
     (root / "references" / "specs").mkdir(parents=True)
     (root / "AGENTS.md").write_text("agents")
-    (root / "tests" / "skills" / "demo" / "evals.json").write_text(
+    (root / "tests" / "demo.json").write_text(
         json.dumps(
             {
                 "name": "demo",
@@ -26,7 +26,7 @@ def _make_project(tmp_path: Path) -> Path:
                     {
                         "id": "happy",
                         "turns": ["do the thing"],
-                        "assertions": [{"text": "output says hello"}],
+                        "assertions": [{"contains": "hello"}],
                         "cleanup": ["references/specs/demo-*.md"],
                     },
                 ],
@@ -52,8 +52,8 @@ def fake_run_and_grade(monkeypatch):
             turn_count=len(turns),
         )
 
-    async def fake_grade(run, assertions, model=None, original_prompt="", input_limit=None):
-        exps = [{"text": a["text"], "passed": True, "evidence": "ok"} for a in assertions]
+    async def fake_grade(run, assertions):
+        exps = [{"text": str(a), "passed": True, "evidence": "ok"} for a in assertions]
         return Grading.from_expectations(exps)
 
     monkeypatch.setattr(orchestrator, "run_claude", fake_run_claude)
@@ -102,8 +102,8 @@ def test_run_evals_returns_1_when_assertion_fails(tmp_path, monkeypatch):
             turn_count=1,
         )
 
-    async def fake_grade(run, assertions, model=None, original_prompt="", input_limit=None):
-        exps = [{"text": a["text"], "passed": False, "evidence": "no"} for a in assertions]
+    async def fake_grade(run, assertions):
+        exps = [{"text": str(a), "passed": False, "evidence": "no"} for a in assertions]
         return Grading.from_expectations(exps)
 
     monkeypatch.setattr(orchestrator, "run_claude", fake_run_claude)

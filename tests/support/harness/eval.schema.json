@@ -5,10 +5,6 @@
   "properties": {
     "name": {"type": "string", "minLength": 1},
     "description": {"type": "string"},
-    "shared_assertions": {
-      "type": "array",
-      "items": {"$ref": "#/$defs/assertion"}
-    },
     "evals": {
       "type": "array",
       "minItems": 1,
@@ -24,9 +20,6 @@
           },
           "files": {"type": "array", "items": {"type": "string"}},
           "assertions": {"type": "array", "items": {"$ref": "#/$defs/assertion"}},
-          "use_shared_assertions": {"type": "boolean"},
-          "grader_model": {"type": "string"},
-          "grader_input_limit": {"type": "integer", "minimum": 1000},
           "cleanup": {"type": "array", "items": {"type": "string"}},
           "intent": {"type": "string", "enum": ["lift", "regression"]}
         },
@@ -39,12 +32,10 @@
     "assertion": {
       "type": "object",
       "oneOf": [
-        {"required": ["text"], "properties": {"text": {"type": "string", "minLength": 1}}, "additionalProperties": false},
         {"required": ["tool_called"], "properties": {"tool_called": {"type": "string", "minLength": 1}}, "additionalProperties": false},
         {"required": ["tool_not_called"], "properties": {"tool_not_called": {"type": "string", "minLength": 1}}, "additionalProperties": false},
         {"required": ["skill_invoked"], "properties": {"skill_invoked": {"type": "string", "minLength": 1}}, "additionalProperties": false},
         {"required": ["skill_not_invoked"], "properties": {"skill_not_invoked": {"type": "string", "minLength": 1}}, "additionalProperties": false},
-        {"required": ["lint"], "properties": {"lint": {"type": "string", "minLength": 1}}, "additionalProperties": false},
         {"required": ["script_name"], "properties": {"script_name": {"type": "string", "minLength": 1}}, "additionalProperties": false},
         {
           "required": ["regex"],

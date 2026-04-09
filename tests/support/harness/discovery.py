@@ -73,25 +73,14 @@ def load_eval_file(path: Path, kind: EvalKind) -> EvalSuite:
         raise ValueError(
             f"{path}: schema validation failed: {e.message} (at {list(e.absolute_path)})"
         ) from e
-    shared = data.get("shared_assertions", [])
-    if not isinstance(shared, list):
-        raise ValueError(f"{path}: 'shared_assertions' must be a list of assertion dicts.")
-
     cases: list[EvalCase] = []
     for c in data["evals"]:
-        own = c.get("assertions", [])
-        if c.get("use_shared_assertions", True):
-            merged = [*shared, *own]
-        else:
-            merged = list(own)
         cases.append(
             EvalCase(
                 id=str(c["id"]),
                 turns=_load_turns(c, path),
                 files=c.get("files", []),
-                assertions=merged,
-                grader_model=c.get("grader_model"),
-                grader_input_limit=c.get("grader_input_limit"),
+                assertions=list(c.get("assertions", [])),
                 cleanup=_validate_cleanup(c.get("cleanup", []), path),
                 intent=c.get("intent", "regression"),
             )
@@ -119,21 +108,6 @@ def discover_suites(
         stem = path.stem
         kind: EvalKind = "skill" if (skills_root / stem).is_dir() else "core"
         suites.append(load_eval_file(path, kind=kind))
-
-    # Legacy fallback (remove after Phase 5 migration): tests/skills/*/evals.json
-    skills_dir = tests_root / "skills"
-    if skills_dir.is_dir():
-        for skill_dir in sorted(skills_dir.iterdir()):
-            if not skill_dir.is_dir():
-                continue
-            evals_file = skill_dir / "evals.json"
-            if evals_file.is_file():
-                suites.append(load_eval_file(evals_file, kind="skill"))
-
-    core_dir = tests_root / "core"
-    if core_dir.is_dir():
-        for f in sorted(core_dir.glob("*.json")):
-            suites.append(load_eval_file(f, kind="core"))
 
     if names:
         wanted = set(names)

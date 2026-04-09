@@ -57,16 +57,7 @@ async def _run_one(
                 model=model,
             )
 
-            original_prompt = "\n\n".join(
-                f"[turn {i}] {t}" for i, t in enumerate(plan.case.turns, start=1)
-            )
-            grading = await grade(
-                run,
-                plan.case.assertions,
-                model=plan.case.grader_model,
-                original_prompt=original_prompt,
-                input_limit=plan.case.grader_input_limit,
-            )
+            grading = await grade(run, plan.case.assertions)
 
             if _should_rubric_grade(plan, project_root=project_root):
                 rubric_path = project_root / "skills" / plan.suite_name / "RUBRIC.md"
