@@ -221,6 +221,43 @@ def _grade_not_regex(a: dict, run: RunResult) -> dict:
     )
 
 
+@_primitive("contains")
+def _grade_contains(a: dict, run: RunResult) -> dict:
+    needle = a["contains"]
+    sources = _resolve_source(run, a.get("on"))
+    hit = any(needle in s for s in sources)
+    return {
+        "text": f"contains: {needle!r}",
+        "passed": hit,
+        "evidence": ("found literal" if hit else f"not found in {len(sources)} source(s)"),
+    }
+
+
+@_primitive("contains_all")
+def _grade_contains_all(a: dict, run: RunResult) -> dict:
+    needles = a["contains_all"]
+    sources = _resolve_source(run, a.get("on"))
+    haystack = "\n".join(sources)
+    missing = [n for n in needles if n not in haystack]
+    return {
+        "text": f"contains_all: {needles}",
+        "passed": not missing,
+        "evidence": ("all present" if not missing else f"missing: {missing}"),
+    }
+
+
+@_primitive("not_contains")
+def _grade_not_contains(a: dict, run: RunResult) -> dict:
+    needle = a["not_contains"]
+    sources = _resolve_source(run, a.get("on"))
+    hit = any(needle in s for s in sources)
+    return {
+        "text": f"not_contains: {needle!r}",
+        "passed": not hit,
+        "evidence": ("literal found (should be absent)" if hit else "absent, as required"),
+    }
+
+
 @_primitive("lint")  # TEMPORARY alias until Task 9 renames to script_name
 def _grade_lint_primitive(a: dict, run: RunResult) -> dict:
     return _grade_lint(a["lint"], run)

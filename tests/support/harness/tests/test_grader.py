@@ -250,6 +250,47 @@ def test_not_regex_fails_when_present():
     assert exps[0]["passed"] is False
 
 
+def test_contains_literal_substring_passes():
+    run = _run(final_message="the answer is 42")
+    exps = _grade_deterministic([{"contains": "42"}], run)
+    assert exps[0]["passed"] is True
+
+
+def test_contains_fails_when_absent():
+    run = _run(final_message="hello")
+    exps = _grade_deterministic([{"contains": "world"}], run)
+    assert exps[0]["passed"] is False
+
+
+def test_contains_all_requires_every_literal():
+    run = _run(final_message="450 fellows, 30% up, 92% rec rate")
+    exps = _grade_deterministic(
+        [{"contains_all": ["450", "30%", "92%"]}], run
+    )
+    assert exps[0]["passed"] is True
+
+
+def test_contains_all_fails_on_missing_item():
+    run = _run(final_message="450 fellows, 30% up")
+    exps = _grade_deterministic(
+        [{"contains_all": ["450", "30%", "92%"]}], run
+    )
+    assert exps[0]["passed"] is False
+    assert "92%" in exps[0]["evidence"]
+
+
+def test_not_contains_passes_when_absent():
+    run = _run(final_message="clean")
+    exps = _grade_deterministic([{"not_contains": "dirty"}], run)
+    assert exps[0]["passed"] is True
+
+
+def test_not_contains_fails_when_present():
+    run = _run(final_message="dirty string")
+    exps = _grade_deterministic([{"not_contains": "dirty"}], run)
+    assert exps[0]["passed"] is False
+
+
 def test_lint_assertion_passes_on_clean_ghostwrite_output():
     clean = "Hey, Sarah,\n\nSeason 3 wrapped with 450 fellows.\n\n- Swift\n"
     run = _run_with_stdout(clean)
