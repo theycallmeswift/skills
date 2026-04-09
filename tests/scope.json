@@ -16,10 +16,20 @@
         "references/specs/2026-*-github-webhook*.md"
       ],
       "assertions": [
+        {"files_written_include": "references/specs/*.md"},
         {"files_written_exclude": "package.json"},
         {"files_written_exclude": "*.py"},
         {"files_written_exclude": "*.js"},
-        {"files_written_exclude": "*.ts"}
+        {"files_written_exclude": "*.ts"},
+        {"file_contains": {"path": "references/specs/*.md", "regex": "(?i)(allowlist|routing table|repo.{0,10}channel)"}},
+        {"file_contains": {"path": "references/specs/*.md", "regex": "(?i)(Redis|BullMQ|persistent queue|durable queue)"}},
+        {"file_contains": {"path": "references/specs/*.md", "text": "opened"}},
+        {"file_contains": {"path": "references/specs/*.md", "text": "ready_for_review"}},
+        {"file_contains": {"path": "references/specs/*.md", "text": "closed"}},
+        {"file_contains": {"path": "references/specs/*.md", "regex": "(?i)out of scope"}},
+        {"file_contains": {"path": "references/specs/*.md", "text": "Fly.io"}},
+        {"file_contains": {"path": "references/specs/*.md", "text": "Node.js"}},
+        {"file_contains": {"path": "references/specs/*.md", "regex": "(?i)YAML"}}
       ]
     },
     {
