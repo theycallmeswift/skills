@@ -35,39 +35,43 @@ _JUDGE_SCHEMA = {
 }
 
 
-def _parse_fallback(raw: str) -> dict:
+def _extract_verdict(structured: dict | None, raw_parts: list[str]) -> bool:
+    """Extract pass/fail from either structured output or raw text."""
+    if structured is not None:
+        return structured.get("pass", False)
+
+    raw = "".join(raw_parts).strip()
     if raw.startswith("```"):
         raw = raw.split("```")[1]
         if raw.startswith("json"):
             raw = raw[4:]
         raw = raw.strip().rstrip("`")
-    return json.loads(raw)
+
+    return json.loads(raw).get("pass", False)
 
 
 async def _judge_async(item: str, content: str, model: str) -> bool:
+    """Send content + rubric item to an LLM judge, return pass/fail."""
     prompt = _JUDGE_PROMPT.format(item=item, content=content[:40_000])
     options = ClaudeAgentOptions(model=model, output_format=_JUDGE_SCHEMA)
+
     structured: dict | None = None
-    parts: list[str] = []
+    raw_parts: list[str] = []
+
     async for message in query(prompt=prompt, options=options):
         if isinstance(message, ResultMessage):
             if getattr(message, "structured_output", None):
                 structured = message.structured_output
             elif getattr(message, "result", None):
-                parts.append(message.result)
+                raw_parts.append(message.result)
         elif isinstance(message, AssistantMessage):
             for block in message.content:
                 if hasattr(block, "text"):
-                    parts.append(block.text)
-    if structured is not None:
-        return structured.get("pass", False)
-    raw = "".join(parts).strip()
-    return _parse_fallback(raw).get("pass", False)
+                    raw_parts.append(block.text)
+
+    return _extract_verdict(structured, raw_parts)
 
 
-def judge_rubric_item(
-    item: str, content: str, model: str | None = None
-) -> bool:
-    return asyncio.run(
-        _judge_async(item, content, model or DEFAULT_JUDGE_MODEL)
-    )
+def judge_rubric_item(item: str, content: str, model: str | None = None) -> bool:
+    """Synchronous entry point for rubric judging."""
+    return asyncio.run(_judge_async(item, content, model or DEFAULT_JUDGE_MODEL))
