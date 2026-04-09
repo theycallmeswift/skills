@@ -4,7 +4,7 @@ install:
 	uv sync
 
 test:
-	uv run pytest tests/skills/ tests/core/ $(ARGS)
+	uv run pytest tests/skills/ tests/core/ -n auto $(ARGS)
 
 test-harness:
 	uv run pytest tests/support/harness/tests/ $(ARGS)
