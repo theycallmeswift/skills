@@ -41,7 +41,28 @@ def urls_preserved(source: str, output: str) -> list[str]:
 
 
 def stats_preserved(source: str, output: str) -> list[str]:
-    """Return numbers/stats from source missing in output. Empty list = pass."""
+    """Return numbers/stats from source missing in output. Empty list = pass.
+
+    Accepts common abbreviations (e.g. 500K for 500,000).
+    """
     stat_pattern = re.compile(r"\d[\d,]*(?:\.\d+)?")
     source_stats = set(stat_pattern.findall(source))
-    return [stat for stat in source_stats if stat not in output]
+    output_lower = output.lower()
+    missing = []
+    for stat in source_stats:
+        if stat in output:
+            continue
+        raw = stat.replace(",", "")
+        if len(raw) >= 4 and _abbreviated_form(raw) in output_lower:
+            continue
+        missing.append(stat)
+    return missing
+
+
+def _abbreviated_form(raw_digits: str) -> str:
+    """Convert a raw digit string to its abbreviated form (e.g. '500000' -> '500k')."""
+    n = int(raw_digits)
+    for threshold, suffix in [(1_000_000_000, "b"), (1_000_000, "m"), (1_000, "k")]:
+        if n >= threshold and n % threshold == 0:
+            return f"{n // threshold}{suffix}"
+    return raw_digits

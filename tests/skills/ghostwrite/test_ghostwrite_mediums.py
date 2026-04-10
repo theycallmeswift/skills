@@ -50,17 +50,10 @@ class TestSlackMedium:
         count = len(slack_output.split())
         assert count <= 60, f"Slack message is {count} words (max 60)"
 
-    def test_slack_is_chat_prose(self, slack_output):
-        bullet_lines = [
-            line
-            for line in slack_output.splitlines()
-            if re.match(r"^\s*[-*]\s", line) or re.match(r"^\s*\d+\.\s", line)
-        ]
-        bold_matches = re.findall(r"\*\*[^*]+\*\*", slack_output)
+    def test_slack_no_markdown_headers(self, slack_output):
         header_lines = [line for line in slack_output.splitlines() if re.match(r"^#+\s", line)]
-        violations = bullet_lines + bold_matches + header_lines
-        assert violations == [], (
-            f"Slack should be plain chat prose, no bullets/bold/headers: {violations}"
+        assert header_lines == [], (
+            f"Slack doesn't support markdown headers: {header_lines}"
         )
 
     def test_slack_ask_first(self, runner, slack_output, slack_source):

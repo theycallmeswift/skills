@@ -18,7 +18,7 @@ dev = [
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 markers = ["slow: tests that make multiple LLM calls"]
-addopts = "-n auto"
+addopts = "-n auto --dist loadscope"
 
 [tool.ruff]
 line-length = 100

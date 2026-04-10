@@ -99,3 +99,19 @@ class TestStatsPreserved:
         output = "Many developers and 1 in 3 CS students joined."
         result = stats_preserved(source, output)
         assert "500,000" in result
+
+    def test_abbreviated_k(self):
+        source = "We reached 500,000 developers."
+        output = "We reached 500K developers."
+        assert stats_preserved(source, output) == []
+
+    def test_abbreviated_m(self):
+        source = "We reached 2,000,000 users."
+        output = "We reached 2M users."
+        assert stats_preserved(source, output) == []
+
+    def test_abbreviated_still_fails_if_missing(self):
+        source = "We reached 500,000 developers."
+        output = "We reached many developers."
+        result = stats_preserved(source, output)
+        assert "500,000" in result
