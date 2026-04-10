@@ -1,0 +1,94 @@
+import re
+
+from tests.support.assertions import (
+    email_signoff,
+    judge,
+    linkedin_hashtag_count,
+    slack_word_count,
+)
+
+
+class TestEmailMedium:
+    def test_email_has_valid_signoff(self, runner, email_prompt):
+        output = runner.run(email_prompt)
+        assert email_signoff(output), (
+            f"Email missing valid sign-off ('- Swift' or 'Happy Hacking,\\nSwift'). "
+            f"Ending: ...{output[-100:]}"
+        )
+
+    def test_email_greeting_format(self, runner, email_prompt):
+        output = runner.run(email_prompt)
+        assert re.search(r"Hey,\s+\w+\s+--", output), (
+            f"Email missing 'Hey, [Name] --' greeting. First line: {output.splitlines()[0]}"
+        )
+
+    def test_email_opens_with_point(self, runner, email_prompt, email_source):
+        output = runner.run(email_prompt)
+        result = judge(
+            source=email_source,
+            output=output,
+            rubric="The first sentence after the greeting contains the main point, update, or ask. Not a pleasantry or context-setting preamble.",
+            runner=runner,
+        )
+        assert result.passed, f"Email doesn't open with the point: {result.reasoning}"
+
+
+class TestLinkedinMedium:
+    def test_linkedin_word_count(self, runner, linkedin_prompt):
+        output = runner.run(linkedin_prompt)
+        words = len(output.split())
+        assert 100 <= words <= 200, f"LinkedIn post is {words} words (expected 100-200)"
+
+    def test_linkedin_hashtag_count(self, runner, linkedin_prompt):
+        output = runner.run(linkedin_prompt)
+        count = linkedin_hashtag_count(output)
+        assert 4 <= count <= 7, f"LinkedIn post has {count} hashtags (expected 4-7)"
+
+    def test_linkedin_hooks_first(self, runner, linkedin_prompt, linkedin_source):
+        output = runner.run(linkedin_prompt)
+        result = judge(
+            source=linkedin_source,
+            output=output,
+            rubric="The opening line is a hook that challenges, quotes, or directly addresses the reader. It does NOT start with 'I'm excited to share' or 'I recently' or similar preamble.",
+            runner=runner,
+        )
+        assert result.passed, f"LinkedIn doesn't hook first: {result.reasoning}"
+
+
+class TestSlackMedium:
+    def test_slack_under_60_words(self, runner, slack_prompt):
+        output = runner.run(slack_prompt)
+        count = slack_word_count(output)
+        assert count <= 60, f"Slack message is {count} words (max 60)"
+
+    def test_slack_is_chat_prose(self, runner, slack_prompt):
+        output = runner.run(slack_prompt)
+        bullet_lines = [
+            line for line in output.splitlines()
+            if re.match(r'^\s*[-*]\s', line) or re.match(r'^\s*\d+\.\s', line)
+        ]
+        bold_matches = re.findall(r'\*\*[^*]+\*\*', output)
+        header_lines = [line for line in output.splitlines() if re.match(r'^#+\s', line)]
+        violations = bullet_lines + bold_matches + header_lines
+        assert violations == [], (
+            f"Slack should be plain chat prose, no bullets/bold/headers: {violations}"
+        )
+
+    def test_slack_ask_first(self, runner, slack_prompt, slack_source):
+        output = runner.run(slack_prompt)
+        result = judge(
+            source=slack_source,
+            output=output,
+            rubric="The first sentence contains the request or ask. Context and explanation come after, not before.",
+            runner=runner,
+        )
+        assert result.passed, f"Slack doesn't put ask first: {result.reasoning}"
+
+
+class TestBlogMedium:
+    def test_blog_has_section_headers(self, runner, blog_prompt):
+        output = runner.run(blog_prompt)
+        headers = [line for line in output.splitlines() if re.match(r'^#{1,3}\s', line)]
+        assert len(headers) >= 2, (
+            f"Blog post should have section headers (## or ###). Found {len(headers)}"
+        )
