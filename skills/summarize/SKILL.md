@@ -64,26 +64,43 @@ Every summary the user sees is a **single assistant message** that fills in this
 1. **Fetch and read** the content. For a single URL, use `scrape_as_markdown` from the brightdata MCP. For multiple URLs in one request, use `scrape_batch`. For local files (PDFs, DOCX, etc.), use Read directly. If the brightdata MCP is unavailable, fail loudly with a message pointing the user at `BRIGHTDATA_API_TOKEN`. Do not fall back to any other fetch tool.
 2. **Draft Title, TL;DR, and Cliff Notes internally** from the source content. These are YOUR words, not ghostwrite's.
 3. **Identify the Share takeaway** (one punchy sentence that would make someone click) and the **Comment angle** (something specific to react to as a builder).
-4. **Invoke the `ghostwrite` skill exactly once** with both the Share takeaway and the Comment angle. Ask it to return two rewrites: a Slack-style share message and a short forum comment. Ghostwrite's return value is **raw text you paste into the Share and Comment code fences of the template in step 6**. It is never your final response to the user. If ghostwrite gives you text and you are tempted to just return it, STOP — you still owe the user the full template (H1 + TL;DR + Cliff Notes + Share + Comment).
+4. **Dispatch a subagent to ghostwrite the Share and Comment.** Use the Agent tool to spawn a subagent with the prompt below. The subagent invokes the `ghostwrite` skill, gets the rewritten text, and returns it. This keeps ghostwrite's output isolated so it doesn't pollute your context or confuse the template assembly. Paste the subagent's returned text into the Share and Comment code fences in step 6.
+
+   Subagent prompt (fill in the `{share_takeaway}` and `{comment_angle}` placeholders with your drafted text from step 3):
+
+   ```
+   You are a ghostwriting helper. Invoke the `mechaswift:ghostwrite` skill with the following arguments, then return ONLY the skill's output (no preamble, no commentary):
+
+   Rewrite these two pieces in Mike Swift's voice. Return both labeled SHARE and COMMENT.
+
+   SHARE (Slack-style hot take, 1-2 sentences, make someone want to click):
+   Source: {share_takeaway}
+
+   COMMENT (forum reply, 20 words max, react as a builder, no summary, no filler):
+   Source: {comment_angle}
+   ```
+
+   The subagent's return is **raw text you paste into the template**. It is never your final response to the user. If you are tempted to just return it, STOP. You still owe the user the full template (H1 + TL;DR + Cliff Notes + Share + Comment).
 5. **Verify hard limits.** Count, do not estimate.
    - **Cliff Notes**: up to 8 bullets. Fewer is fine — if the source only supports 3, emit 3. Never pad to hit a number.
    - **Share**: 1-2 sentences. If more, cut.
    - **Comment**: 20 words or fewer inside the code fence. If more, trim yourself (do not re-invoke ghostwrite).
-6. **Write the full template above as a single markdown message.** All five sections. Literal `## TL;DR`, `## Cliff Notes`, `## Share`, `## Comment` headings. No bold-label substitutes.
-7. **Self-check before presenting.** Write your draft to `tmp/summarize-draft.md`, run `python skills/summarize/lint.py tmp/summarize-draft.md`, and fix the file until the lint is clean (exit 0). The lint catches structural bugs the model is known to drift on: missing title, narration leaking into output, too many bullets (>8), em dashes, missing Share/Comment blocks.
-8. **Deliver the draft verbatim.** Your next assistant message is the contents of `tmp/summarize-draft.md` and nothing else. First character is the `#` of the H1. Last character is the closing backtick of the Comment code fence. No "Lint clean.", no "Here's the summary:", no "---", no trailing "Let me know...". Read the file back and send exactly what it contains.
+6. **Deliver the full template above as a single markdown message.** All five sections. Literal `## TL;DR`, `## Cliff Notes`, `## Share`, `## Comment` headings. No bold-label substitutes.
 
 ## Input types
 
 **URL input** (user pasted a link, or asked you to summarize a web page):
+
 - H1 uses the article title as the link text with the source URL, e.g. `# [Article Title](https://example.com/post)`.
 - Share fence ends with the bare source URL on its own line below the hot-take sentence.
 
 **File input** (user attached or named a PDF, DOCX, or other local file):
+
 - H1 uses the document title (from the file's own title/metadata) or the filename if no title exists. No markdown link.
 - Share fence contains only the hot-take sentence. **Do NOT include a URL line** -- there is no URL to share.
 
 **Pasted text input** (user pasted raw content directly in the message, no file, no URL):
+
 - H1 uses a short descriptive title you infer from the pasted content. No markdown link.
 - Share fence contains only the hot-take sentence. **Do NOT include a URL line**.
 
@@ -96,9 +113,10 @@ In all three cases, the `## Share` and `## Comment` section headings are still e
 **TL;DR** — 1-2 sentences max as plain paragraph text (NOT a heading, NOT a bold block). Lead with the single most important takeaway. Write it like a headline expansion, not an abstract. If the reader sees nothing else, they should know what happened and why it matters.
 
 **Cliff Notes** — a bulleted list of the key points, findings, arguments, or events:
+
 - Each bullet: 1-2 sentences max. No long paragraphs.
 - Use **bold** for names, key terms, or critical facts so they pop when skimming.
-- Use *italics* for context, nuance, or editorial framing that helps interpretation.
+- Use _italics_ for context, nuance, or editorial framing that helps interpretation.
 - Up to 8 bullets, ordered by importance (not source order). Fewer is fine.
 - Never pad with filler. If the source only supports 3 bullets, emit 3.
 
@@ -108,7 +126,7 @@ In all three cases, the `## Share` and `## Comment` section headings are still e
 
 ## Style Rules
 
-- Use **bold** and *italics* strategically to draw the eye, but don't overdo it. Bold and italic conventions are defined per-section above; do not introduce new emphasis styles.
+- Use **bold** and _italics_ strategically to draw the eye, but don't overdo it. Bold and italic conventions are defined per-section above; do not introduce new emphasis styles.
 - Shorter is always better. Trim ruthlessly.
 - Do not editorialize or inject opinions in the TL;DR or Cliff Notes. Stick to what the content actually says.
 - Do not reproduce large verbatim passages from the source. Use your own concise wording.
