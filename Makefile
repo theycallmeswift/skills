@@ -1,13 +1,7 @@
-.PHONY: install test test-harness lint format
+.PHONY: install lint format
 
 install:
 	uv sync
-
-test:
-	uv run python -m tests.support.harness $(ARGS)
-
-test-harness:
-	uv run pytest -v
 
 lint:
 	uv run ruff check --fix .

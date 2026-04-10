@@ -59,27 +59,12 @@ Each skill lives in `skills/<name>/` with a `SKILL.md` that defines activation t
 
 Skills can reference hand-authored prompt context from `docs/` (e.g. `about-swift.md`) and skill-local `references/`, and write outputs to `references/specs/`, `references/plans/`, or `tmp/`.
 
-## Testing
+## Development
 
-Eval suites live under `tests/skills/<name>/evals.json` (per-skill) and `tests/core/*.json` (cross-cutting rules). A Python harness runs them in parallel through the Claude Agent SDK, grades with an LLM judge (plus deterministic tool-trace and lint assertions), and prints a live table.
-
-```
-make test                                       # All suites
-make test ARGS="ghostwrite summarize"           # Specific suites
-make test ARGS="--no-baseline"                  # Skip baseline (with-skill only)
-make test ARGS="--verbose"                      # Show passing assertion evidence
-make test ARGS="--model claude-haiku-4-5-20251001"  # Override agent model
-make test-harness                               # Harness + skill-lint unit tests
-```
-
-Results print inline. Full outputs land in `tmp/evals/<timestamp>/`.
-
-Other Makefile targets:
+Makefile targets:
 
 ```
 make install    # uv sync (install Python deps)
 make lint       # uv run ruff check --fix .
 make format     # uv run ruff format .
 ```
-
-See [docs/evals.md](docs/evals.md) for the eval file format, intents (lift vs regression), assertion types, and best practices.

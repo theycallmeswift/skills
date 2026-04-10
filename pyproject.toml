@@ -1,7 +1,7 @@
 [project]
-name = "mechaswift-tests"
+name = "mechaswift"
 version = "0.1.0"
-description = "Eval harness for MechaSwift skills"
+description = "Mike Swift's personal agent framework — skills, configuration, and workflows."
 requires-python = ">=3.11"
 dependencies = [
     "claude-agent-sdk>=0.1.0",
@@ -10,15 +10,8 @@ dependencies = [
 
 [dependency-groups]
 dev = [
-    "pytest>=8.0.0",
-    "pytest-asyncio>=0.23.0",
     "ruff>=0.15.9",
 ]
-
-[tool.pytest.ini_options]
-asyncio_mode = "auto"
-testpaths = ["tests"]
-python_files = ["test_*.py"]
 
 [tool.ruff]
 line-length = 100
