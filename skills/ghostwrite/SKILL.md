@@ -169,7 +169,7 @@ LinkedIn doesn't support rich text (no markdown rendering). Format accordingly.
 
 ### Blog Posts (DEV)
 
-- Headers to break sections
+- Use markdown headers to break sections (`##`, `###`, etc)
 - End with a clear call-to-action
 - Concrete examples over abstract claims
 
