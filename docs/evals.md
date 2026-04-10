@@ -32,12 +32,18 @@ tests/
 │       ├── judge.py                         # LLM judge for semantic checks
 │       └── test_judge.py                    # Judge unit tests
 └── skills/
-    └── ghostwrite/
-        ├── conftest.py                      # Source content + cached output fixtures
-        ├── helpers.py                       # Ghostwrite-specific helpers (signoff, hashtags)
+    ├── ghostwrite/
+    │   ├── conftest.py                      # Source content + cached output fixtures
+    │   ├── helpers.py                       # Ghostwrite-specific helpers (signoff, hashtags)
+    │   ├── test_helpers.py                  # Helper unit tests
+    │   ├── test_ghostwrite_rules.py         # Rule compliance (~6 tests)
+    │   └── test_ghostwrite_mediums.py       # Medium formatting (~10 tests)
+    └── summarize/
+        ├── conftest.py                      # Source content + cached output fixtures (3 input types)
+        ├── helpers.py                       # Summarize-specific helpers (template parsing)
         ├── test_helpers.py                  # Helper unit tests
-        ├── test_ghostwrite_rules.py         # Rule compliance (~6 tests)
-        └── test_ghostwrite_mediums.py       # Medium formatting (~10 tests)
+        ├── test_summarize_structure.py      # Template structure compliance (~8 tests)
+        └── test_summarize_input_types.py    # Input-type formatting (~8 tests)
 ```
 
 ## Writing a New Test
