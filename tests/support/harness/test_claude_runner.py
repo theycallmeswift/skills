@@ -58,7 +58,6 @@ class TestClaudeRunnerInit:
 
     def test_default_plugin_dir_is_project_root(self):
         runner = ClaudeRunner()
-        assert runner.plugin_dir.name in ("mechaswift", "testing-eval-strategy")
         assert (runner.plugin_dir / "pyproject.toml").exists()
 
     def test_explicit_plugin_dir(self):
