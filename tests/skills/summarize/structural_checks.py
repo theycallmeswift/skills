@@ -13,14 +13,10 @@ def assert_structure(result):
     assert result.matches_regex(r"(?m)^- ", on="final_message", min=1, max=8)
 
     # Share block present
-    assert result.matches_regex(
-        r"(?im)^\s*(?:#+\s*share\b|\*\*share\*\*)", on="final_message"
-    )
+    assert result.matches_regex(r"(?im)^\s*(?:#+\s*share\b|\*\*share\*\*)", on="final_message")
 
     # Comment block present
-    assert result.matches_regex(
-        r"(?im)^\s*(?:#+\s*comment\b|\*\*comment\*\*)", on="final_message"
-    )
+    assert result.matches_regex(r"(?im)^\s*(?:#+\s*comment\b|\*\*comment\*\*)", on="final_message")
 
     # No em dashes
     assert result.not_contains("\u2014", on="final_message")

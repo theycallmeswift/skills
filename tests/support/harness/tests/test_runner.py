@@ -137,6 +137,7 @@ def test_run_eval_calls_setup_and_cleanup(tmp_path, monkeypatch):
         )
 
     import tests.support.harness.runner as runner_mod
+
     monkeypatch.setattr(runner_mod, "run_claude", fake_run_claude)
 
     result = run_eval(
@@ -175,6 +176,7 @@ def test_run_eval_reads_preamble_file(tmp_path, monkeypatch):
         )
 
     import tests.support.harness.runner as runner_mod
+
     monkeypatch.setattr(runner_mod, "run_claude", fake_run_claude)
 
     run_eval(

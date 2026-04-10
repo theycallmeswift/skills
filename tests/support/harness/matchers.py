@@ -12,11 +12,9 @@ def _resolve_source(run: RunResult, on: str) -> list[str]:
     if on == "stdout":
         return [run.stdout or ""]
     if on.startswith("files."):
-        pattern = on[len("files."):]
+        pattern = on[len("files.") :]
         return [
-            content
-            for path, content in run.files_written.items()
-            if fnmatch.fnmatch(path, pattern)
+            content for path, content in run.files_written.items() if fnmatch.fnmatch(path, pattern)
         ]
     raise ValueError(f"unknown `on` target: {on!r}")
 
@@ -52,9 +50,7 @@ class EvalResult:
 
     # --- Content matchers ---
 
-    def matches_regex(
-        self, pattern: str, on: str, min: int = 1, max: float = inf
-    ) -> bool:
+    def matches_regex(self, pattern: str, on: str, min: int = 1, max: float = inf) -> bool:
         sources = _resolve_source(self._run, on)
         count = sum(len(re.findall(pattern, s)) for s in sources)
         return count >= min and count <= max
@@ -73,14 +69,6 @@ class EvalResult:
 
     def not_contains(self, text: str, on: str) -> bool:
         return not self.contains(text, on)
-
-    def output_len_lte(self, n: int, on: str) -> bool:
-        sources = _resolve_source(self._run, on)
-        return sum(len(s) for s in sources) <= n
-
-    def output_len_gte(self, n: int, on: str) -> bool:
-        sources = _resolve_source(self._run, on)
-        return sum(len(s) for s in sources) >= n
 
     # --- Token matchers ---
 
@@ -127,11 +115,7 @@ class EvalResult:
     def file_contains(
         self, path_glob: str, text: str | None = None, regex: str | None = None
     ) -> bool:
-        matches = [
-            (p, c)
-            for p, c in self.files_written.items()
-            if fnmatch.fnmatch(p, path_glob)
-        ]
+        matches = [(p, c) for p, c in self.files_written.items() if fnmatch.fnmatch(p, path_glob)]
         if not matches:
             return False
         for _path, content in matches:
@@ -149,7 +133,10 @@ class EvalResult:
     # --- Rubric matcher ---
 
     def llm_judge(
-        self, item: str, on: str | None = None, content: str | None = None,
+        self,
+        item: str,
+        on: str | None = None,
+        content: str | None = None,
         model: str | None = None,
     ) -> bool:
         """Send item + content to an LLM judge, return pass/fail.

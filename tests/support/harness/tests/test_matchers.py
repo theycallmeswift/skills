@@ -107,21 +107,6 @@ def test_not_contains_fails():
     assert not r.not_contains("dirty", on="final_message")
 
 
-# --- output_len ---
-
-
-def test_output_len_lte():
-    r = _result(final_message="short")
-    assert r.output_len_lte(100, on="final_message")
-    assert not r.output_len_lte(3, on="final_message")
-
-
-def test_output_len_gte():
-    r = _result(final_message="hello world")
-    assert r.output_len_gte(5, on="final_message")
-    assert not r.output_len_gte(100, on="final_message")
-
-
 # --- token_usage_lte ---
 
 
@@ -135,9 +120,9 @@ def test_token_usage_lte():
 
 
 def test_tool_called():
-    r = _result(tool_trace=[
-        {"name": "mcp__brightdata__scrape_as_markdown", "input": {}, "turn": 1}
-    ])
+    r = _result(
+        tool_trace=[{"name": "mcp__brightdata__scrape_as_markdown", "input": {}, "turn": 1}]
+    )
     assert r.tool_called("scrape_as_markdown")
     assert not r.tool_called("WebFetch")
 
@@ -152,17 +137,15 @@ def test_not_tool_called():
 
 
 def test_skill_invoked_bare():
-    r = _result(tool_trace=[
-        {"name": "Skill", "input": {"skill": "ghostwrite"}, "turn": 1}
-    ])
+    r = _result(tool_trace=[{"name": "Skill", "input": {"skill": "ghostwrite"}, "turn": 1}])
     assert r.skill_invoked("ghostwrite")
     assert not r.skill_invoked("summarize")
 
 
 def test_skill_invoked_prefixed():
-    r = _result(tool_trace=[
-        {"name": "Skill", "input": {"skill": "mechaswift:ghostwrite"}, "turn": 1}
-    ])
+    r = _result(
+        tool_trace=[{"name": "Skill", "input": {"skill": "mechaswift:ghostwrite"}, "turn": 1}]
+    )
     assert r.skill_invoked("ghostwrite")
 
 
@@ -172,9 +155,7 @@ def test_not_skill_invoked():
 
 
 def test_not_skill_invoked_fails_when_fired():
-    r = _result(tool_trace=[
-        {"name": "Skill", "input": {"skill": "ghostwrite"}, "turn": 1}
-    ])
+    r = _result(tool_trace=[{"name": "Skill", "input": {"skill": "ghostwrite"}, "turn": 1}])
     assert not r.not_skill_invoked("ghostwrite")
 
 
@@ -182,19 +163,23 @@ def test_not_skill_invoked_fails_when_fired():
 
 
 def test_trace_order_passes():
-    r = _result(tool_trace=[
-        {"name": "scrape_as_markdown", "input": {}, "turn": 1},
-        {"name": "Bash", "input": {}, "turn": 1},
-        {"name": "Write", "input": {}, "turn": 1},
-    ])
+    r = _result(
+        tool_trace=[
+            {"name": "scrape_as_markdown", "input": {}, "turn": 1},
+            {"name": "Bash", "input": {}, "turn": 1},
+            {"name": "Write", "input": {}, "turn": 1},
+        ]
+    )
     assert r.trace_order(["scrape_as_markdown", "Write"])
 
 
 def test_trace_order_fails_wrong_order():
-    r = _result(tool_trace=[
-        {"name": "Write", "input": {}, "turn": 1},
-        {"name": "scrape_as_markdown", "input": {}, "turn": 1},
-    ])
+    r = _result(
+        tool_trace=[
+            {"name": "Write", "input": {}, "turn": 1},
+            {"name": "scrape_as_markdown", "input": {}, "turn": 1},
+        ]
+    )
     assert not r.trace_order(["scrape_as_markdown", "Write"])
 
 

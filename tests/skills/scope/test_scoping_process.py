@@ -3,8 +3,7 @@ from fnmatch import fnmatch
 
 def test_asks_clarifying_questions(result):
     assert result.llm_judge(
-        "Early in the conversation, the agent asks clarifying questions "
-        "before proposing a design.",
+        "Early in the conversation, the agent asks clarifying questions before proposing a design.",
         on="stdout",
     )
 
@@ -18,8 +17,7 @@ def test_proposes_approaches(result):
 
 def test_gives_recommendation(result):
     assert result.llm_judge(
-        "The agent includes a clear recommendation with reasoning "
-        "for which approach to use.",
+        "The agent includes a clear recommendation with reasoning for which approach to use.",
         on="stdout",
     )
 

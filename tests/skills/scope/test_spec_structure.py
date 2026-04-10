@@ -39,9 +39,7 @@ def test_mentions_events(result):
 
 
 def test_mentions_out_of_scope(result):
-    assert result.file_contains(
-        "references/specs/*.md", regex=r"(?i)out of scope"
-    )
+    assert result.file_contains("references/specs/*.md", regex=r"(?i)out of scope")
 
 
 def test_mentions_infrastructure(result):

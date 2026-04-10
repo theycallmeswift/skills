@@ -22,7 +22,7 @@ def result(run_eval, project_root):
 
 
 def test_core_rules(result):
-    assert_core_rules(result, SOURCE)
+    assert_core_rules(result)
 
 
 def test_no_greeting(result):

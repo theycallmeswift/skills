@@ -26,10 +26,11 @@ def eval_model(request):
     return request.config.getoption("--model")
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="session")
 def run_eval(project_root, eval_model):
     def _run(**kwargs):
         if eval_model and "model" not in kwargs:
             kwargs["model"] = eval_model
         return harness_run_eval(project_root=project_root, **kwargs)
+
     return _run

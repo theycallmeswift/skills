@@ -64,7 +64,5 @@ def extract_fields(
     The LLM extracts field values, then Pydantic validates the result.
     """
     schema = model_class.model_json_schema()
-    raw = asyncio.run(
-        _extract_async(content, schema, llm_model or DEFAULT_EXTRACT_MODEL)
-    )
+    raw = asyncio.run(_extract_async(content, schema, llm_model or DEFAULT_EXTRACT_MODEL))
     return model_class.model_validate(raw)

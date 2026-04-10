@@ -58,21 +58,15 @@ def test_throwaway_no_coauthor(throwaway_commit):
 
 
 def test_throwaway_no_ai_vendor(throwaway_commit):
-    assert throwaway_commit.not_matches_regex(
-        r"(?i)(Claude|Anthropic|GPT|OpenAI)", on="stdout"
-    )
+    assert throwaway_commit.not_matches_regex(r"(?i)(Claude|Anthropic|GPT|OpenAI)", on="stdout")
 
 
 def test_throwaway_no_generated_with(throwaway_commit):
-    assert throwaway_commit.not_matches_regex(
-        r"(?i)(Generated with|AI-assisted)", on="stdout"
-    )
+    assert throwaway_commit.not_matches_regex(r"(?i)(Generated with|AI-assisted)", on="stdout")
 
 
 def test_throwaway_no_ai_urls(throwaway_commit):
-    assert throwaway_commit.not_matches_regex(
-        r"claude\.(com|ai)|anthropic\.com", on="stdout"
-    )
+    assert throwaway_commit.not_matches_regex(r"claude\.(com|ai)|anthropic\.com", on="stdout")
 
 
 # --- pr_draft assertions ---
@@ -83,21 +77,15 @@ def test_pr_no_coauthor(pr_draft):
 
 
 def test_pr_no_generated_footer(pr_draft):
-    assert pr_draft.not_matches_regex(
-        r"(?i)Generated with Claude Code", on="stdout"
-    )
+    assert pr_draft.not_matches_regex(r"(?i)Generated with Claude Code", on="stdout")
 
 
 def test_pr_no_ai_vendor(pr_draft):
-    assert pr_draft.not_matches_regex(
-        r"(?i)(Claude|Anthropic|GPT|OpenAI)", on="stdout"
-    )
+    assert pr_draft.not_matches_regex(r"(?i)(Claude|Anthropic|GPT|OpenAI)", on="stdout")
 
 
 def test_pr_no_ai_urls(pr_draft):
-    assert pr_draft.not_matches_regex(
-        r"claude\.(com|ai)|anthropic\.com", on="stdout"
-    )
+    assert pr_draft.not_matches_regex(r"claude\.(com|ai)|anthropic\.com", on="stdout")
 
 
 # --- amend_existing assertions ---

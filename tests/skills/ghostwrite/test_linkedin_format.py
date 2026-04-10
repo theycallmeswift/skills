@@ -23,7 +23,7 @@ def result(run_eval, project_root):
 
 
 def test_core_rules(result):
-    assert_core_rules(result, SOURCE)
+    assert_core_rules(result)
 
 
 def test_no_markdown_bold(result):
@@ -42,6 +42,4 @@ def test_length_under_250_words(result):
 
 
 def test_no_engagement_bait_closer(result):
-    assert result.not_matches_regex(
-        r"(?i)let me know in the comments", on="final_message"
-    )
+    assert result.not_matches_regex(r"(?i)let me know in the comments", on="final_message")

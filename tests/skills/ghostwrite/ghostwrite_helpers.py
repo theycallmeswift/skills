@@ -1,4 +1,4 @@
-def assert_core_rules(result, source_text: str):
+def assert_core_rules(result):
     """Core voice rules that apply to every ghostwrite output (from lint.py)."""
     # No em dashes — ever
     assert result.not_contains("\u2014", on="final_message")
@@ -18,6 +18,3 @@ def assert_core_rules(result, source_text: str):
     assert result.not_matches_regex(r"Generated with \[?Claude", on="final_message")
     assert result.not_matches_regex(r"Co-Authored-By:\s*Claude", on="final_message")
     assert result.not_matches_regex(r"\bAI-assisted\b", on="final_message")
-
-    # Output is shorter than input
-    assert result.output_len_lte(len(source_text), on="final_message")

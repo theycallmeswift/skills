@@ -24,15 +24,11 @@ def test_has_code_block(result):
 
 
 def test_no_preamble(result):
-    assert result.not_matches_regex(
-        r"^(Here is your prompt|Sure, I can help)", on="final_message"
-    )
+    assert result.not_matches_regex(r"^(Here is your prompt|Sure, I can help)", on="final_message")
 
 
 def test_mentions_required_fields(result):
-    assert result.contains_all(
-        ["parties", "effective_date", "termination"], on="final_message"
-    )
+    assert result.contains_all(["parties", "effective_date", "termination"], on="final_message")
 
 
 def test_no_generic_assistant_role(result):

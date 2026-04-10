@@ -14,14 +14,10 @@ def _make_project(tmp_path: Path) -> Path:
     (root / "skills" / "summarize").mkdir(parents=True)
     (root / "skills" / "summarize" / "SKILL.md").write_text("# Summarize")
     (root / "skills" / "summarize" / "references").mkdir()
-    (root / "skills" / "summarize" / "references" / "examples.md").write_text(
-        "# Examples"
-    )
+    (root / "skills" / "summarize" / "references" / "examples.md").write_text("# Examples")
     (root / "AGENTS.md").write_text("# Agents")
     (root / "tests" / "support" / "fixtures").mkdir(parents=True)
-    (root / "tests" / "support" / "fixtures" / "test-paper.pdf").write_bytes(
-        b"fake pdf"
-    )
+    (root / "tests" / "support" / "fixtures" / "test-paper.pdf").write_bytes(b"fake pdf")
     return root
 
 

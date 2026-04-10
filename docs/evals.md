@@ -44,8 +44,6 @@ def test_something(result):
 | `contains(text, on)` | yes | Literal substring found |
 | `contains_all(texts, on)` | yes | Every literal found |
 | `not_contains(text, on)` | yes | Literal absent |
-| `output_len_lte(n, on)` | yes | Character count <= n |
-| `output_len_gte(n, on)` | yes | Character count >= n |
 | `llm_judge(item, on=None, content=None)` | optional | LLM judge (Haiku) grades pass/fail. Pass `on` for a source or `content` for raw text |
 | `parse(model, on="final_message")` | yes | Extract fields into a Pydantic model via LLM. Raises ValidationError on shape mismatch |
 | `tool_called(name)` | no | Tool name in trace (substring match) |

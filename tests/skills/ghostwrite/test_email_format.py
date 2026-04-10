@@ -25,7 +25,7 @@ def result(run_eval, project_root):
 
 
 def test_core_rules(result):
-    assert_core_rules(result, SOURCE)
+    assert_core_rules(result)
 
 
 def test_leads_with_the_ask(result):
@@ -45,9 +45,7 @@ def test_greeting_format(result):
 
 
 def test_sign_off(result):
-    assert result.matches_regex(
-        r"(?m)(- Swift|Happy Hacking,\s*\nSwift)\s*$", on="final_message"
-    )
+    assert result.matches_regex(r"(?m)(- Swift|Happy Hacking,\s*\nSwift)\s*$", on="final_message")
 
 
 def test_no_section_headers(result):

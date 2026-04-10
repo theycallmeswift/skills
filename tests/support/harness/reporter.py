@@ -2,6 +2,7 @@
 
 Registered via conftest.py: pytest_plugins = ["tests.support.harness.reporter"]
 """
+
 from __future__ import annotations
 
 from collections import defaultdict
@@ -42,15 +43,17 @@ class EvalReporter:
             total = len(reports)
             duration = self._durations[module]
             failures = [r for r in reports if r.failed]
-            rows.append({
-                "skill": skill,
-                "test": test,
-                "passed": passed,
-                "total": total,
-                "duration": duration,
-                "failures": failures,
-                "module": module,
-            })
+            rows.append(
+                {
+                    "skill": skill,
+                    "test": test,
+                    "passed": passed,
+                    "total": total,
+                    "duration": duration,
+                    "failures": failures,
+                    "module": module,
+                }
+            )
         return rows
 
     def compute_totals(self) -> dict:
@@ -64,17 +67,13 @@ class EvalReporter:
         rows = self.build_table_rows()
         totals = self.compute_totals()
         lines = []
-        lines.append(
-            f"{'Skill':<17}{'Test':<28}{'Result':<9}{'Time'}"
-        )
+        lines.append(f"{'Skill':<17}{'Test':<28}{'Result':<9}{'Time'}")
         total_duration = 0.0
         for row in rows:
             result = f"{row['passed']}/{row['total']}"
             time_str = f"{row['duration']:.1f}s"
             total_duration += row["duration"]
-            lines.append(
-                f"{row['skill']:<17}{row['test']:<28}{result:<9}{time_str}"
-            )
+            lines.append(f"{row['skill']:<17}{row['test']:<28}{result:<9}{time_str}")
         lines.append(
             f"{'':<17}{'':<28}{totals['passed']}/{totals['total']:<9}{total_duration:.1f}s"
         )

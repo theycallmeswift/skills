@@ -39,9 +39,7 @@ def test_has_changes_section(result):
 
 
 def test_removes_padding(result):
-    assert result.not_matches_regex(
-        r"(?i)helpful AI assistant", on="final_message"
-    )
+    assert result.not_matches_regex(r"(?i)helpful AI assistant", on="final_message")
     assert result.not_matches_regex(r"\bPlease\b", on="final_message")
     assert result.not_matches_regex(r"\bThank you\b", on="final_message")
 

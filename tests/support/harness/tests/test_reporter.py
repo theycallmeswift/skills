@@ -18,9 +18,15 @@ def _make_report(nodeid, passed, duration=1.0):
 
 def test_reporter_groups_by_module():
     r = EvalReporter(verbose=False)
-    r.record_result(_make_report("tests/skills/ghostwrite/test_sponsor_email.py::test_greeting", True))
-    r.record_result(_make_report("tests/skills/ghostwrite/test_sponsor_email.py::test_sign_off", False))
-    r.record_result(_make_report("tests/skills/ghostwrite/test_sponsor_email.py::test_numbers", True))
+    r.record_result(
+        _make_report("tests/skills/ghostwrite/test_sponsor_email.py::test_greeting", True)
+    )
+    r.record_result(
+        _make_report("tests/skills/ghostwrite/test_sponsor_email.py::test_sign_off", False)
+    )
+    r.record_result(
+        _make_report("tests/skills/ghostwrite/test_sponsor_email.py::test_numbers", True)
+    )
 
     rows = r.build_table_rows()
     assert len(rows) == 1
@@ -33,7 +39,9 @@ def test_reporter_groups_by_module():
 
 def test_reporter_handles_core_tests():
     r = EvalReporter(verbose=False)
-    r.record_result(_make_report("tests/core/test_skill_triggers.py::test_ghostwrite_trigger", True))
+    r.record_result(
+        _make_report("tests/core/test_skill_triggers.py::test_ghostwrite_trigger", True)
+    )
     r.record_result(_make_report("tests/core/test_skill_triggers.py::test_scope_trigger", True))
 
     rows = r.build_table_rows()
@@ -55,8 +63,12 @@ def test_reporter_computes_totals():
 
 def test_reporter_format_output():
     r = EvalReporter(verbose=False)
-    r.record_result(_make_report("tests/skills/ghostwrite/test_sponsor_email.py::test_a", True, 15.2))
-    r.record_result(_make_report("tests/skills/ghostwrite/test_sponsor_email.py::test_b", False, 15.2))
+    r.record_result(
+        _make_report("tests/skills/ghostwrite/test_sponsor_email.py::test_a", True, 15.2)
+    )
+    r.record_result(
+        _make_report("tests/skills/ghostwrite/test_sponsor_email.py::test_b", False, 15.2)
+    )
 
     output = r.format_table()
     assert "ghostwrite" in output
