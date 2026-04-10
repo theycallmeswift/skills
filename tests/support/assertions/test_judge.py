@@ -1,6 +1,8 @@
 import json
 from unittest.mock import MagicMock
 
+import pytest
+
 from tests.support.assertions.judge import JudgeResult, judge
 
 
@@ -82,3 +84,26 @@ class TestJudge:
         assert "my source" in prompt
         assert "my output" in prompt
         assert "my rubric" in prompt
+
+    def test_strips_markdown_fences(self):
+        mock_runner = MagicMock()
+        mock_runner.run.return_value = (
+            '```json\n{"checks": {"test": true}, "reasoning": {"test": "ok"}}\n```'
+        )
+
+        result = judge(source="s", output="o", rubric="r", runner=mock_runner)
+        assert result.passed is True
+
+    def test_raises_on_malformed_json(self):
+        mock_runner = MagicMock()
+        mock_runner.run.return_value = "not json at all"
+
+        with pytest.raises(ValueError, match="unparseable output"):
+            judge(source="s", output="o", rubric="r", runner=mock_runner)
+
+    def test_raises_on_missing_keys(self):
+        mock_runner = MagicMock()
+        mock_runner.run.return_value = json.dumps({"checks": {"a": True}})
+
+        with pytest.raises(ValueError, match="unparseable output"):
+            judge(source="s", output="o", rubric="r", runner=mock_runner)

@@ -76,4 +76,8 @@ class ClaudeRunner:
             cwd=self.cwd,
             env=self.env,
         )
+        if result.returncode != 0:
+            raise RuntimeError(
+                f"claude -p exited with code {result.returncode}\nstderr: {result.stderr.strip()}"
+            )
         return result.stdout.strip()

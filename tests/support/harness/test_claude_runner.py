@@ -2,6 +2,8 @@ import os
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
+import pytest
+
 from tests.support.harness.claude_runner import ClaudeRunner
 
 
@@ -19,8 +21,8 @@ class TestClaudeRunnerInit:
         assert runner.model == "sonnet"
 
     def test_custom_timeout(self):
-        runner = ClaudeRunner(timeout=60)
-        assert runner.timeout == 60
+        runner = ClaudeRunner(timeout=90)
+        assert runner.timeout == 90
 
     def test_run_id_is_8_hex_chars(self):
         runner = ClaudeRunner()
@@ -73,6 +75,7 @@ class TestClaudeRunnerRun:
     def test_run_calls_subprocess_with_correct_args(self):
         runner = ClaudeRunner(model="haiku", timeout=30)
         mock_result = MagicMock()
+        mock_result.returncode = 0
         mock_result.stdout = "  hello world  "
 
         with patch("subprocess.run", return_value=mock_result) as mock_run:
@@ -95,3 +98,13 @@ class TestClaudeRunnerRun:
             assert args[1]["capture_output"] is True
             assert args[1]["text"] is True
             assert result == "hello world"
+
+    def test_run_raises_on_nonzero_exit(self):
+        runner = ClaudeRunner(model="haiku", timeout=30)
+        mock_result = MagicMock()
+        mock_result.returncode = 1
+        mock_result.stderr = "something went wrong"
+
+        with patch("subprocess.run", return_value=mock_result):
+            with pytest.raises(RuntimeError, match="exited with code 1"):
+                runner.run("bad prompt")

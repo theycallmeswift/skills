@@ -66,9 +66,12 @@ def judge(source: str, output: str, rubric: str, runner) -> JudgeResult:
         cleaned = cleaned.rsplit("\n", 1)[0]
     cleaned = cleaned.strip()
 
-    data = json.loads(cleaned)
-    checks = data["checks"]
-    reasoning = data["reasoning"]
+    try:
+        data = json.loads(cleaned)
+        checks = data["checks"]
+        reasoning = data["reasoning"]
+    except (json.JSONDecodeError, KeyError) as e:
+        raise ValueError(f"Judge returned unparseable output: {e}\nRaw: {raw}") from e
 
     return JudgeResult(
         passed=all(checks.values()),
