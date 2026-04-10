@@ -93,6 +93,7 @@ class TestClaudeRunnerRun:
             ]
             assert "text" in cmd
             assert "--plugin-dir" in cmd
+            assert "--dangerously-skip-permissions" in cmd
             assert args[1]["timeout"] == 30
             assert args[1]["capture_output"] is True
             assert args[1]["text"] is True
