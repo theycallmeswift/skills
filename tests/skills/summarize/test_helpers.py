@@ -3,8 +3,8 @@ from textwrap import dedent
 from tests.skills.summarize.helpers import (
     cliff_notes_bullets,
     comment_text,
-    has_all_sections,
     h1_title,
+    has_all_sections,
     share_text,
     starts_with_h1,
     tldr_text,

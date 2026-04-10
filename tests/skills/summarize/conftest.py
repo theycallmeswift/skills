@@ -2,7 +2,6 @@ from textwrap import dedent
 
 import pytest
 
-
 # --- Source content per input type ---
 
 

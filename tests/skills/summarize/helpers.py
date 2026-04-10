@@ -2,7 +2,6 @@
 
 import re
 
-
 REQUIRED_SECTIONS = ["## TL;DR", "## Cliff Notes", "## Share", "## Comment"]
 
 

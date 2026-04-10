@@ -28,14 +28,12 @@ class TestSummarizeStructure:
 
     def test_cliff_notes_max_8_bullets(self, pasted_output):
         bullets = cliff_notes_bullets(pasted_output)
-        assert 1 <= len(bullets) <= 8, (
-            f"Cliff Notes has {len(bullets)} bullets (expected 1-8)"
-        )
+        assert 1 <= len(bullets) <= 8, f"Cliff Notes has {len(bullets)} bullets (expected 1-8)"
 
     def test_share_is_1_to_2_sentences(self, pasted_output):
         share = share_text(pasted_output)
         assert share is not None, "Share section is missing or has no code fence"
-        sentences = [s.strip() for s in re.split(r'[.!?]+', share) if s.strip()]
+        sentences = [s.strip() for s in re.split(r"[.!?]+", share) if s.strip()]
         # Filter out bare URLs which aren't sentences
         sentences = [s for s in sentences if not s.startswith("http")]
         assert 1 <= len(sentences) <= 2, (
@@ -59,9 +57,7 @@ class TestSummarizeStructure:
     def test_no_preamble_or_postscript(self, pasted_output):
         lines = pasted_output.strip().splitlines()
         first_line = lines[0].strip()
-        assert first_line.startswith("# "), (
-            f"Preamble detected before H1. First line: {first_line}"
-        )
+        assert first_line.startswith("# "), f"Preamble detected before H1. First line: {first_line}"
         last_line = lines[-1].strip()
         preamble_phrases = [
             "let me know",
@@ -70,6 +66,4 @@ class TestSummarizeStructure:
             "feel free to",
         ]
         for phrase in preamble_phrases:
-            assert phrase not in last_line.lower(), (
-                f"Postscript detected: {last_line}"
-            )
+            assert phrase not in last_line.lower(), f"Postscript detected: {last_line}"
