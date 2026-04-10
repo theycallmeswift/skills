@@ -64,11 +64,12 @@ class TestSlackMedium:
     def test_slack_is_chat_prose(self, runner, slack_prompt):
         output = runner.run(slack_prompt)
         bullet_lines = [
-            line for line in output.splitlines()
-            if re.match(r'^\s*[-*]\s', line) or re.match(r'^\s*\d+\.\s', line)
+            line
+            for line in output.splitlines()
+            if re.match(r"^\s*[-*]\s", line) or re.match(r"^\s*\d+\.\s", line)
         ]
-        bold_matches = re.findall(r'\*\*[^*]+\*\*', output)
-        header_lines = [line for line in output.splitlines() if re.match(r'^#+\s', line)]
+        bold_matches = re.findall(r"\*\*[^*]+\*\*", output)
+        header_lines = [line for line in output.splitlines() if re.match(r"^#+\s", line)]
         violations = bullet_lines + bold_matches + header_lines
         assert violations == [], (
             f"Slack should be plain chat prose, no bullets/bold/headers: {violations}"
@@ -88,7 +89,7 @@ class TestSlackMedium:
 class TestBlogMedium:
     def test_blog_has_section_headers(self, runner, blog_prompt):
         output = runner.run(blog_prompt)
-        headers = [line for line in output.splitlines() if re.match(r'^#{1,3}\s', line)]
+        headers = [line for line in output.splitlines() if re.match(r"^#{1,3}\s", line)]
         assert len(headers) >= 2, (
             f"Blog post should have section headers (## or ###). Found {len(headers)}"
         )

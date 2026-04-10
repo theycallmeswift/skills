@@ -25,10 +25,12 @@ class TestJudgeResult:
 class TestJudge:
     def test_passes_when_all_criteria_met(self):
         mock_runner = MagicMock()
-        mock_runner.run.return_value = json.dumps({
-            "checks": {"main_point_first": True},
-            "reasoning": {"main_point_first": "Opens with the key ask"},
-        })
+        mock_runner.run.return_value = json.dumps(
+            {
+                "checks": {"main_point_first": True},
+                "reasoning": {"main_point_first": "Opens with the key ask"},
+            }
+        )
 
         result = judge(
             source="Please review my PR",
@@ -43,10 +45,12 @@ class TestJudge:
 
     def test_fails_when_criteria_not_met(self):
         mock_runner = MagicMock()
-        mock_runner.run.return_value = json.dumps({
-            "checks": {"main_point_first": False},
-            "reasoning": {"main_point_first": "Starts with context, not the ask"},
-        })
+        mock_runner.run.return_value = json.dumps(
+            {
+                "checks": {"main_point_first": False},
+                "reasoning": {"main_point_first": "Starts with context, not the ask"},
+            }
+        )
 
         result = judge(
             source="Please review my PR",
@@ -60,10 +64,12 @@ class TestJudge:
 
     def test_prompt_includes_source_output_and_rubric(self):
         mock_runner = MagicMock()
-        mock_runner.run.return_value = json.dumps({
-            "checks": {"test": True},
-            "reasoning": {"test": "ok"},
-        })
+        mock_runner.run.return_value = json.dumps(
+            {
+                "checks": {"test": True},
+                "reasoning": {"test": "ok"},
+            }
+        )
 
         judge(
             source="my source",

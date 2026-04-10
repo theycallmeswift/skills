@@ -1,6 +1,7 @@
 import os
 from pathlib import Path
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
+
 from tests.support.harness.claude_runner import ClaudeRunner
 
 
@@ -67,9 +68,13 @@ class TestClaudeRunnerRun:
             args = mock_run.call_args
             cmd = args[0][0]
             assert cmd == [
-                "claude", "-p", "test prompt",
-                "--model", "haiku",
-                "--output-format", "text",
+                "claude",
+                "-p",
+                "test prompt",
+                "--model",
+                "haiku",
+                "--output-format",
+                "text",
             ]
             assert args[1]["timeout"] == 30
             assert args[1]["capture_output"] is True
