@@ -1,4 +1,4 @@
-.PHONY: install lint format
+.PHONY: install lint format test
 
 install:
 	uv sync
@@ -8,3 +8,6 @@ lint:
 
 format:
 	uv run ruff format .
+
+test:
+	uv run pytest tests/ -v

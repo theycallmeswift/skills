@@ -10,8 +10,15 @@ dependencies = [
 
 [dependency-groups]
 dev = [
+    "pytest>=8.0",
+    "pytest-xdist>=3.5",
     "ruff>=0.15.9",
 ]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = ["slow: tests that make multiple LLM calls"]
+addopts = "-n auto --dist loadscope"
 
 [tool.ruff]
 line-length = 100
