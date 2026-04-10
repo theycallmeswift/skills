@@ -7,7 +7,7 @@ import pytest
 
 @pytest.fixture(scope="session")
 def url_source():
-    return "https://github.blog/engineering/the-technology-behind-github-models/"
+    return "https://github.blog/news-insights/product-news/introducing-github-models/"
 
 
 @pytest.fixture(scope="session")

@@ -9,12 +9,14 @@ from tests.support.harness.claude_runner import ClaudeRunner
 
 class TestClaudeRunnerInit:
     def test_default_model_is_haiku(self):
-        runner = ClaudeRunner()
-        assert runner.model == "haiku"
+        with patch.dict(os.environ, {}, clear=True):
+            runner = ClaudeRunner()
+            assert runner.model == "haiku"
 
     def test_default_timeout_is_60(self):
-        runner = ClaudeRunner()
-        assert runner.timeout == 60
+        with patch.dict(os.environ, {}, clear=True):
+            runner = ClaudeRunner()
+            assert runner.timeout == 60
 
     def test_custom_model(self):
         runner = ClaudeRunner(model="sonnet")
