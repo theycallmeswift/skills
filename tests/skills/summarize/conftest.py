@@ -13,27 +13,26 @@ def url_source():
 @pytest.fixture(scope="session")
 def pasted_source():
     return dedent("""\
-        The landscape of developer education is changing rapidly. Traditional
-        computer science programs are struggling to keep pace with industry demands,
-        and students are increasingly turning to hands-on learning experiences to
-        build the skills employers actually want. At Major League Hacking (MLH),
-        we've seen this firsthand through our hackathon community, which now reaches
-        1 in 3 CS students globally.
+        Remote work is reshaping how engineering teams operate. A survey of 2,400
+        engineering managers found that 68% of teams are now fully distributed,
+        up from 29% in 2019. The shift has forced companies to rethink everything
+        from code review workflows to how they run standups.
 
-        Over the past year, we've supported 500,000 developers across 1,500 events
-        in 65 countries. But the numbers only tell part of the story. What really
-        matters is the transformation we see in participants. Students who attend
-        their first hackathon often describe it as a turning point, the moment they
-        went from studying code to shipping products.
+        The biggest surprise in the data is about productivity. Teams that adopted
+        async-first communication reported 23% faster cycle times compared to those
+        that kept synchronous meetings as the default. The key factor wasn't the
+        tools they used but whether leadership explicitly set norms around response
+        times and documentation.
 
-        Our fellowship program has been another proof point. We've placed 200
-        early-career developers at companies like GitHub, Meta, and Shopify, with
-        a 95% satisfaction rate from both fellows and host companies. The common
-        thread? Learning by doing beats learning by reading every time.
+        Not everything improved, though. Junior developer onboarding took 40% longer
+        in fully remote setups. Companies that assigned dedicated mentors and paired
+        new hires on real projects from day one cut that gap to just 12%. The pattern
+        is clear: remote work scales well for experienced teams but requires deliberate
+        investment in onboarding infrastructure.
 
-        If you're a student wondering whether to attend a hackathon, or an employer
-        considering hands-on hiring, the data speaks for itself. Check out
-        https://mlh.io/impact for the full report.""")
+        For teams considering the shift, the report recommends starting with async
+        standups and written design docs before eliminating offices entirely. The
+        full dataset is available at https://stateofremote.dev/2025.""")
 
 
 @pytest.fixture(scope="session")

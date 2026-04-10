@@ -23,9 +23,9 @@ def has_all_sections(text: str) -> list[str]:
 
 def _extract_section(text: str, heading: str, next_headings: list[str]) -> str | None:
     """Extract text between a heading and the next heading (or end of string)."""
-    pattern = re.escape(heading) + r"\s*\n(.*?)(?="
+    pattern = r"(?m)^" + re.escape(heading) + r"\s*\n(.*?)(?="
     if next_headings:
-        pattern += "|".join(re.escape(h) for h in next_headings) + r"|"
+        pattern += "|".join(r"(?m:^" + re.escape(h) + r")" for h in next_headings) + r"|"
     pattern += r"\Z)"
     match = re.search(pattern, text, re.DOTALL)
     if not match:
