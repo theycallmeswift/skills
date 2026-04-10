@@ -10,9 +10,9 @@ class TestClaudeRunnerInit:
         runner = ClaudeRunner()
         assert runner.model == "haiku"
 
-    def test_default_timeout_is_30(self):
+    def test_default_timeout_is_60(self):
         runner = ClaudeRunner()
-        assert runner.timeout == 30
+        assert runner.timeout == 60
 
     def test_custom_model(self):
         runner = ClaudeRunner(model="sonnet")
@@ -54,6 +54,20 @@ class TestClaudeRunnerInit:
             assert runner.model == "haiku"
             assert runner.timeout == 10
 
+    def test_default_plugin_dir_is_project_root(self):
+        runner = ClaudeRunner()
+        assert runner.plugin_dir.name in ("mechaswift", "testing-eval-strategy")
+        assert (runner.plugin_dir / "pyproject.toml").exists()
+
+    def test_explicit_plugin_dir(self):
+        runner = ClaudeRunner(plugin_dir="/tmp/my-plugin")
+        assert runner.plugin_dir == Path("/tmp/my-plugin")
+
+    def test_plugin_dir_from_env(self):
+        with patch.dict(os.environ, {"CLAUDE_TEST_PLUGIN_DIR": "/tmp/env-plugin"}):
+            runner = ClaudeRunner()
+            assert runner.plugin_dir == Path("/tmp/env-plugin")
+
 
 class TestClaudeRunnerRun:
     def test_run_calls_subprocess_with_correct_args(self):
@@ -67,15 +81,16 @@ class TestClaudeRunnerRun:
             mock_run.assert_called_once()
             args = mock_run.call_args
             cmd = args[0][0]
-            assert cmd == [
+            assert cmd[:6] == [
                 "claude",
                 "-p",
                 "test prompt",
                 "--model",
                 "haiku",
                 "--output-format",
-                "text",
             ]
+            assert "text" in cmd
+            assert "--plugin-dir" in cmd
             assert args[1]["timeout"] == 30
             assert args[1]["capture_output"] is True
             assert args[1]["text"] is True

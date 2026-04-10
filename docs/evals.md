@@ -13,7 +13,7 @@ Runs the full pytest suite with parallel execution (pytest-xdist). Target runtim
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `CLAUDE_TEST_MODEL` | `haiku` | Model to use for test runs |
-| `CLAUDE_TEST_TIMEOUT` | `30` | Timeout in seconds per CLI call |
+| `CLAUDE_TEST_TIMEOUT` | `60` | Timeout in seconds per CLI call |
 | `CLAUDE_TEST_CWD` | `tmp/tests/<run_id>` | Working directory for subprocess |
 
 ## Test Structure
