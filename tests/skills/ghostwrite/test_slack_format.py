@@ -37,10 +37,8 @@ def test_no_bullets_or_headers(result):
 
 
 def test_under_60_words(result):
-    assert result.llm_judge(
-        "The message is 60 words or fewer.",
-        on="final_message",
-    )
+    word_count = len(result.final_message.split())
+    assert word_count <= 60, f"Expected <= 60 words, got {word_count}"
 
 
 def test_no_sign_off(result):

@@ -42,4 +42,8 @@ def test_length_under_250_words(result):
 
 
 def test_no_engagement_bait_closer(result):
-    assert result.not_matches_regex(r"(?i)let me know in the comments", on="final_message")
+    assert result.llm_judge(
+        "The post does not end with engagement bait like 'Let me know in the comments', "
+        "'Agree?', 'Thoughts?', or similar prompts designed to farm engagement.",
+        on="final_message",
+    )

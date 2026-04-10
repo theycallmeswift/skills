@@ -6,21 +6,14 @@ SKILL_PREAMBLE = "Before responding, read and follow skills/{name}/SKILL.md.\n\n
 
 
 def skill_setup(skill: str, project_root: Path) -> Callable[[Path], None]:
-    """Copy skill dir + AGENTS.md into temp cwd, write preamble file."""
+    """Write a preamble that ensures the agent activates the named skill.
+
+    The plugin is already loaded via ClaudeAgentOptions (see runner.py),
+    so the agent has access to all skills. The preamble ensures the
+    specific skill is used regardless of trigger matching.
+    """
 
     def _setup(cwd: Path) -> None:
-        # Copy skill directory
-        skill_dir = project_root / "skills" / skill
-        dest_skill = cwd / "skills" / skill
-        dest_skill.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copytree(skill_dir, dest_skill, symlinks=False, dirs_exist_ok=True)
-
-        # Copy AGENTS.md
-        agents_src = project_root / "AGENTS.md"
-        if agents_src.exists():
-            shutil.copy2(agents_src, cwd / "AGENTS.md")
-
-        # Write preamble file for runner to prepend to first turn
         preamble = SKILL_PREAMBLE.format(name=skill)
         (cwd / ".skill_preamble").write_text(preamble)
 
@@ -28,14 +21,17 @@ def skill_setup(skill: str, project_root: Path) -> Callable[[Path], None]:
 
 
 def copy_files(*paths: str, project_root: Path) -> Callable[[Path], None]:
-    """Copy files from project into temp cwd (flat, not preserving directory structure)."""
+    """Copy files/directories from project into temp cwd, preserving relative paths."""
 
     def _setup(cwd: Path) -> None:
         for rel_path in paths:
             src = project_root / rel_path
-            dest = cwd / src.name
+            dest = cwd / rel_path
             dest.parent.mkdir(parents=True, exist_ok=True)
-            shutil.copy2(src, dest)
+            if src.is_dir():
+                shutil.copytree(src, dest, symlinks=False, dirs_exist_ok=True)
+            else:
+                shutil.copy2(src, dest)
 
     return _setup
 

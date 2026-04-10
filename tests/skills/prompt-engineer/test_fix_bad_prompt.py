@@ -33,7 +33,7 @@ def test_has_code_block(result):
 
 def test_has_changes_section(result):
     assert result.matches_regex(
-        r"(?im)(^\*\*changes\*\*|^##?\s*changes|^##?\s*what changed)",
+        r"(?im)(^\*\*changes[:\s]*\*\*|^##?\s*changes|^##?\s*what changed)",
         on="final_message",
     )
 

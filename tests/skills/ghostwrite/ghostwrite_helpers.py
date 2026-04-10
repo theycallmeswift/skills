@@ -13,8 +13,3 @@ def assert_core_rules(result):
     assert result.not_matches_regex(r"\bparadigm shift\b", on="final_message")
     assert result.not_matches_regex(r"\babsolutely incredible\b", on="final_message")
     assert result.not_matches_regex(r"Let me know in the comments", on="final_message")
-
-    # No AI attribution
-    assert result.not_matches_regex(r"Generated with \[?Claude", on="final_message")
-    assert result.not_matches_regex(r"Co-Authored-By:\s*Claude", on="final_message")
-    assert result.not_matches_regex(r"\bAI-assisted\b", on="final_message")

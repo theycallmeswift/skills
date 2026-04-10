@@ -21,20 +21,7 @@ def _make_project(tmp_path: Path) -> Path:
     return root
 
 
-def test_skill_setup_copies_skill_dir_and_agents(tmp_path):
-    root = _make_project(tmp_path)
-    cwd = tmp_path / "cwd"
-    cwd.mkdir()
-
-    setup_fn = skill_setup("summarize", root)
-    setup_fn(cwd)
-
-    assert (cwd / "skills" / "summarize" / "SKILL.md").read_text() == "# Summarize"
-    assert (cwd / "skills" / "summarize" / "references" / "examples.md").exists()
-    assert (cwd / "AGENTS.md").read_text() == "# Agents"
-
-
-def test_skill_setup_prepends_preamble(tmp_path):
+def test_skill_setup_writes_preamble(tmp_path):
     root = _make_project(tmp_path)
     cwd = tmp_path / "cwd"
     cwd.mkdir()
@@ -47,7 +34,19 @@ def test_skill_setup_prepends_preamble(tmp_path):
     assert "skills/summarize/SKILL.md" in preamble_file.read_text()
 
 
-def test_copy_files_copies_to_cwd(tmp_path):
+def test_skill_setup_does_not_copy_files(tmp_path):
+    root = _make_project(tmp_path)
+    cwd = tmp_path / "cwd"
+    cwd.mkdir()
+
+    setup_fn = skill_setup("summarize", root)
+    setup_fn(cwd)
+
+    assert not (cwd / "skills").exists()
+    assert not (cwd / "AGENTS.md").exists()
+
+
+def test_copy_files_preserves_relative_paths(tmp_path):
     root = _make_project(tmp_path)
     cwd = tmp_path / "cwd"
     cwd.mkdir()
@@ -55,7 +54,19 @@ def test_copy_files_copies_to_cwd(tmp_path):
     copy_fn = copy_files("tests/support/fixtures/test-paper.pdf", project_root=root)
     copy_fn(cwd)
 
-    assert (cwd / "test-paper.pdf").read_text() == "fake pdf"
+    assert (cwd / "tests" / "support" / "fixtures" / "test-paper.pdf").read_text() == "fake pdf"
+
+
+def test_copy_files_copies_directories(tmp_path):
+    root = _make_project(tmp_path)
+    cwd = tmp_path / "cwd"
+    cwd.mkdir()
+
+    copy_fn = copy_files("skills/summarize", project_root=root)
+    copy_fn(cwd)
+
+    assert (cwd / "skills" / "summarize" / "SKILL.md").read_text() == "# Summarize"
+    assert (cwd / "skills" / "summarize" / "references" / "examples.md").exists()
 
 
 def test_cleanup_globs_removes_matching_files(tmp_path):
@@ -82,5 +93,5 @@ def test_compose_runs_all_functions_in_order(tmp_path):
     )
     composed(cwd)
 
-    assert (cwd / "skills" / "summarize" / "SKILL.md").exists()
-    assert (cwd / "test-paper.pdf").exists()
+    assert (cwd / ".skill_preamble").exists()
+    assert (cwd / "tests" / "support" / "fixtures" / "test-paper.pdf").exists()

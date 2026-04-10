@@ -45,7 +45,6 @@ def test_something(result):
 | `contains_all(texts, on)` | yes | Every literal found |
 | `not_contains(text, on)` | yes | Literal absent |
 | `llm_judge(item, on=None, content=None)` | optional | LLM judge (Haiku) grades pass/fail. Pass `on` for a source or `content` for raw text |
-| `parse(model, on="final_message")` | yes | Extract fields into a Pydantic model via LLM. Raises ValidationError on shape mismatch |
 | `tool_called(name)` | no | Tool name in trace (substring match) |
 | `not_tool_called(name)` | no | Tool name absent |
 | `skill_invoked(name)` | no | Skill tool fired with matching name |
@@ -56,31 +55,6 @@ def test_something(result):
 | `token_usage_lte(n)` | no | input + output tokens <= n |
 | `file_contains(path_glob, text=None, regex=None)` | no | File matching glob contains text/regex |
 | `not_file_contains(path_glob, text=None, regex=None)` | no | Negation |
-
-## Structured output parsing
-
-For skills with defined output templates (e.g. summarize, scope), use `parse()` to extract fields into a Pydantic model. Structural validation happens in Pydantic validators. Semantic checks use `llm_judge` on extracted fields.
-
-```python
-from pydantic import BaseModel, Field
-
-class SummarizeOutput(BaseModel):
-    title: str
-    tldr: str
-    cliff_notes: list[str] = Field(min_length=1, max_length=8)
-    share: str
-    comment: str
-
-def test_structure(result):
-    result.parse(SummarizeOutput)  # raises if shape is wrong
-
-def test_tldr_quality(result):
-    output = result.parse(SummarizeOutput)
-    assert result.llm_judge(
-        "The TL;DR leads with the single most important takeaway",
-        content=output.tldr,
-    )
-```
 
 ## Setup helpers
 
