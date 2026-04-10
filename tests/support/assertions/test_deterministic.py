@@ -2,11 +2,8 @@ from textwrap import dedent
 
 from tests.support.assertions.deterministic import (
     banned_words,
-    email_signoff,
-    linkedin_hashtag_count,
     long_sentences,
     no_em_dashes,
-    slack_word_count,
     stats_preserved,
     urls_preserved,
 )
@@ -102,36 +99,3 @@ class TestStatsPreserved:
         output = "Many developers and 1 in 3 CS students joined."
         result = stats_preserved(source, output)
         assert "500,000" in result
-
-
-class TestEmailSignoff:
-    def test_dash_swift(self):
-        assert email_signoff("Some content.\n\n- Swift") is True
-
-    def test_happy_hacking(self):
-        assert email_signoff("Some content.\n\nHappy Hacking,\nSwift") is True
-
-    def test_missing_signoff(self):
-        assert email_signoff("Some content.\n\nBest,\nMike") is False
-
-    def test_trailing_whitespace(self):
-        assert email_signoff("Some content.\n\n- Swift  \n") is True
-
-
-class TestSlackWordCount:
-    def test_counts_words(self):
-        assert slack_word_count("Hello world, this is a test.") == 6
-
-    def test_empty_string(self):
-        assert slack_word_count("") == 0
-
-
-class TestLinkedinHashtagCount:
-    def test_counts_hashtags(self):
-        assert linkedin_hashtag_count("#MLH #AI #Hackathon #LearnByDoing") == 4
-
-    def test_no_hashtags(self):
-        assert linkedin_hashtag_count("No hashtags here.") == 0
-
-    def test_inline_hashtags(self):
-        assert linkedin_hashtag_count("Check out #MLH and #DEV today.") == 2

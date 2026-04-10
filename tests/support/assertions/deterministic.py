@@ -45,19 +45,3 @@ def stats_preserved(source: str, output: str) -> list[str]:
     stat_pattern = re.compile(r"\d[\d,]*(?:\.\d+)?")
     source_stats = set(stat_pattern.findall(source))
     return [stat for stat in source_stats if stat not in output]
-
-
-def email_signoff(text: str) -> bool:
-    """Check text ends with '- Swift' or 'Happy Hacking,\\nSwift'."""
-    stripped = text.rstrip()
-    return stripped.endswith("- Swift") or stripped.endswith("Happy Hacking,\nSwift")
-
-
-def slack_word_count(text: str) -> int:
-    """Return total word count."""
-    return len(text.split())
-
-
-def linkedin_hashtag_count(text: str) -> int:
-    """Return count of hashtags (#word patterns)."""
-    return len(re.findall(r"#\w+", text))

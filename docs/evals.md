@@ -21,17 +21,23 @@ Runs the full pytest suite with parallel execution (pytest-xdist). Target runtim
 
 ```
 tests/
-├── conftest.py                        # Session-scoped runner fixture
+├── conftest.py                              # Session-scoped runner fixture
 ├── support/
-│   ├── harness/claude_runner.py       # ClaudeRunner — invokes `claude -p`
+│   ├── harness/
+│   │   ├── claude_runner.py                 # ClaudeRunner — invokes `claude -p`
+│   │   └── test_claude_runner.py            # Harness unit tests
 │   └── assertions/
-│       ├── deterministic.py           # Pure-Python checks (regex, string matching)
-│       └── judge.py                   # LLM judge for semantic checks
+│       ├── deterministic.py                 # Reusable checks (regex, string matching)
+│       ├── test_deterministic.py            # Assertion unit tests
+│       ├── judge.py                         # LLM judge for semantic checks
+│       └── test_judge.py                    # Judge unit tests
 └── skills/
     └── ghostwrite/
-        ├── conftest.py                # Source content fixtures per medium
-        ├── test_ghostwrite_rules.py   # Rule compliance (~6 tests)
-        └── test_ghostwrite_mediums.py # Medium formatting (~10 tests)
+        ├── conftest.py                      # Source content + cached output fixtures
+        ├── helpers.py                       # Ghostwrite-specific helpers (signoff, hashtags)
+        ├── test_helpers.py                  # Helper unit tests
+        ├── test_ghostwrite_rules.py         # Rule compliance (~6 tests)
+        └── test_ghostwrite_mediums.py       # Medium formatting (~10 tests)
 ```
 
 ## Writing a New Test
@@ -47,17 +53,17 @@ def test_my_rule(self, runner, email_prompt, email_source):
     assert violations == [], f"Em dashes found: {violations}"
 ```
 
-## Adding a Deterministic Assertion
+## Adding a Test Helper
 
-Add a function to `tests/support/assertions/deterministic.py`:
+If the helper is **reusable across skills**, add it to `tests/support/assertions/deterministic.py` and export from `__init__.py`.
+
+If the helper is **skill-specific**, put it in `tests/skills/<skill_name>/helpers.py` instead.
 
 ```python
 def my_check(text: str) -> list[str]:
     """Return violations. Empty list = pass."""
     return [line for line in text.splitlines() if some_condition(line)]
 ```
-
-Export it from `tests/support/assertions/__init__.py`.
 
 ## Using the LLM Judge
 

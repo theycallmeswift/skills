@@ -8,34 +8,28 @@ from tests.support.assertions import (
 
 
 class TestGhostwriteRules:
-    """General rule compliance tests. Each test rewrites email source and checks one rule."""
+    """General rule compliance tests. Each test uses cached output from a single CLI call."""
 
-    def test_no_em_dashes(self, runner, email_prompt):
-        output = runner.run(email_prompt)
-        violations = no_em_dashes(output)
+    def test_no_em_dashes(self, email_output):
+        violations = no_em_dashes(email_output)
         assert violations == [], f"Em dashes found in lines: {violations}"
 
-    def test_sentences_under_25_words(self, runner, email_prompt):
-        output = runner.run(email_prompt)
-        violations = long_sentences(output)
+    def test_sentences_under_25_words(self, email_output):
+        violations = long_sentences(email_output)
         assert violations == [], f"Sentences over 25 words: {violations}"
 
-    def test_no_banned_words(self, runner, email_prompt):
-        output = runner.run(email_prompt)
-        violations = banned_words(output)
+    def test_no_banned_words(self, email_output):
+        violations = banned_words(email_output)
         assert violations == [], f"Banned words found: {violations}"
 
-    def test_no_ai_tells(self, runner, linkedin_prompt):
-        output = runner.run(linkedin_prompt)
-        violations = banned_words(output)
+    def test_no_ai_tells(self, linkedin_output):
+        violations = banned_words(linkedin_output)
         assert violations == [], f"AI tells found: {violations}"
 
-    def test_urls_preserved(self, runner, email_prompt, email_source):
-        output = runner.run(email_prompt)
-        missing = urls_preserved(email_source, output)
+    def test_urls_preserved(self, email_output, email_source):
+        missing = urls_preserved(email_source, email_output)
         assert missing == [], f"URLs missing from output: {missing}"
 
-    def test_stats_preserved(self, runner, email_prompt, email_source):
-        output = runner.run(email_prompt)
-        missing = stats_preserved(email_source, output)
+    def test_stats_preserved(self, email_output, email_source):
+        missing = stats_preserved(email_source, email_output)
         assert missing == [], f"Stats missing from output: {missing}"

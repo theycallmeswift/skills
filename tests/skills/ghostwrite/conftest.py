@@ -85,3 +85,26 @@ def slack_prompt(slack_source):
 @pytest.fixture(scope="session")
 def blog_prompt(blog_source):
     return f"Rewrite this as a blog post for DEV:\n\n{blog_source}"
+
+
+# --- Cached outputs (one CLI call per medium) ---
+
+
+@pytest.fixture(scope="session")
+def email_output(runner, email_prompt):
+    return runner.run(email_prompt)
+
+
+@pytest.fixture(scope="session")
+def linkedin_output(runner, linkedin_prompt):
+    return runner.run(linkedin_prompt)
+
+
+@pytest.fixture(scope="session")
+def slack_output(runner, slack_prompt):
+    return runner.run(slack_prompt)
+
+
+@pytest.fixture(scope="session")
+def blog_output(runner, blog_prompt):
+    return runner.run(blog_prompt)
