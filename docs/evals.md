@@ -22,9 +22,11 @@ Runs the full pytest suite with parallel execution (pytest-xdist). Target runtim
 ```
 tests/
 ├── conftest.py                              # Session-scoped runner fixture
+├── fixtures/
+│   └── stream_json.py                      # Synthetic NDJSON for RunResult unit tests
 ├── support/
 │   ├── harness/
-│   │   ├── claude_runner.py                 # ClaudeRunner — invokes `claude -p`
+│   │   ├── claude_runner.py                 # ClaudeRunner + RunResult — invokes `claude -p`
 │   │   └── test_claude_runner.py            # Harness unit tests
 │   └── assertions/
 │       ├── deterministic.py                 # Reusable checks (regex, string matching)
@@ -42,20 +44,21 @@ tests/
         ├── conftest.py                      # Source content + cached output fixtures (3 input types)
         ├── helpers.py                       # Summarize-specific helpers (template parsing)
         ├── test_helpers.py                  # Helper unit tests
-        ├── test_summarize_structure.py      # Template structure compliance (~8 tests)
+        ├── test_summarize_workflow.py       # Template structure + process verification (~9 tests)
         └── test_summarize_input_types.py    # Input-type formatting (~8 tests)
 ```
 
 ## Writing a New Test
 
 1. Add a test function in the appropriate `test_*.py` file
-2. Use the `runner` fixture to call Claude: `output = runner.run("your prompt")`
-3. Assert with deterministic helpers or the LLM judge
+2. Use the `runner` fixture to call Claude: `result = runner.run("your prompt")`
+3. `result` is a `RunResult` — use `.final_output` for the text, `.tool_calls` for process verification
+4. Assert with deterministic helpers or the LLM judge
 
 ```python
 def test_my_rule(self, runner, email_prompt, email_source):
-    output = runner.run(email_prompt)
-    violations = no_em_dashes(output)
+    result = runner.run(email_prompt)
+    violations = no_em_dashes(result.final_output)
     assert violations == [], f"Em dashes found: {violations}"
 ```
 

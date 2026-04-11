@@ -108,7 +108,7 @@ class TestClaudeRunnerRun:
         with patch("subprocess.run", return_value=mock_result):
             result = runner.run("test prompt")
             assert isinstance(result, RunResult)
-            assert result.text == "hello world"
+            assert result.final_output == "hello world"
             assert result.cost_usd == 0.01
 
     def test_run_raises_on_nonzero_exit(self):
@@ -151,21 +151,21 @@ class TestParseStream:
     def test_skips_blank_lines(self):
         stream_with_blanks = "\n\n" + SIMPLE_STREAM + "\n\n"
         result = _parse_stream(stream_with_blanks)
-        assert result.text == "hello world"
+        assert result.final_output == "hello world"
 
 
-class TestRunResultText:
-    def test_simple_text(self):
+class TestRunResultFinalOutput:
+    def test_simple_final_output(self):
         result = _parse_stream(SIMPLE_STREAM)
-        assert result.text == "hello world"
+        assert result.final_output == "hello world"
 
-    def test_text_after_tool_use(self):
+    def test_final_output_after_tool_use(self):
         result = _parse_stream(TOOL_USE_STREAM)
-        assert result.text == "The file says hello"
+        assert result.final_output == "The file says hello"
 
-    def test_text_from_multi_block(self):
+    def test_final_output_from_multi_block(self):
         result = _parse_stream(MULTI_BLOCK_STREAM)
-        assert result.text == "Here is the summary"
+        assert result.final_output == "Here is the summary"
 
 
 class TestRunResultMessages:

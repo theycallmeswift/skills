@@ -28,7 +28,7 @@ class TestJudge:
     def _mock_run_result(self, text):
         """Create a MagicMock mimicking RunResult with a .text property."""
         result = MagicMock()
-        result.text = text
+        result.final_output = text
         return result
 
     def test_passes_when_all_criteria_met(self):

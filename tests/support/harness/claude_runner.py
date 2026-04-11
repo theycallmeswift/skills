@@ -20,7 +20,7 @@ class RunResult:
     stop_reason: str
 
     @property
-    def text(self) -> str:
+    def final_output(self) -> str:
         """Final assistant message text."""
         for event in reversed(self.events):
             if event.get("type") != "assistant":

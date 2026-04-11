@@ -41,9 +41,9 @@ mechaswift/
 │   ├── evals.md             # How to run and write skill evals
 │   └── plugin-structure.md  # Plugin layout reference
 ├── tests/                   # Evals + harness
-│   ├── core/                # Cross-cutting rules (no-ai-attribution, skill-triggers)
+│   ├── fixtures/            # Synthetic test data (stream-json NDJSON)
 │   ├── skills/              # Per-skill eval suites
-│   └── support/harness/     # Python eval runner
+│   └── support/             # Harness (ClaudeRunner, RunResult) + assertions
 ├── references/              # Agent-generated context
 │   ├── plans/               # Implementation plans
 │   ├── research/            # Best-practices research
