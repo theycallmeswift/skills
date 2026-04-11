@@ -56,7 +56,7 @@ def judge(source: str, output: str, rubric: str, runner) -> JudgeResult:
         Use short, descriptive criterion names derived from the rubric (e.g., "main_point_first").
         Be strict: only pass if the criterion is clearly met.""")
 
-    raw = runner.run(prompt)
+    raw = runner.run(prompt).text
 
     # Strip markdown fences if the model wraps the JSON
     cleaned = raw.strip()
