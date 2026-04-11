@@ -8,113 +8,94 @@ FIXTURES = Path(__file__).resolve().parent / "fixtures"
 BIN = Path(__file__).resolve().parent.parent / "bin" / "optimize_prompt.py"
 
 
-@pytest.mark.integration
-def test_end_to_end_produces_output():
-    """Full pipeline: prompt + CSV → optimized prompt on stdout."""
-    result = subprocess.run(
-        [
-            sys.executable,
-            str(BIN),
-            "--prompt",
-            str(FIXTURES / "prompt_plain.md"),
-            "--training-data",
-            str(FIXTURES / "training.csv"),
-            "--output-fields",
-            "rewritten",
-            "--max-demos",
-            "2",
-        ],
-        capture_output=True,
-        text=True,
-        timeout=120,
-    )
-    assert result.returncode == 0, f"stderr: {result.stderr}"
-    output = result.stdout
+def run_optimizer(strategy="bootstrap_fewshot", prompt="prompt_plain.md", config=None):
+    """Helper to run the optimizer CLI and return stdout/stderr."""
+    cmd = [
+        sys.executable,
+        str(BIN),
+        "--prompt",
+        str(FIXTURES / prompt),
+        "--training-data",
+        str(FIXTURES / "training.csv"),
+        "--output-fields",
+        "rewritten",
+        "--strategy",
+        strategy,
+    ]
+    if config:
+        cmd.extend(["--config", config])
+    result = subprocess.run(cmd, capture_output=True, text=True, timeout=120)
+    return result
 
-    # Output must contain original prompt
-    assert "Rewrite the given input to be concise and direct." in output
 
-    # Output must contain examples section (if demos were selected)
-    # BootstrapFewShot may select 0 demos if metric is strict,
-    # but with a lenient metric we expect at least the original prompt
-    assert len(output.strip()) > 0
+def split_output(stdout):
+    """Split stdout into prompt and metadata sections."""
+    parts = stdout.rsplit("\n---\n", 1)
+    prompt = parts[0]
+    metadata = parts[1] if len(parts) > 1 else ""
+    return prompt, metadata
 
 
 @pytest.mark.integration
-def test_end_to_end_contains_examples():
-    """Optimized output should include examples from training data."""
-    result = subprocess.run(
-        [
-            sys.executable,
-            str(BIN),
-            "--prompt",
-            str(FIXTURES / "prompt_plain.md"),
-            "--training-data",
-            str(FIXTURES / "training.csv"),
-            "--output-fields",
-            "rewritten",
-            "--max-demos",
-            "2",
-        ],
-        capture_output=True,
-        text=True,
-        timeout=120,
-    )
-    assert result.returncode == 0, f"stderr: {result.stderr}"
-    output = result.stdout
+class TestBootstrapFewShotIntegration:
+    def test_end_to_end_produces_output(self):
+        result = run_optimizer()
+        assert result.returncode == 0, f"stderr: {result.stderr}"
+        prompt, metadata = split_output(result.stdout)
+        assert "Rewrite the given input to be concise and direct." in prompt
+        assert len(prompt.strip()) > 0
 
-    assert "## Examples" in output
-    assert "**Input:**" in output
-    assert "**Output:**" in output
+    def test_contains_examples(self):
+        result = run_optimizer()
+        assert result.returncode == 0, f"stderr: {result.stderr}"
+        prompt, metadata = split_output(result.stdout)
+        assert "## Examples" in prompt
+        assert "**Input:**" in prompt
+        assert "**Output:**" in prompt
 
+    def test_metadata_includes_strategy(self):
+        result = run_optimizer()
+        assert result.returncode == 0, f"stderr: {result.stderr}"
+        _, metadata = split_output(result.stdout)
+        assert "strategy: bootstrap_fewshot" in metadata
+        assert "demos_selected:" in metadata
 
-@pytest.mark.integration
-def test_smoke_full_pipeline():
-    """Smoke test with bundled fixtures — proves the full pipeline end-to-end."""
-    result = subprocess.run(
-        [
-            sys.executable,
-            str(BIN),
-            "--prompt",
-            str(FIXTURES / "smoke_prompt.md"),
-            "--training-data",
-            str(FIXTURES / "smoke_training.csv"),
-            "--output-fields",
-            "rewritten",
-            "--max-demos",
-            "3",
-        ],
-        capture_output=True,
-        text=True,
-        timeout=120,
-    )
-    assert result.returncode == 0, f"stderr: {result.stderr}"
-    output = result.stdout
-    assert "Rewrite the given sentence to be shorter" in output
-    assert len(output.strip()) > 0
+    def test_smoke_full_pipeline(self):
+        result = run_optimizer(prompt="smoke_prompt.md")
+        assert result.returncode == 0, f"stderr: {result.stderr}"
+        prompt, _ = split_output(result.stdout)
+        assert "Rewrite the given sentence to be shorter" in prompt
+
+    def test_frontmatter_stripped(self):
+        result = run_optimizer(prompt="prompt_frontmatter.md")
+        assert result.returncode == 0, f"stderr: {result.stderr}"
+        prompt, _ = split_output(result.stdout)
+        assert "name: rewriter" not in prompt
+        assert "Rewrite the given input to be concise and direct." in prompt
+
+    def test_config_json_max_demos(self, tmp_path):
+        config_file = tmp_path / "config.json"
+        config_file.write_text('{"max_demos": 1}')
+        result = run_optimizer(config=str(config_file))
+        assert result.returncode == 0, f"stderr: {result.stderr}"
+        _, metadata = split_output(result.stdout)
+        assert "max_demos: 1" in metadata
 
 
 @pytest.mark.integration
-def test_frontmatter_stripped():
-    """Frontmatter should be stripped — not appear in optimized output."""
-    result = subprocess.run(
-        [
-            sys.executable,
-            str(BIN),
-            "--prompt",
-            str(FIXTURES / "prompt_frontmatter.md"),
-            "--training-data",
-            str(FIXTURES / "training.csv"),
-            "--output-fields",
-            "rewritten",
-            "--max-demos",
-            "2",
-        ],
-        capture_output=True,
-        text=True,
-        timeout=120,
-    )
-    assert result.returncode == 0, f"stderr: {result.stderr}"
-    output = result.stdout
-    assert "name: rewriter" not in output
-    assert "Rewrite the given input to be concise and direct." in output
+class TestGEPAIntegration:
+    def test_end_to_end_produces_rewritten_prompt(self):
+        result = run_optimizer(strategy="gepa")
+        assert result.returncode == 0, f"stderr: {result.stderr}"
+        prompt, metadata = split_output(result.stdout)
+        # GEPA rewrites the prompt — it should be non-empty
+        assert len(prompt.strip()) > 0
+        # Should NOT have Examples section (GEPA is instruction-only)
+        assert "## Examples" not in prompt
+
+    def test_metadata_includes_gepa_strategy(self):
+        result = run_optimizer(strategy="gepa")
+        assert result.returncode == 0, f"stderr: {result.stderr}"
+        _, metadata = split_output(result.stdout)
+        assert "strategy: gepa" in metadata
+        assert "auto:" in metadata
