@@ -1,0 +1,27 @@
+[project]
+name = "prompt-optimizer"
+version = "0.1.0"
+description = "DSPy-based few-shot prompt optimizer"
+requires-python = ">=3.11"
+dependencies = [
+    "dspy>=2.5",
+    "pyyaml>=6.0",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0",
+    "ruff>=0.15.9",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = ["integration: requires API key and makes LLM calls"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+ignore = ["E501"]

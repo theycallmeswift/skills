@@ -45,6 +45,7 @@ All web content goes through the `brightdata` MCP server. The built-in `WebFetch
 
 - `skills/` -- Each skill gets its own directory with a `SKILL.md` and optional `references/`
 - `docs/` -- Hand-authored documentation and prompt context (e.g. `about-swift.md`, `evals.md`)
+- `lib/optimizer/` -- DSPy-based few-shot prompt optimizer. Dev-only tool. See `lib/optimizer/README.md`.
 - `references/` -- Agent-generated context: `plans/`, `research/`, `specs/`, plus on-demand reference material loaded by skills
 - `tmp/` -- Scratch space for working sessions. Not tracked in git. Put intermediate outputs, drafts, and test results here.
 
