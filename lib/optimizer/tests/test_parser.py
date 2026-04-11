@@ -32,3 +32,37 @@ def test_parse_prompt_no_closing_delimiter(tmp_path):
     fm, body = parse_prompt(p)
     assert fm is None
     assert body.startswith("---")
+
+
+import pytest
+
+from src.parser import load_csv
+
+
+def test_load_csv_basic():
+    headers, rows = load_csv(FIXTURES / "training.csv")
+    assert headers == ["source", "rewritten"]
+    assert len(rows) == 3
+    assert rows[0]["source"] == "I wanted to let you know that the meeting has been moved to next Tuesday."
+    assert rows[0]["rewritten"] == "Meeting moved to next Tuesday."
+
+
+def test_load_csv_multiline(tmp_path):
+    p = tmp_path / "multi.csv"
+    p.write_text('input,output\n"line1\nline2","result"\n')
+    headers, rows = load_csv(p)
+    assert rows[0]["input"] == "line1\nline2"
+
+
+def test_load_csv_empty_file(tmp_path):
+    p = tmp_path / "empty.csv"
+    p.write_text("")
+    with pytest.raises(ValueError, match="no headers"):
+        load_csv(p)
+
+
+def test_load_csv_headers_only(tmp_path):
+    p = tmp_path / "headers_only.csv"
+    p.write_text("input,output\n")
+    with pytest.raises(ValueError, match="no data"):
+        load_csv(p)
