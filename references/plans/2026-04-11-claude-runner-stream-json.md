@@ -18,33 +18,45 @@
 |---|---|---|
 | `tests/support/harness/claude_runner.py` | Modify | Add `RunResult` dataclass, `_parse_stream()`, update `run()` |
 | `tests/support/harness/__init__.py` | Modify | Export `RunResult` |
+| `tests/fixtures/__init__.py` | Create | Empty package init |
+| `tests/fixtures/stream_json.py` | Create | Synthetic NDJSON constants for stream-json unit tests |
 | `tests/support/harness/test_claude_runner.py` | Modify | Update mock tests, add `RunResult` + `_parse_stream` unit tests |
 | `tests/skills/ghostwrite/test_ghostwrite_rules.py` | Modify | Add `.text` to all assertion arguments |
 | `tests/skills/ghostwrite/test_ghostwrite_mediums.py` | Modify | Add `.text` to all assertion arguments |
 | `tests/skills/summarize/test_summarize_structure.py` | Modify | Add `.text` to all assertion arguments |
 | `tests/skills/summarize/test_summarize_input_types.py` | Modify | Add `.text` to all assertion arguments |
 
-No new files. No fixture or conftest changes (fixtures return `runner.run()` which changes from `str` to `RunResult` — call sites stay the same).
+No fixture or conftest changes (fixtures return `runner.run()` which changes from `str` to `RunResult` — call sites stay the same).
+
+**Files NOT changed (and why):**
+- `tests/skills/ghostwrite/test_helpers.py` — tests pure string helpers (`email_signoff`, `linkedin_hashtag_count`) with hardcoded strings. No `runner.run()` output involved.
+- `tests/skills/summarize/test_helpers.py` — tests pure string helpers (`starts_with_h1`, `h1_title`, etc.) with hardcoded strings. No `runner.run()` output involved.
+- `tests/skills/ghostwrite/conftest.py` — fixtures call `runner.run()` but return the result directly. The return type changes from `str` to `RunResult` automatically.
+- `tests/skills/summarize/conftest.py` — same as above.
+- `tests/conftest.py` — creates the `runner` fixture, unchanged.
 
 ---
 
 ### Task 1: RunResult dataclass + _parse_stream — tests
 
 **Files:**
-- Test: `tests/support/harness/test_claude_runner.py`
+- Create: `tests/fixtures/__init__.py`
+- Create: `tests/fixtures/stream_json.py`
+- Modify: `tests/support/harness/test_claude_runner.py`
 
-- [ ] **Step 1: Write failing tests for `_parse_stream` and `RunResult` properties**
-
-Add these test classes to `tests/support/harness/test_claude_runner.py`. The imports and test data constants go at the top of the file (after existing imports).
+- [ ] **Step 1: Create `tests/fixtures/__init__.py`**
 
 ```python
+```
+
+(Empty file — package init.)
+
+- [ ] **Step 2: Create `tests/fixtures/stream_json.py` with synthetic NDJSON constants**
+
+```python
+"""Synthetic stream-json NDJSON for unit tests."""
+
 import json
-from textwrap import dedent
-
-# Add to existing imports at top:
-from tests.support.harness.claude_runner import ClaudeRunner, RunResult, _parse_stream
-
-# ---- Synthetic NDJSON fixtures ----
 
 SIMPLE_STREAM = "\n".join([
     json.dumps({"type": "system", "subtype": "init", "session_id": "s1"}),
@@ -183,8 +195,21 @@ MULTI_BLOCK_STREAM = "\n".join([
         },
     }),
 ])
+```
 
+- [ ] **Step 3: Write failing tests for `_parse_stream` and `RunResult` properties**
 
+Add these test classes to `tests/support/harness/test_claude_runner.py`. Update the imports at the top of the file:
+
+```python
+# Add to existing imports at top:
+from tests.support.harness.claude_runner import ClaudeRunner, RunResult, _parse_stream
+from tests.fixtures.stream_json import MULTI_BLOCK_STREAM, SIMPLE_STREAM, TOOL_USE_STREAM
+```
+
+Then add the test classes after the existing `TestClaudeRunnerRun` class:
+
+```python
 class TestParseStream:
     def test_simple_text_response(self):
         result = _parse_stream(SIMPLE_STREAM)
@@ -273,7 +298,7 @@ class TestRunResultToolResults:
         assert result.tool_results[0]["structured"]["type"] == "text"
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [ ] **Step 4: Run tests to verify they fail**
 
 Run: `pytest tests/support/harness/test_claude_runner.py::TestParseStream -v 2>&1 | head -20`
 Expected: `ImportError` — `_parse_stream` and `RunResult` don't exist yet.
@@ -382,7 +407,7 @@ Expected: All 16 tests PASS.
 - [ ] **Step 3: Commit**
 
 ```bash
-git add tests/support/harness/claude_runner.py tests/support/harness/test_claude_runner.py
+git add tests/fixtures/__init__.py tests/fixtures/stream_json.py tests/support/harness/claude_runner.py tests/support/harness/test_claude_runner.py
 git commit -m "Add RunResult dataclass and _parse_stream with tests"
 ```
 
