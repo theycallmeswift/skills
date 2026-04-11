@@ -2,7 +2,6 @@ import json
 import tempfile
 
 import pytest
-
 from optimize_prompt import format_metadata, load_config, main, parse_args
 
 

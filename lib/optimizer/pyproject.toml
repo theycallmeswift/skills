@@ -1,10 +1,10 @@
 [project]
 name = "prompt-optimizer"
-version = "0.1.0"
-description = "DSPy-based few-shot prompt optimizer"
+version = "0.2.0"
+description = "DSPy-based prompt optimizer with pluggable strategies"
 requires-python = ">=3.11"
 dependencies = [
-    "dspy>=2.5",
+    "dspy>=3.0",
     "pyyaml>=6.0",
 ]
 
