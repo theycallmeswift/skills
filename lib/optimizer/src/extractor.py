@@ -8,7 +8,7 @@ def extract_demos(compiled_module):
 
 
 def format_optimized_prompt(original_prompt, demos, input_fields, output_fields):
-    """Format demos as natural language examples, prepend to original prompt.
+    """Format demos as natural language examples, append after original prompt.
 
     Returns the original prompt unchanged if demos is empty.
     """
@@ -22,4 +22,4 @@ def format_optimized_prompt(original_prompt, demos, input_fields, output_fields)
         sections.append(f"**Input:**\n{input_lines}\n\n**Output:**\n{output_lines}")
 
     examples_block = "## Examples\n\n" + "\n\n---\n\n".join(sections)
-    return f"{examples_block}\n\n---\n\n{original_prompt}"
+    return f"{original_prompt}\n\n---\n\n{examples_block}"
