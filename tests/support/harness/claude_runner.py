@@ -131,14 +131,14 @@ class ClaudeRunner:
         project_root = Path(__file__).parents[3]
         return project_root / "tmp" / "tests" / self.run_id
 
-    def run(self, prompt: str) -> str:
-        """Run a prompt through `claude -p` and return stripped stdout.
+    def run(self, prompt: str) -> RunResult:
+        """Run a prompt through `claude -p` and return parsed stream-json result.
 
         Args:
             prompt: The text prompt to send.
 
         Returns:
-            The CLI's stdout, stripped of leading/trailing whitespace.
+            A RunResult with the full conversation trace and metadata.
         """
         result = subprocess.run(
             [
@@ -148,7 +148,8 @@ class ClaudeRunner:
                 "--model",
                 self.model,
                 "--output-format",
-                "text",
+                "stream-json",
+                "--verbose",
                 "--plugin-dir",
                 str(self.plugin_dir),
                 "--dangerously-skip-permissions",
@@ -163,4 +164,4 @@ class ClaudeRunner:
             raise RuntimeError(
                 f"claude -p exited with code {result.returncode}\nstderr: {result.stderr.strip()}"
             )
-        return result.stdout.strip()
+        return _parse_stream(result.stdout)

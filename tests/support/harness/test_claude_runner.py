@@ -74,11 +74,11 @@ class TestClaudeRunnerInit:
 
 
 class TestClaudeRunnerRun:
-    def test_run_calls_subprocess_with_correct_args(self):
+    def test_run_calls_subprocess_with_stream_json(self):
         runner = ClaudeRunner(model="haiku", timeout=30)
         mock_result = MagicMock()
         mock_result.returncode = 0
-        mock_result.stdout = "  hello world  "
+        mock_result.stdout = SIMPLE_STREAM
 
         with patch("subprocess.run", return_value=mock_result) as mock_run:
             result = runner.run("test prompt")
@@ -86,21 +86,30 @@ class TestClaudeRunnerRun:
             mock_run.assert_called_once()
             args = mock_run.call_args
             cmd = args[0][0]
-            assert cmd[:6] == [
-                "claude",
-                "-p",
-                "test prompt",
-                "--model",
-                "haiku",
-                "--output-format",
-            ]
-            assert "text" in cmd
+            assert "claude" == cmd[0]
+            assert "-p" == cmd[1]
+            assert "test prompt" == cmd[2]
+            assert "--model" in cmd
+            assert "--output-format" in cmd
+            assert "stream-json" in cmd
+            assert "--verbose" in cmd
             assert "--plugin-dir" in cmd
             assert "--dangerously-skip-permissions" in cmd
             assert args[1]["timeout"] == 30
             assert args[1]["capture_output"] is True
             assert args[1]["text"] is True
-            assert result == "hello world"
+
+    def test_run_returns_run_result(self):
+        runner = ClaudeRunner(model="haiku", timeout=30)
+        mock_result = MagicMock()
+        mock_result.returncode = 0
+        mock_result.stdout = SIMPLE_STREAM
+
+        with patch("subprocess.run", return_value=mock_result):
+            result = runner.run("test prompt")
+            assert isinstance(result, RunResult)
+            assert result.text == "hello world"
+            assert result.cost_usd == 0.01
 
     def test_run_raises_on_nonzero_exit(self):
         runner = ClaudeRunner(model="haiku", timeout=30)
