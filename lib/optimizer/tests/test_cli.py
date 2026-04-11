@@ -10,7 +10,7 @@ def test_parse_args_required():
 
 def test_parse_args_defaults():
     args = parse_args(["--prompt", "p.md", "--training-data", "t.csv", "--output-fields", "out"])
-    assert args.model == "haiku"
+    assert args.model == "anthropic/claude-haiku-4-5-20251001"
     assert args.strategy == "bootstrap_fewshot"
     assert args.max_demos == 4
 
@@ -25,12 +25,12 @@ def test_parse_args_custom_values():
             "--output-fields",
             "out",
             "--model",
-            "sonnet",
+            "anthropic/claude-sonnet-4-6-20250514",
             "--max-demos",
             "8",
         ]
     )
-    assert args.model == "sonnet"
+    assert args.model == "anthropic/claude-sonnet-4-6-20250514"
     assert args.max_demos == 8
 
 

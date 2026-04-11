@@ -63,9 +63,9 @@ def test_end_to_end_contains_examples():
     assert result.returncode == 0, f"stderr: {result.stderr}"
     output = result.stdout
 
-    if "## Examples" in output:
-        assert "**Input:**" in output
-        assert "**Output:**" in output
+    assert "## Examples" in output
+    assert "**Input:**" in output
+    assert "**Output:**" in output
 
 
 @pytest.mark.integration

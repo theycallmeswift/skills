@@ -6,17 +6,18 @@ from pathlib import Path
 import yaml
 
 
-def parse_prompt(path):
-    """Read a prompt file, strip YAML frontmatter if present.
+def read_prompt(path):
+    """Read prompt content from a file path or stdin ("-")."""
+    if str(path) == "-":
+        return sys.stdin.read()
+    return Path(path).read_text(encoding="utf-8")
+
+
+def parse_prompt(content):
+    """Strip YAML frontmatter if present.
 
     Returns (frontmatter_dict_or_None, body_string).
-    Pass "-" to read from stdin.
     """
-    if str(path) == "-":
-        content = sys.stdin.read()
-    else:
-        content = Path(path).read_text(encoding="utf-8")
-
     if not content.startswith("---\n"):
         return None, content
 

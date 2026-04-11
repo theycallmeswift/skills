@@ -9,7 +9,7 @@ python bin/optimize_prompt.py \
   --prompt path/to/prompt.md \
   --training-data path/to/training.csv \
   --output-fields rewritten \
-  --model haiku \
+  --model anthropic/claude-haiku-4-5-20251001 \
   --max-demos 4
 ```
 
@@ -22,7 +22,7 @@ Output: optimized prompt printed to stdout (original prompt with few-shot exampl
 | `--prompt` | yes | — | Path to prompt file, or `-` for stdin |
 | `--training-data` | yes | — | Path to CSV file |
 | `--output-fields` | yes | — | Comma-separated column names that are outputs |
-| `--model` | no | `haiku` | Target model (`haiku`, `sonnet`) |
+| `--model` | no | `anthropic/claude-haiku-4-5-20251001` | DSPy model identifier |
 | `--strategy` | no | `bootstrap_fewshot` | Optimization strategy |
 | `--max-demos` | no | `4` | Max few-shot examples to include |
 
