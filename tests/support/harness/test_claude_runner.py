@@ -4,7 +4,8 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from tests.support.harness.claude_runner import ClaudeRunner
+from tests.support.harness.claude_runner import ClaudeRunner, RunResult, _parse_stream
+from tests.fixtures.stream_json import MULTI_BLOCK_STREAM, SIMPLE_STREAM, TOOL_USE_STREAM
 
 
 class TestClaudeRunnerInit:
@@ -110,3 +111,91 @@ class TestClaudeRunnerRun:
         with patch("subprocess.run", return_value=mock_result):
             with pytest.raises(RuntimeError, match="exited with code 1"):
                 runner.run("bad prompt")
+
+
+class TestParseStream:
+    def test_simple_text_response(self):
+        result = _parse_stream(SIMPLE_STREAM)
+        assert isinstance(result, RunResult)
+        assert result.cost_usd == 0.01
+        assert result.duration_ms == 1000
+        assert result.num_turns == 1
+        assert result.stop_reason == "end_turn"
+        assert result.usage["input_tokens"] == 10
+        assert result.usage["output_tokens"] == 20
+
+    def test_excludes_system_and_result_events(self):
+        result = _parse_stream(SIMPLE_STREAM)
+        types = [e["type"] for e in result.events]
+        assert "system" not in types
+        assert "result" not in types
+
+    def test_keeps_assistant_and_user_events(self):
+        result = _parse_stream(TOOL_USE_STREAM)
+        types = [e["type"] for e in result.events]
+        assert types == ["assistant", "user", "assistant"]
+
+    def test_events_is_tuple(self):
+        result = _parse_stream(SIMPLE_STREAM)
+        assert isinstance(result.events, tuple)
+
+    def test_skips_blank_lines(self):
+        stream_with_blanks = "\n\n" + SIMPLE_STREAM + "\n\n"
+        result = _parse_stream(stream_with_blanks)
+        assert result.text == "hello world"
+
+
+class TestRunResultText:
+    def test_simple_text(self):
+        result = _parse_stream(SIMPLE_STREAM)
+        assert result.text == "hello world"
+
+    def test_text_after_tool_use(self):
+        result = _parse_stream(TOOL_USE_STREAM)
+        assert result.text == "The file says hello"
+
+    def test_text_from_multi_block(self):
+        result = _parse_stream(MULTI_BLOCK_STREAM)
+        assert result.text == "Here is the summary"
+
+
+class TestRunResultMessages:
+    def test_messages_filters_to_assistant_and_user(self):
+        result = _parse_stream(TOOL_USE_STREAM)
+        types = [m["type"] for m in result.messages]
+        assert types == ["assistant", "user", "assistant"]
+
+    def test_simple_has_one_message(self):
+        result = _parse_stream(SIMPLE_STREAM)
+        assert len(result.messages) == 1
+        assert result.messages[0]["type"] == "assistant"
+
+
+class TestRunResultToolCalls:
+    def test_no_tool_calls_in_simple(self):
+        result = _parse_stream(SIMPLE_STREAM)
+        assert result.tool_calls == []
+
+    def test_extracts_tool_call(self):
+        result = _parse_stream(TOOL_USE_STREAM)
+        assert len(result.tool_calls) == 1
+        assert result.tool_calls[0]["name"] == "Read"
+        assert result.tool_calls[0]["input"] == {"file_path": "/tmp/test.txt"}
+
+    def test_multiple_tool_calls(self):
+        result = _parse_stream(MULTI_BLOCK_STREAM)
+        assert len(result.tool_calls) == 1
+        assert result.tool_calls[0]["name"] == "Skill"
+
+
+class TestRunResultToolResults:
+    def test_no_tool_results_in_simple(self):
+        result = _parse_stream(SIMPLE_STREAM)
+        assert result.tool_results == []
+
+    def test_extracts_tool_result(self):
+        result = _parse_stream(TOOL_USE_STREAM)
+        assert len(result.tool_results) == 1
+        assert result.tool_results[0]["tool_use_id"] == "toolu_01"
+        assert result.tool_results[0]["content"] == "file contents here"
+        assert result.tool_results[0]["structured"]["type"] == "text"

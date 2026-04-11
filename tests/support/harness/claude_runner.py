@@ -1,9 +1,91 @@
 """Generic Claude Code test runner. Invokes `claude -p` as a subprocess."""
 
+import dataclasses
+import json
 import os
 import subprocess
 import uuid
 from pathlib import Path
+
+
+@dataclasses.dataclass(frozen=True)
+class RunResult:
+    """Parsed result from a stream-json Claude CLI invocation."""
+
+    events: tuple[dict, ...]
+    cost_usd: float
+    duration_ms: int
+    num_turns: int
+    usage: dict
+    stop_reason: str
+
+    @property
+    def text(self) -> str:
+        """Final assistant message text."""
+        for event in reversed(self.events):
+            if event.get("type") != "assistant":
+                continue
+            for block in event.get("message", {}).get("content", []):
+                if block.get("type") == "text":
+                    return block["text"]
+        return ""
+
+    @property
+    def messages(self) -> list[dict]:
+        """All assistant and user events, in order."""
+        return [e for e in self.events if e.get("type") in ("assistant", "user")]
+
+    @property
+    def tool_calls(self) -> list[dict]:
+        """All tool_use blocks across all assistant events, in order."""
+        calls = []
+        for event in self.events:
+            if event.get("type") != "assistant":
+                continue
+            for block in event.get("message", {}).get("content", []):
+                if block.get("type") == "tool_use":
+                    calls.append({"name": block["name"], "input": block["input"]})
+        return calls
+
+    @property
+    def tool_results(self) -> list[dict]:
+        """All tool result events, in order."""
+        results = []
+        for event in self.events:
+            if event.get("type") != "user":
+                continue
+            for block in event.get("message", {}).get("content", []):
+                if block.get("type") == "tool_result":
+                    results.append({
+                        "tool_use_id": block.get("tool_use_id"),
+                        "content": block.get("content", ""),
+                        "structured": event.get("tool_use_result"),
+                    })
+        return results
+
+
+def _parse_stream(raw: str) -> RunResult:
+    """Parse NDJSON stream-json output into a RunResult."""
+    events = []
+    metadata = {}
+    for line in raw.splitlines():
+        if not line.strip():
+            continue
+        parsed = json.loads(line)
+        event_type = parsed.get("type")
+        if event_type in ("assistant", "user"):
+            events.append(parsed)
+        elif event_type == "result":
+            metadata = parsed
+
+    return RunResult(
+        events=tuple(events),
+        cost_usd=metadata.get("total_cost_usd", 0.0),
+        duration_ms=metadata.get("duration_ms", 0),
+        num_turns=metadata.get("num_turns", 0),
+        usage=metadata.get("usage", {}),
+        stop_reason=metadata.get("stop_reason", ""),
+    )
 
 
 class ClaudeRunner:
