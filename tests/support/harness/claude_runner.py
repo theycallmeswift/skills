@@ -1,4 +1,4 @@
-"""Generic Claude Code test runner. Invokes `claude -p` as a subprocess."""
+"""Claude Code test runner. Invokes `claude -p` and parses stream-json output."""
 
 import dataclasses
 import json
@@ -89,7 +89,7 @@ def _parse_stream(raw: str) -> RunResult:
 
 
 class ClaudeRunner:
-    """Runs prompts through Claude CLI and returns text output.
+    """Runs prompts through Claude CLI and returns parsed RunResult.
 
     Config hierarchy: explicit kwargs > env vars > defaults.
 
