@@ -1,0 +1,6 @@
+sentence,rewritten
+"I wanted to let you know that the meeting has been moved to next Tuesday.","Meeting moved to next Tuesday."
+"The reason we can't ship this feature is because the API doesn't support batch operations yet.","Can't ship — API lacks batch support."
+"I think it would be a good idea for us to consider implementing a caching layer.","We should add a caching layer."
+"Please be advised that the server will be undergoing maintenance this weekend.","Server maintenance this weekend."
+"I was wondering if you had a chance to take a look at the pull request I submitted yesterday.","Did you review my PR from yesterday?"
