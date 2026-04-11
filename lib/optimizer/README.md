@@ -62,16 +62,18 @@ rewritten: "Meeting moved to next Tuesday."
 
 If the prompt file contains YAML frontmatter (`---` delimiters), it is automatically stripped. The body becomes the prompt.
 
-## Running Tests
-
-Unit tests (no LLM calls):
+## Development
 
 ```bash
-cd lib/optimizer && python -m pytest tests/ -v -m "not integration"
+cd lib/optimizer
+make install    # install dependencies
+make test       # run unit tests (no LLM calls)
+make lint       # lint and auto-fix
+make format     # format code
 ```
 
-All tests (requires `ANTHROPIC_API_KEY`):
+All tests including integration (requires `ANTHROPIC_API_KEY`):
 
 ```bash
-cd lib/optimizer && python -m pytest tests/ -v
+cd lib/optimizer && uv run pytest tests/ -v
 ```

@@ -1,7 +1,8 @@
 from pathlib import Path
 
-from src.parser import parse_prompt
+import pytest
 
+from src.parser import load_csv, parse_prompt
 
 FIXTURES = Path(__file__).resolve().parent / "fixtures"
 
@@ -34,16 +35,14 @@ def test_parse_prompt_no_closing_delimiter(tmp_path):
     assert body.startswith("---")
 
 
-import pytest
-
-from src.parser import load_csv
-
-
 def test_load_csv_basic():
     headers, rows = load_csv(FIXTURES / "training.csv")
     assert headers == ["source", "rewritten"]
     assert len(rows) == 3
-    assert rows[0]["source"] == "I wanted to let you know that the meeting has been moved to next Tuesday."
+    assert (
+        rows[0]["source"]
+        == "I wanted to let you know that the meeting has been moved to next Tuesday."
+    )
     assert rows[0]["rewritten"] == "Meeting moved to next Tuesday."
 
 

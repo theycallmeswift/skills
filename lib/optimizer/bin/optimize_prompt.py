@@ -15,13 +15,23 @@ def parse_args(argv=None):
     parser = argparse.ArgumentParser(description="Optimize a prompt with few-shot examples")
     parser.add_argument("--prompt", required=True, help="Path to prompt file, or - for stdin")
     parser.add_argument("--training-data", required=True, help="Path to CSV file")
-    parser.add_argument("--output-fields", required=True, help="Comma-separated output column names")
-    parser.add_argument("--model", default="haiku", choices=list(MODEL_MAP.keys()),
-                        help="Target model (default: haiku)")
-    parser.add_argument("--strategy", default="bootstrap_fewshot",
-                        help="Optimization strategy (default: bootstrap_fewshot)")
-    parser.add_argument("--max-demos", type=int, default=4,
-                        help="Max few-shot examples to include (default: 4)")
+    parser.add_argument(
+        "--output-fields", required=True, help="Comma-separated output column names"
+    )
+    parser.add_argument(
+        "--model",
+        default="haiku",
+        choices=list(MODEL_MAP.keys()),
+        help="Target model (default: haiku)",
+    )
+    parser.add_argument(
+        "--strategy",
+        default="bootstrap_fewshot",
+        help="Optimization strategy (default: bootstrap_fewshot)",
+    )
+    parser.add_argument(
+        "--max-demos", type=int, default=4, help="Max few-shot examples to include (default: 4)"
+    )
     args = parser.parse_args(argv)
     args.output_fields = [f.strip() for f in args.output_fields.split(",")]
     return args

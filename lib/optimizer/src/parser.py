@@ -25,7 +25,7 @@ def parse_prompt(path):
         return None, content
 
     frontmatter_raw = content[4:end]
-    body = content[end + 5:].lstrip("\n")
+    body = content[end + 5 :].lstrip("\n")
 
     try:
         frontmatter = yaml.safe_load(frontmatter_raw)

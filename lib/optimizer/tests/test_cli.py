@@ -16,13 +16,20 @@ def test_parse_args_defaults():
 
 
 def test_parse_args_custom_values():
-    args = parse_args([
-        "--prompt", "p.md",
-        "--training-data", "t.csv",
-        "--output-fields", "out",
-        "--model", "sonnet",
-        "--max-demos", "8",
-    ])
+    args = parse_args(
+        [
+            "--prompt",
+            "p.md",
+            "--training-data",
+            "t.csv",
+            "--output-fields",
+            "out",
+            "--model",
+            "sonnet",
+            "--max-demos",
+            "8",
+        ]
+    )
     assert args.model == "sonnet"
     assert args.max_demos == 8
 

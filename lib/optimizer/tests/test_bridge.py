@@ -1,5 +1,3 @@
-import dspy
-
 from src.bridge import build_signature, rows_to_examples
 
 

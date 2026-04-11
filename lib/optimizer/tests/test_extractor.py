@@ -31,9 +31,9 @@ def test_format_single_demo():
         output_fields=["rewritten"],
     )
     assert result.startswith("## Examples")
-    assert '**Input:**' in result
+    assert "**Input:**" in result
     assert 'source: "Hello world"' in result
-    assert '**Output:**' in result
+    assert "**Output:**" in result
     assert 'rewritten: "Hi"' in result
     assert result.endswith("Rewrite the input.")
 
@@ -56,9 +56,7 @@ def test_format_multiple_demos():
 
 def test_format_multi_field():
     demos = [{"source": "hi", "medium": "email", "rewritten": "hey"}]
-    result = format_optimized_prompt(
-        "Prompt.", demos, ["source", "medium"], ["rewritten"]
-    )
+    result = format_optimized_prompt("Prompt.", demos, ["source", "medium"], ["rewritten"])
     assert 'source: "hi"' in result
     assert 'medium: "email"' in result
     assert 'rewritten: "hey"' in result
