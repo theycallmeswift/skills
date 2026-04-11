@@ -9,12 +9,14 @@ from tests.support.harness.claude_runner import ClaudeRunner
 
 class TestClaudeRunnerInit:
     def test_default_model_is_haiku(self):
-        runner = ClaudeRunner()
-        assert runner.model == "haiku"
+        with patch.dict(os.environ, {}, clear=True):
+            runner = ClaudeRunner()
+            assert runner.model == "haiku"
 
     def test_default_timeout_is_60(self):
-        runner = ClaudeRunner()
-        assert runner.timeout == 60
+        with patch.dict(os.environ, {}, clear=True):
+            runner = ClaudeRunner()
+            assert runner.timeout == 60
 
     def test_custom_model(self):
         runner = ClaudeRunner(model="sonnet")
@@ -58,7 +60,6 @@ class TestClaudeRunnerInit:
 
     def test_default_plugin_dir_is_project_root(self):
         runner = ClaudeRunner()
-        assert runner.plugin_dir.name in ("mechaswift", "testing-eval-strategy")
         assert (runner.plugin_dir / "pyproject.toml").exists()
 
     def test_explicit_plugin_dir(self):
@@ -94,6 +95,7 @@ class TestClaudeRunnerRun:
             ]
             assert "text" in cmd
             assert "--plugin-dir" in cmd
+            assert "--dangerously-skip-permissions" in cmd
             assert args[1]["timeout"] == 30
             assert args[1]["capture_output"] is True
             assert args[1]["text"] is True

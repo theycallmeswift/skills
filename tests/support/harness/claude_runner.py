@@ -69,6 +69,7 @@ class ClaudeRunner:
                 "text",
                 "--plugin-dir",
                 str(self.plugin_dir),
+                "--dangerously-skip-permissions",
             ],
             capture_output=True,
             text=True,

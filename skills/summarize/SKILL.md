@@ -23,8 +23,9 @@ If the user provides a URL, file, or content, use that. If they just say "summar
 
 1. **URL in the message** -- fetch and read it
 2. **File path or attachment** -- read the file directly (PDF, DOCX, TXT, etc.)
-3. **Active browser tab** -- if browser tools are available, read the current page
-4. **Neither** -- ask the user: "What would you like me to summarize? Share a URL, drop a file, or paste the content."
+3. **Pasted text** -- get the content from the message itself
+4. **Active browser tab** -- if browser tools are available, read the current page
+5. **Neither** -- ask the user: "What would you like me to summarize? Share a URL, drop a file, or paste the content."
 
 ## The final response template
 
