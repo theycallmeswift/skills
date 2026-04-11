@@ -3,14 +3,14 @@ import argparse
 import sys
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+
 import dspy
 
 from src.bridge import build_signature, rows_to_examples
 from src.extractor import extract_demos, format_optimized_prompt
 from src.optimizer import optimize
 from src.parser import load_csv, parse_prompt, read_prompt
-
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 
 def parse_args(argv=None):
