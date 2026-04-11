@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import argparse
+import os
 import sys
 from pathlib import Path
 
@@ -40,6 +41,10 @@ def parse_args(argv=None):
 
 
 def main():
+    if not os.environ.get("ANTHROPIC_API_KEY"):
+        print("Error: ANTHROPIC_API_KEY is not set. Export it before running.", file=sys.stderr)
+        sys.exit(1)
+
     args = parse_args()
 
     lm = dspy.LM(args.model)

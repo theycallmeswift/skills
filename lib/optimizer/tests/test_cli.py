@@ -1,4 +1,6 @@
-from optimize_prompt import parse_args
+import pytest
+
+from optimize_prompt import main, parse_args
 
 
 def test_parse_args_required():
@@ -37,3 +39,10 @@ def test_parse_args_custom_values():
 def test_parse_args_multi_output_fields():
     args = parse_args(["--prompt", "p.md", "--training-data", "t.csv", "--output-fields", "a,b"])
     assert args.output_fields == ["a", "b"]
+
+
+def test_missing_api_key_exits_with_error(monkeypatch):
+    """CLI should fail fast if ANTHROPIC_API_KEY is not set."""
+    monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
+    with pytest.raises(SystemExit, match="1"):
+        main()
