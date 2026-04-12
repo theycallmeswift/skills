@@ -1,5 +1,6 @@
 import dspy
 
+from src.metric import build_judge_metric
 from src.strategy import OptimizationResult, register
 
 # Supported config keys for GEPA
@@ -23,9 +24,7 @@ class GEPAStrategy:
     def optimize(self, signature_cls, examples: list, config: dict) -> OptimizationResult:
         predictor = dspy.Predict(signature_cls)
         output_keys = list(signature_cls.output_fields.keys())
-
-        def metric(gold, pred, trace=None, pred_name=None, pred_trace=None):
-            return float(all(bool(getattr(pred, k, None)) for k in output_keys))
+        metric = build_judge_metric(output_keys)
 
         unknown = set(config.keys()) - GEPA_CONFIG_KEYS
         if unknown:
