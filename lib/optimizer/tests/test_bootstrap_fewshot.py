@@ -2,25 +2,18 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from src.strategy import STRATEGIES, OptimizationResult, get_strategy
+from src.optimizers.bootstrap_fewshot import BootstrapFewShotStrategy
+from src.strategy import OptimizationResult, get_strategy
 
 
 class TestBootstrapFewShotRegistration:
     def test_registered_as_bootstrap_fewshot(self):
-        import src.optimizers.bootstrap_fewshot
-        assert "bootstrap_fewshot" in STRATEGIES
-
-    def test_get_strategy_returns_class(self):
-        import src.optimizers.bootstrap_fewshot
-        cls = get_strategy("bootstrap_fewshot")
-        assert cls.name == "bootstrap_fewshot"
+        assert get_strategy("bootstrap_fewshot") is BootstrapFewShotStrategy
 
 
 class TestBootstrapFewShotOptimize:
     def test_returns_optimization_result(self):
-        import src.optimizers.bootstrap_fewshot
-        cls = get_strategy("bootstrap_fewshot")
-        strategy = cls()
+        strategy = BootstrapFewShotStrategy()
 
         mock_compiled = MagicMock()
         mock_compiled.demos = [{"source": "long text", "rewritten": "short"}]
@@ -47,9 +40,7 @@ class TestBootstrapFewShotOptimize:
         assert result.metadata["demos_selected"] == 1
 
     def test_default_max_demos_is_4(self):
-        import src.optimizers.bootstrap_fewshot
-        cls = get_strategy("bootstrap_fewshot")
-        strategy = cls()
+        strategy = BootstrapFewShotStrategy()
 
         mock_compiled = MagicMock()
         mock_compiled.demos = []
@@ -72,9 +63,7 @@ class TestBootstrapFewShotOptimize:
             assert call_kwargs["max_bootstrapped_demos"] == 4
 
     def test_rejects_unknown_config_keys(self):
-        import src.optimizers.bootstrap_fewshot
-        cls = get_strategy("bootstrap_fewshot")
-        strategy = cls()
+        strategy = BootstrapFewShotStrategy()
 
         with pytest.raises(ValueError, match="Unknown bootstrap_fewshot config keys"):
             strategy.optimize(signature_cls=MagicMock(), examples=[], config={"bad_key": 1})

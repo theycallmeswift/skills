@@ -2,25 +2,18 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from src.strategy import STRATEGIES, OptimizationResult, get_strategy
+from src.optimizers.gepa import GEPAStrategy
+from src.strategy import OptimizationResult, get_strategy
 
 
 class TestGEPARegistration:
     def test_registered_as_gepa(self):
-        import src.optimizers.gepa
-        assert "gepa" in STRATEGIES
-
-    def test_get_strategy_returns_class(self):
-        import src.optimizers.gepa
-        cls = get_strategy("gepa")
-        assert cls.name == "gepa"
+        assert get_strategy("gepa") is GEPAStrategy
 
 
 class TestGEPAOptimize:
     def test_returns_optimization_result(self):
-        import src.optimizers.gepa
-        cls = get_strategy("gepa")
-        strategy = cls()
+        strategy = GEPAStrategy()
 
         mock_compiled = MagicMock()
         mock_predict = MagicMock()
@@ -49,9 +42,7 @@ class TestGEPAOptimize:
         assert result.metadata["strategy"] == "gepa"
 
     def test_default_config_uses_light_auto(self):
-        import src.optimizers.gepa
-        cls = get_strategy("gepa")
-        strategy = cls()
+        strategy = GEPAStrategy()
 
         mock_compiled = MagicMock()
         mock_predict = MagicMock()
@@ -75,9 +66,7 @@ class TestGEPAOptimize:
             assert call_kwargs.get("auto") == "light"
 
     def test_config_passes_through_gepa_params(self):
-        import src.optimizers.gepa
-        cls = get_strategy("gepa")
-        strategy = cls()
+        strategy = GEPAStrategy()
 
         mock_compiled = MagicMock()
         mock_predict = MagicMock()
@@ -111,18 +100,13 @@ class TestGEPAOptimize:
             assert call_kwargs["use_merge"] is False
 
     def test_rejects_unknown_config_keys(self):
-        import src.optimizers.gepa
-        cls = get_strategy("gepa")
-        strategy = cls()
+        strategy = GEPAStrategy()
 
         with pytest.raises(ValueError, match="Unknown GEPA config keys"):
             strategy.optimize(signature_cls=MagicMock(), examples=[], config={"bad_key": 1})
 
     def test_raises_on_empty_prompt(self):
-        import src.optimizers.gepa
-
-        cls = get_strategy("gepa")
-        strategy = cls()
+        strategy = GEPAStrategy()
 
         mock_compiled = MagicMock()
         mock_predict = MagicMock()

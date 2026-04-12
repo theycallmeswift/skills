@@ -26,7 +26,3 @@ target-version = "py312"
 select = ["E", "F", "I", "UP", "B"]
 ignore = ["E501"]
 
-[tool.ruff.lint.per-file-ignores]
-"bin/*.py" = ["F401"]
-"tests/*.py" = ["F401"]
-"src/optimizers/__init__.py" = ["F401"]

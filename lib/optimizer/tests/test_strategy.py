@@ -1,6 +1,8 @@
 import pytest
 
-from src.strategy import STRATEGIES, OptimizationResult, get_strategy, register
+from src.optimizers.bootstrap_fewshot import BootstrapFewShotStrategy
+from src.optimizers.gepa import GEPAStrategy
+from src.strategy import STRATEGIES, OptimizationResult, get_strategy
 
 
 class TestOptimizationResult:
@@ -15,33 +17,15 @@ class TestOptimizationResult:
 
 
 class TestRegistry:
-    def setup_method(self):
-        self._original = STRATEGIES.copy()
+    def test_contains_bootstrap_fewshot(self):
+        assert STRATEGIES["bootstrap_fewshot"] is BootstrapFewShotStrategy
 
-    def teardown_method(self):
-        STRATEGIES.clear()
-        STRATEGIES.update(self._original)
-
-    def test_register_adds_to_registry(self):
-        @register("test_strategy")
-        class TestStrategy:
-            name = "test_strategy"
-
-            def optimize(self, signature_cls, examples, config):
-                pass
-
-        assert "test_strategy" in STRATEGIES
-        assert STRATEGIES["test_strategy"] is TestStrategy
+    def test_contains_gepa(self):
+        assert STRATEGIES["gepa"] is GEPAStrategy
 
     def test_get_strategy_returns_registered_class(self):
-        @register("test_strategy")
-        class TestStrategy:
-            name = "test_strategy"
-
-            def optimize(self, signature_cls, examples, config):
-                pass
-
-        assert get_strategy("test_strategy") is TestStrategy
+        assert get_strategy("bootstrap_fewshot") is BootstrapFewShotStrategy
+        assert get_strategy("gepa") is GEPAStrategy
 
     def test_get_strategy_raises_on_unknown(self):
         with pytest.raises(ValueError, match="Unknown strategy: nope"):

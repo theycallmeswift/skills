@@ -1,12 +1,11 @@
 import dspy
 
 from src.extractor import extract_demos, format_optimized_prompt
-from src.strategy import OptimizationResult, register
+from src.strategy import OptimizationResult
 
 BOOTSTRAP_CONFIG_KEYS = {"max_demos"}
 
 
-@register("bootstrap_fewshot")
 class BootstrapFewShotStrategy:
     """Selects optimal few-shot examples from training data."""
 

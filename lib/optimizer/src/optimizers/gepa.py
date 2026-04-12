@@ -1,9 +1,8 @@
 import dspy
 
 from src.metric import build_judge_metric
-from src.strategy import OptimizationResult, register
+from src.strategy import OptimizationResult
 
-# Supported config keys for GEPA
 GEPA_CONFIG_KEYS = {
     "auto",
     "max_metric_calls",
@@ -15,7 +14,6 @@ GEPA_CONFIG_KEYS = {
 }
 
 
-@register("gepa")
 class GEPAStrategy:
     """Instruction-only optimizer using reflective mutation and genetic evolution."""
 

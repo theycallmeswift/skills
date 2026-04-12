@@ -20,21 +20,23 @@ class Strategy(Protocol):
     def optimize(self, signature_cls, examples: list, config: dict) -> OptimizationResult: ...
 
 
+def _build_registry() -> dict[str, type[Strategy]]:
+    from src.optimizers.bootstrap_fewshot import BootstrapFewShotStrategy
+    from src.optimizers.gepa import GEPAStrategy
+
+    return {
+        "bootstrap_fewshot": BootstrapFewShotStrategy,
+        "gepa": GEPAStrategy,
+    }
+
+
 STRATEGIES: dict[str, type[Strategy]] = {}
-
-
-def register(name: str):
-    """Decorator to register a strategy class in the global registry."""
-
-    def decorator(cls):
-        STRATEGIES[name] = cls
-        return cls
-
-    return decorator
 
 
 def get_strategy(name: str) -> type[Strategy]:
     """Look up a strategy by name. Raises ValueError if not found."""
+    if not STRATEGIES:
+        STRATEGIES.update(_build_registry())
     if name not in STRATEGIES:
         raise ValueError(f"Unknown strategy: {name}. Available: {list(STRATEGIES.keys())}")
     return STRATEGIES[name]
