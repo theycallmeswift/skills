@@ -44,7 +44,7 @@ tests/
         ├── conftest.py                      # Source content + cached output fixtures (3 input types)
         ├── helpers.py                       # Summarize-specific helpers (template parsing)
         ├── test_helpers.py                  # Helper unit tests
-        ├── test_summarize_workflow.py       # Template structure + process verification (~9 tests)
+        ├── test_summarize_workflow.py       # Template structure + process verification (~13 tests)
         └── test_summarize_input_types.py    # Input-type formatting (~8 tests)
 ```
 
