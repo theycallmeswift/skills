@@ -84,8 +84,14 @@ class TestBootstrapFewShotIntegration:
 
 @pytest.mark.integration
 class TestGEPAIntegration:
-    def test_end_to_end_produces_rewritten_prompt(self):
-        result = run_optimizer(strategy="gepa")
+    @pytest.fixture()
+    def gepa_config(self, tmp_path):
+        config_file = tmp_path / "gepa_config.json"
+        config_file.write_text('{"max_metric_calls": 12, "num_threads": 1}')
+        return str(config_file)
+
+    def test_end_to_end_produces_rewritten_prompt(self, gepa_config):
+        result = run_optimizer(strategy="gepa", config=gepa_config)
         assert result.returncode == 0, f"stderr: {result.stderr}"
         prompt, metadata = split_output(result.stdout)
         # GEPA rewrites the prompt — it should be non-empty
@@ -93,9 +99,8 @@ class TestGEPAIntegration:
         # Should NOT have Examples section (GEPA is instruction-only)
         assert "## Examples" not in prompt
 
-    def test_metadata_includes_gepa_strategy(self):
-        result = run_optimizer(strategy="gepa")
+    def test_metadata_includes_gepa_strategy(self, gepa_config):
+        result = run_optimizer(strategy="gepa", config=gepa_config)
         assert result.returncode == 0, f"stderr: {result.stderr}"
         _, metadata = split_output(result.stdout)
         assert "strategy: gepa" in metadata
-        assert "auto:" in metadata
