@@ -6,7 +6,7 @@ Run the full eval suite across three models and produce a benchmark report. Foll
 
 ## Step 1: Run tests on each model
 
-Run the test suite three times in sequence. For each run, use `--tb=line` so failure reasons are captured in one line each.
+Run the test suite three times — all in parallel. For each run, use `--tb=line` so failure reasons are captured in one line each.
 
 **Run 1 — Haiku:**
 ```
@@ -23,7 +23,7 @@ CLAUDE_TEST_MODEL=sonnet CLAUDE_TEST_TIMEOUT=60 uv run pytest tests/ -v --tb=lin
 CLAUDE_TEST_MODEL=opus CLAUDE_TEST_TIMEOUT=120 uv run pytest tests/ -v --tb=line 2>&1
 ```
 
-Run these sequentially (not in parallel). Capture the full output of each run — you will need it for the analysis.
+Run all three in parallel (three separate Bash tool calls in a single response). Capture the full output of each run — you will need it for the analysis.
 
 ## Step 2: Output the results comparison table
 
