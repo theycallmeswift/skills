@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import argparse
+import json
 import os
 import sys
 from pathlib import Path
@@ -9,13 +10,12 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 import dspy
 
 from src.bridge import build_signature, rows_to_examples
-from src.extractor import extract_demos, format_optimized_prompt
-from src.optimizer import optimize
 from src.parser import load_csv, parse_prompt, read_prompt
+from src.strategy import get_strategy
 
 
 def parse_args(argv=None):
-    parser = argparse.ArgumentParser(description="Optimize a prompt with few-shot examples")
+    parser = argparse.ArgumentParser(description="Optimize a prompt using DSPy strategies")
     parser.add_argument("--prompt", required=True, help="Path to prompt file, or - for stdin")
     parser.add_argument("--training-data", required=True, help="Path to CSV file")
     parser.add_argument(
@@ -32,12 +32,35 @@ def parse_args(argv=None):
         help="Optimization strategy (default: bootstrap_fewshot)",
     )
     parser.add_argument(
-        "--max-demos", type=int, default=4, help="Max few-shot examples to include (default: 4)"
+        "--config",
+        default=None,
+        help="Path to JSON file with strategy-specific configuration",
     )
 
     args = parser.parse_args(argv)
     args.output_fields = [f.strip() for f in args.output_fields.split(",")]
     return args
+
+
+def load_config(config_path):
+    """Load strategy config from JSON file. Returns empty dict if path is None."""
+    if config_path is None:
+        return {}
+    try:
+        with open(config_path) as f:
+            return json.load(f)
+    except FileNotFoundError:
+        print(f"Error: Config file not found: {config_path}", file=sys.stderr)
+        sys.exit(1)
+    except json.JSONDecodeError as e:
+        print(f"Error: Invalid JSON in config file: {e}", file=sys.stderr)
+        sys.exit(1)
+
+
+def format_metadata(metadata):
+    """Format metadata dict as YAML-style key: value lines with separator."""
+    lines = [f"{k}: {v}" for k, v in metadata.items()]
+    return "---\n" + "\n".join(lines)
 
 
 def main():
@@ -46,6 +69,7 @@ def main():
         sys.exit(1)
 
     args = parse_args()
+    config = load_config(args.config)
 
     lm = dspy.LM(args.model)
     dspy.configure(lm=lm)
@@ -57,12 +81,23 @@ def main():
 
     signature = build_signature(prompt, input_fields, args.output_fields)
     examples = rows_to_examples(rows, input_fields)
-    compiled = optimize(signature, examples, max_demos=args.max_demos)
 
-    demos = extract_demos(compiled)
-    optimized = format_optimized_prompt(prompt, demos, input_fields, args.output_fields)
+    try:
+        strategy_cls = get_strategy(args.strategy)
+    except ValueError as e:
+        print(f"Error: {e}", file=sys.stderr)
+        sys.exit(1)
 
-    print(optimized)
+    strategy = strategy_cls()
+
+    try:
+        result = strategy.optimize(signature_cls=signature, examples=examples, config=config)
+    except ValueError as e:
+        print(f"Error: {e}", file=sys.stderr)
+        sys.exit(1)
+
+    print(result.prompt)
+    print(format_metadata(result.metadata))
 
 
 if __name__ == "__main__":
