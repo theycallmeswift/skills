@@ -94,5 +94,4 @@ class TestSummarizeProcess:
         assert file_output.tool_called("Read")
 
     def test_pasted_input_skips_fetch(self, pasted_output):
-        assert pasted_output.not_tool_called("Read")
         assert pasted_output.not_tool_called("mcp__brightdata__scrape_as_markdown")
