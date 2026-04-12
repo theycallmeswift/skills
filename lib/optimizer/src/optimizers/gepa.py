@@ -48,9 +48,11 @@ class GEPAStrategy:
         optimizer = dspy.GEPA(**gepa_kwargs)
         compiled = optimizer.compile(predictor, trainset=examples)
 
-        # Extract rewritten prompt from compiled module's first predictor
         predictors = compiled.predictors()
         rewritten_prompt = predictors[0].signature.__doc__ if predictors else ""
+
+        if not rewritten_prompt.strip():
+            raise RuntimeError("GEPA produced an empty prompt — check training data and metric")
 
         return OptimizationResult(
             prompt=rewritten_prompt,

@@ -7,21 +7,18 @@ from src.strategy import STRATEGIES, OptimizationResult, get_strategy
 
 class TestBootstrapFewShotRegistration:
     def test_registered_as_bootstrap_fewshot(self):
-        import src.optimizers.bootstrap_fewshot  # noqa: F401
-
+        import src.optimizers.bootstrap_fewshot
         assert "bootstrap_fewshot" in STRATEGIES
 
     def test_get_strategy_returns_class(self):
-        import src.optimizers.bootstrap_fewshot  # noqa: F401
-
+        import src.optimizers.bootstrap_fewshot
         cls = get_strategy("bootstrap_fewshot")
         assert cls.name == "bootstrap_fewshot"
 
 
 class TestBootstrapFewShotOptimize:
     def test_returns_optimization_result(self):
-        import src.optimizers.bootstrap_fewshot  # noqa: F401
-
+        import src.optimizers.bootstrap_fewshot
         cls = get_strategy("bootstrap_fewshot")
         strategy = cls()
 
@@ -50,8 +47,7 @@ class TestBootstrapFewShotOptimize:
         assert result.metadata["demos_selected"] == 1
 
     def test_default_max_demos_is_4(self):
-        import src.optimizers.bootstrap_fewshot  # noqa: F401
-
+        import src.optimizers.bootstrap_fewshot
         cls = get_strategy("bootstrap_fewshot")
         strategy = cls()
 
@@ -76,8 +72,7 @@ class TestBootstrapFewShotOptimize:
             assert call_kwargs["max_bootstrapped_demos"] == 4
 
     def test_rejects_unknown_config_keys(self):
-        import src.optimizers.bootstrap_fewshot  # noqa: F401
-
+        import src.optimizers.bootstrap_fewshot
         cls = get_strategy("bootstrap_fewshot")
         strategy = cls()
 

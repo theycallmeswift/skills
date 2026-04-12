@@ -7,21 +7,18 @@ from src.strategy import STRATEGIES, OptimizationResult, get_strategy
 
 class TestGEPARegistration:
     def test_registered_as_gepa(self):
-        import src.optimizers.gepa  # noqa: F401
-
+        import src.optimizers.gepa
         assert "gepa" in STRATEGIES
 
     def test_get_strategy_returns_class(self):
-        import src.optimizers.gepa  # noqa: F401
-
+        import src.optimizers.gepa
         cls = get_strategy("gepa")
         assert cls.name == "gepa"
 
 
 class TestGEPAOptimize:
     def test_returns_optimization_result(self):
-        import src.optimizers.gepa  # noqa: F401
-
+        import src.optimizers.gepa
         cls = get_strategy("gepa")
         strategy = cls()
 
@@ -52,8 +49,7 @@ class TestGEPAOptimize:
         assert result.metadata["strategy"] == "gepa"
 
     def test_default_config_uses_light_auto(self):
-        import src.optimizers.gepa  # noqa: F401
-
+        import src.optimizers.gepa
         cls = get_strategy("gepa")
         strategy = cls()
 
@@ -79,8 +75,7 @@ class TestGEPAOptimize:
             assert call_kwargs.get("auto") == "light"
 
     def test_config_passes_through_gepa_params(self):
-        import src.optimizers.gepa  # noqa: F401
-
+        import src.optimizers.gepa
         cls = get_strategy("gepa")
         strategy = cls()
 
@@ -116,10 +111,38 @@ class TestGEPAOptimize:
             assert call_kwargs["use_merge"] is False
 
     def test_rejects_unknown_config_keys(self):
-        import src.optimizers.gepa  # noqa: F401
-
+        import src.optimizers.gepa
         cls = get_strategy("gepa")
         strategy = cls()
 
         with pytest.raises(ValueError, match="Unknown GEPA config keys"):
             strategy.optimize(signature_cls=MagicMock(), examples=[], config={"bad_key": 1})
+
+    def test_raises_on_empty_prompt(self):
+        import src.optimizers.gepa
+
+        cls = get_strategy("gepa")
+        strategy = cls()
+
+        mock_compiled = MagicMock()
+        mock_predict = MagicMock()
+        mock_predict.signature.__doc__ = ""
+        mock_compiled.predictors.return_value = [mock_predict]
+
+        with patch("src.optimizers.gepa.dspy") as mock_dspy:
+            mock_optimizer = MagicMock()
+            mock_optimizer.compile.return_value = mock_compiled
+            mock_dspy.GEPA.return_value = mock_optimizer
+            mock_dspy.Predict.return_value = MagicMock()
+
+            mock_sig = MagicMock()
+            mock_sig.output_fields = {"rewritten": None}
+            mock_sig.input_fields = {"source": None}
+            mock_sig.__doc__ = "Original prompt"
+
+            with pytest.raises(RuntimeError, match="GEPA produced an empty prompt"):
+                strategy.optimize(
+                    signature_cls=mock_sig,
+                    examples=[],
+                    config={"auto": "light"},
+                )

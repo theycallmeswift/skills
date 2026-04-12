@@ -9,7 +9,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 import dspy
 
-import src.optimizers  # noqa: F401 — triggers strategy registration
+import src.optimizers
 from src.bridge import build_signature, rows_to_examples
 from src.parser import load_csv, parse_prompt, read_prompt
 from src.strategy import get_strategy
