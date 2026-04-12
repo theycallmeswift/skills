@@ -1,5 +1,7 @@
 from unittest.mock import MagicMock, patch
 
+import pytest
+
 from src.strategy import STRATEGIES, OptimizationResult, get_strategy
 
 
@@ -112,3 +114,12 @@ class TestGEPAOptimize:
             assert call_kwargs["auto"] == "medium"
             assert call_kwargs["reflection_minibatch_size"] == 5
             assert call_kwargs["use_merge"] is False
+
+    def test_rejects_unknown_config_keys(self):
+        import src.optimizers.gepa  # noqa: F401
+
+        cls = get_strategy("gepa")
+        strategy = cls()
+
+        with pytest.raises(ValueError, match="Unknown GEPA config keys"):
+            strategy.optimize(signature_cls=MagicMock(), examples=[], config={"bad_key": 1})

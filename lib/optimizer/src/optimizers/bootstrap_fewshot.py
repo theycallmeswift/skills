@@ -3,6 +3,8 @@ import dspy
 from src.extractor import extract_demos, format_optimized_prompt
 from src.strategy import OptimizationResult, register
 
+BOOTSTRAP_CONFIG_KEYS = {"max_demos"}
+
 
 @register("bootstrap_fewshot")
 class BootstrapFewShotStrategy:
@@ -11,6 +13,10 @@ class BootstrapFewShotStrategy:
     name = "bootstrap_fewshot"
 
     def optimize(self, signature_cls, examples: list, config: dict) -> OptimizationResult:
+        unknown = set(config.keys()) - BOOTSTRAP_CONFIG_KEYS
+        if unknown:
+            raise ValueError(f"Unknown bootstrap_fewshot config keys: {unknown}")
+
         max_demos = config.get("max_demos", 4)
 
         predictor = dspy.Predict(signature_cls)

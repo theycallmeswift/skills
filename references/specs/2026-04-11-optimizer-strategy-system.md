@@ -69,7 +69,7 @@ Each strategy file uses `@register("name")`. The `optimizers/__init__.py` import
 
 ### Universal flags
 
-- `--strategy` (required) — strategy name for registry lookup
+- `--strategy` (default: `bootstrap_fewshot`) — strategy name for registry lookup
 - `--prompt` (required) — file path or `-` for stdin
 - `--training-data` (required) — CSV file
 - `--output-fields` (required) — comma-separated output column names

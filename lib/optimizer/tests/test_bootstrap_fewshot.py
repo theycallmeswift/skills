@@ -1,5 +1,7 @@
 from unittest.mock import MagicMock, patch
 
+import pytest
+
 from src.strategy import STRATEGIES, OptimizationResult, get_strategy
 
 
@@ -72,3 +74,12 @@ class TestBootstrapFewShotOptimize:
             mock_dspy.BootstrapFewShot.assert_called_once()
             call_kwargs = mock_dspy.BootstrapFewShot.call_args[1]
             assert call_kwargs["max_bootstrapped_demos"] == 4
+
+    def test_rejects_unknown_config_keys(self):
+        import src.optimizers.bootstrap_fewshot  # noqa: F401
+
+        cls = get_strategy("bootstrap_fewshot")
+        strategy = cls()
+
+        with pytest.raises(ValueError, match="Unknown bootstrap_fewshot config keys"):
+            strategy.optimize(signature_cls=MagicMock(), examples=[], config={"bad_key": 1})

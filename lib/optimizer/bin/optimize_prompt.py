@@ -61,7 +61,7 @@ def load_config(config_path):
 def format_metadata(metadata):
     """Format metadata dict as YAML-style key: value lines with separator."""
     lines = [f"{k}: {v}" for k, v in metadata.items()]
-    return "\n---\n" + "\n".join(lines)
+    return "---\n" + "\n".join(lines)
 
 
 def main():
@@ -83,9 +83,19 @@ def main():
     signature = build_signature(prompt, input_fields, args.output_fields)
     examples = rows_to_examples(rows, input_fields)
 
-    strategy_cls = get_strategy(args.strategy)
+    try:
+        strategy_cls = get_strategy(args.strategy)
+    except ValueError as e:
+        print(f"Error: {e}", file=sys.stderr)
+        sys.exit(1)
+
     strategy = strategy_cls()
-    result = strategy.optimize(signature_cls=signature, examples=examples, config=config)
+
+    try:
+        result = strategy.optimize(signature_cls=signature, examples=examples, config=config)
+    except ValueError as e:
+        print(f"Error: {e}", file=sys.stderr)
+        sys.exit(1)
 
     print(result.prompt)
     print(format_metadata(result.metadata))

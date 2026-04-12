@@ -1,5 +1,4 @@
 import json
-import tempfile
 
 import pytest
 from optimize_prompt import format_metadata, load_config, main, parse_args
@@ -86,19 +85,16 @@ class TestLoadConfig:
     def test_returns_empty_dict_when_none(self):
         assert load_config(None) == {}
 
-    def test_loads_json_file(self):
-        with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
-            json.dump({"max_demos": 6}, f)
-            f.flush()
-            result = load_config(f.name)
-        assert result == {"max_demos": 6}
+    def test_loads_json_file(self, tmp_path):
+        config_file = tmp_path / "config.json"
+        config_file.write_text(json.dumps({"max_demos": 6}))
+        assert load_config(str(config_file)) == {"max_demos": 6}
 
-    def test_raises_on_invalid_json(self):
-        with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
-            f.write("not json")
-            f.flush()
-            with pytest.raises(SystemExit):
-                load_config(f.name)
+    def test_raises_on_invalid_json(self, tmp_path):
+        config_file = tmp_path / "config.json"
+        config_file.write_text("not json")
+        with pytest.raises(SystemExit):
+            load_config(str(config_file))
 
     def test_raises_on_missing_file(self):
         with pytest.raises(SystemExit):
@@ -114,7 +110,7 @@ class TestFormatMetadata:
 
     def test_separator_included(self):
         result = format_metadata({"key": "value"})
-        assert result.startswith("\n---\n")
+        assert result.startswith("---\n")
 
 
 class TestMissingApiKey:

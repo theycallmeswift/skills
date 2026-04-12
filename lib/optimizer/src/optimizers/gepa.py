@@ -27,6 +27,10 @@ class GEPAStrategy:
         def metric(gold, pred, trace=None, pred_name=None, pred_trace=None):
             return float(all(bool(getattr(pred, k, None)) for k in output_keys))
 
+        unknown = set(config.keys()) - GEPA_CONFIG_KEYS
+        if unknown:
+            raise ValueError(f"Unknown GEPA config keys: {unknown}")
+
         # GEPA requires a reflection LM — use the currently configured DSPy LM
         gepa_kwargs = {
             "metric": metric,
