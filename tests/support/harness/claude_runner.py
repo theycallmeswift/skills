@@ -47,6 +47,31 @@ class RunResult:
                     calls.append({"name": block["name"], "input": block["input"]})
         return calls
 
+    def tool_called(self, name: str, *, where: dict[str, str] | None = None) -> bool:
+        """True if any tool call matches the name and optional input filters.
+
+        Args:
+            name: Tool name to match.
+            where: Optional dict of {input_key: substring} filters.
+                   Each value is matched case-insensitively against the
+                   corresponding input field.
+        """
+        for c in self.tool_calls:
+            if c["name"] != name:
+                continue
+            if where is None:
+                return True
+            if all(
+                v.lower() in c["input"].get(k, "").lower()
+                for k, v in where.items()
+            ):
+                return True
+        return False
+
+    def not_tool_called(self, name: str, *, where: dict[str, str] | None = None) -> bool:
+        """True if no tool call matches the name and optional input filters."""
+        return not self.tool_called(name, where=where)
+
     @property
     def tool_results(self) -> list[dict]:
         """All tool result events, in order."""

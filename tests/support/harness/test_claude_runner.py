@@ -197,6 +197,42 @@ class TestRunResultToolCalls:
         assert result.tool_calls[0]["name"] == "Skill"
 
 
+class TestRunResultToolCalled:
+    def test_true_when_tool_present(self):
+        result = _parse_stream(TOOL_USE_STREAM)
+        assert result.tool_called("Read") is True
+
+    def test_false_when_tool_absent(self):
+        result = _parse_stream(TOOL_USE_STREAM)
+        assert result.tool_called("Write") is False
+
+    def test_false_on_empty(self):
+        result = _parse_stream(SIMPLE_STREAM)
+        assert result.tool_called("Read") is False
+
+    def test_where_matches_input_substring(self):
+        result = _parse_stream(TOOL_USE_STREAM)
+        assert result.tool_called("Read", where={"file_path": "test.txt"}) is True
+
+    def test_where_is_case_insensitive(self):
+        result = _parse_stream(MULTI_BLOCK_STREAM)
+        assert result.tool_called("Skill", where={"skill": "SUMMARIZE"}) is True
+
+    def test_where_rejects_non_matching(self):
+        result = _parse_stream(TOOL_USE_STREAM)
+        assert result.tool_called("Read", where={"file_path": "nope.txt"}) is False
+
+    def test_not_tool_called_inverse(self):
+        result = _parse_stream(TOOL_USE_STREAM)
+        assert result.not_tool_called("Write") is True
+        assert result.not_tool_called("Read") is False
+
+    def test_not_tool_called_with_where(self):
+        result = _parse_stream(TOOL_USE_STREAM)
+        assert result.not_tool_called("Read", where={"file_path": "nope.txt"}) is True
+        assert result.not_tool_called("Read", where={"file_path": "test.txt"}) is False
+
+
 class TestRunResultToolResults:
     def test_no_tool_results_in_simple(self):
         result = _parse_stream(SIMPLE_STREAM)

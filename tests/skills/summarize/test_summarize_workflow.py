@@ -81,52 +81,18 @@ class TestSummarizeStructure:
 class TestSummarizeProcess:
     """Verify the summarize skill follows its prescribed process."""
 
-    def test_dispatches_ghostwrite_subagent(self, summarize_output):
-        agent_calls = [
-            c for c in summarize_output.tool_calls if c["name"] == "Agent"
-        ]
-        ghostwrite_calls = [
-            c for c in agent_calls
-            if "ghostwrite" in c["input"].get("prompt", "").lower()
-        ]
-        assert len(ghostwrite_calls) >= 1, (
-            f"Expected summarize to dispatch a ghostwrite subagent. "
-            f"Agent calls found: {[c['input'].get('description', '') for c in agent_calls]}"
-        )
-
     def test_invokes_summarize_skill(self, summarize_output):
-        skill_calls = [
-            c for c in summarize_output.tool_calls if c["name"] == "Skill"
-        ]
-        summarize_calls = [
-            c for c in skill_calls
-            if "summarize" in c["input"].get("skill", "").lower()
-        ]
-        assert len(summarize_calls) >= 1, (
-            f"Expected Skill tool to load summarize. "
-            f"Skill calls found: {[c['input'].get('skill', '') for c in skill_calls]}"
-        )
+        assert summarize_output.tool_called("Skill", where={"skill": "summarize"})
+
+    def test_dispatches_ghostwrite_subagent(self, summarize_output):
+        assert summarize_output.tool_called("Agent", where={"prompt": "ghostwrite"})
 
     def test_url_input_fetches_via_mcp(self, url_output):
-        tool_names = [c["name"] for c in url_output.tool_calls]
-        assert "mcp__brightdata__scrape_as_markdown" in tool_names, (
-            f"URL input should fetch via scrape_as_markdown. "
-            f"Tool calls: {tool_names}"
-        )
+        assert url_output.tool_called("mcp__brightdata__scrape_as_markdown")
 
     def test_file_input_uses_read(self, file_output):
-        read_calls = [c for c in file_output.tool_calls if c["name"] == "Read"]
-        assert len(read_calls) >= 1, (
-            f"File input should use Read tool to fetch source. "
-            f"Tool calls: {[c['name'] for c in file_output.tool_calls]}"
-        )
+        assert file_output.tool_called("Read")
 
     def test_pasted_input_skips_fetch(self, pasted_output):
-        fetch_tools = {"Read", "mcp__brightdata__scrape_as_markdown"}
-        fetch_calls = [
-            c for c in pasted_output.tool_calls if c["name"] in fetch_tools
-        ]
-        assert fetch_calls == [], (
-            f"Pasted input should not fetch via Read or scrape_as_markdown. "
-            f"Unexpected calls: {[c['name'] for c in fetch_calls]}"
-        )
+        assert pasted_output.not_tool_called("Read")
+        assert pasted_output.not_tool_called("mcp__brightdata__scrape_as_markdown")

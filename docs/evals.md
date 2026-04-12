@@ -39,7 +39,8 @@ tests/
     │   ├── helpers.py                       # Ghostwrite-specific helpers (signoff, hashtags)
     │   ├── test_helpers.py                  # Helper unit tests
     │   ├── test_ghostwrite_rules.py         # Rule compliance (~6 tests)
-    │   └── test_ghostwrite_mediums.py       # Medium formatting (~10 tests)
+    │   ├── test_ghostwrite_mediums.py       # Medium formatting (~10 tests)
+    │   └── test_ghostwrite_workflow.py      # Process verification (~2 tests × 4 mediums)
     └── summarize/
         ├── conftest.py                      # Source content + cached output fixtures (3 input types)
         ├── helpers.py                       # Summarize-specific helpers (template parsing)
