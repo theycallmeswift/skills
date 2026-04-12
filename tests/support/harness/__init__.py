@@ -1,3 +1,3 @@
-from tests.support.harness.claude_runner import ClaudeRunner
+from tests.support.harness.claude_runner import ClaudeRunner, RunResult
 
-__all__ = ["ClaudeRunner"]
+__all__ = ["ClaudeRunner", "RunResult"]
