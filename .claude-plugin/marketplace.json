@@ -1,0 +1,13 @@
+{
+  "name": "mechaswift",
+  "owner": {
+    "name": "Mike Swift"
+  },
+  "plugins": [
+    {
+      "name": "core",
+      "description": "Skills, configuration, and workflows for Claude Code.",
+      "source": "./"
+    }
+  ]
+}

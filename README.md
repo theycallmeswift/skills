@@ -15,17 +15,23 @@ Personal agent framework for [Claude Code](https://docs.anthropic.com/en/docs/cl
 
 ## Install
 
-Clone the repo anywhere, then register it as a Claude Code plugin:
+```sh
+claude plugins marketplace add theycallmeswift/mechaswift
+claude plugins install core@mechaswift
+```
+
+Skills are available in every Claude Code session after install. Invoke them by name (e.g. `/ghostwrite`, `/scope`, `/summarize`).
+
+### Development
+
+Clone the repo for local development and eval authoring:
 
 ```sh
 git clone git@github.com:theycallmeswift/mechaswift.git
 cd mechaswift
 cp .env.example .env   # then fill in API keys
 make install           # installs Python deps for the eval harness via uv
-claude plugins add /path/to/mechaswift
 ```
-
-Skills are available in every Claude Code session after install. Invoke them by name (e.g. `/ghostwrite`, `/scope`, `/summarize`).
 
 ## Project Structure
 
