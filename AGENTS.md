@@ -39,6 +39,10 @@ Claude Code plugin layout. The manifest lives in `.claude-plugin/`; everything e
 - `skills.sh.json` — Hermes hub category groupings for the tap.
 - `tmp/` — scratch space, git-ignored.
 
+## Skills
+
+- **writing-prompts** — draft and tighten anything an LLM will read: system prompts, subagent briefs, `SKILL.md` text, `AGENTS.md`.
+
 ## References
 
 Load on demand, not at session start.

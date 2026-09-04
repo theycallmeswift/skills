@@ -1,4 +1,11 @@
 {
   "$schema": "https://skills.sh/schemas/skills.sh.schema.json",
-  "groupings": []
+  "groupings": [
+    {
+      "title": "Prompt & Skill Authoring",
+      "skills": [
+        "writing-prompts"
+      ]
+    }
+  ]
 }
