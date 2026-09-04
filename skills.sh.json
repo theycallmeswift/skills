@@ -2,6 +2,12 @@
   "$schema": "https://skills.sh/schemas/skills.sh.schema.json",
   "groupings": [
     {
+      "title": "Design & Specs",
+      "skills": [
+        "to-spec"
+      ]
+    },
+    {
       "title": "Prompt & Skill Authoring",
       "skills": [
         "writing-prompts",
