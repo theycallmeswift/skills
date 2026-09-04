@@ -11,19 +11,12 @@ dev = [
     "pytest-xdist>=3",
     "ruff>=0.6",
 ]
-# Opt-in: `uv sync --group evals`. harnessbench is a private, pre-release git dependency;
-# see docs/development.md.
-evals = [
-    "harnessbench[microsandbox]",
-    "pytest-repeat>=0.9,<1",  # --count N sampling; <1 because harnessbench reads its internal step param
-]
+# The eval runner (harnessbench) is a private git dependency and deliberately NOT declared here:
+# uv resolves every group on sync, so a private source would break `make install` for anyone
+# without access, CI included. `make evals:install` puts it in the venv; see docs/development.md.
 
 [tool.uv]
 package = false
-default-groups = ["dev"]
-
-[tool.uv.sources]
-harnessbench = { git = "https://github.com/theycallmeswift/harnessbench.git", branch = "main" }
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

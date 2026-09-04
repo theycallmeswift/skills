@@ -6,7 +6,7 @@ How to work on the plugin: environment, `make` targets, loading it into Claude C
 
 - [`uv`](https://docs.astral.sh/uv/) — Python and venv management. `pytest` and `ruff` install through it.
 - Claude Code and/or Hermes, to load and trigger the skills.
-- **Evals only:** see [Evals](#evals) for the extra dependency group and credentials.
+- **Evals only:** see [Evals](#evals) for the runner install and credentials.
 
 ## Commands
 
@@ -16,6 +16,7 @@ How to work on the plugin: environment, `make` targets, loading it into Claude C
 | `make test` | Unit tests under `tests/`: plugin manifest checks plus each skill's script tests. Runs with pytest plugin autoload off so the harnessbench plugin never leaks into unit runs. |
 | `make lint` | `ruff check .` |
 | `make format` | `ruff format .` |
+| `make evals:install` | Put harnessbench (private git dependency) into the venv. The eval targets run it on demand; `make install` prunes it again, which is fine. |
 | `make evals` | Skill evals, baseline vs trial, in microVMs. `SKILL=to-spec` scopes to `evals/to-spec`; `EVAL_ARGS="-n 6"` adds pytest args. |
 | `make evals:lint` | Static lint of eval assertions. No credentials, no sandbox. |
 | `make clean` | Remove `.venv` and caches. |
@@ -81,9 +82,9 @@ The published path is the tap in the README: `hermes skills tap add theycallmesw
 
 ## Evals
 
-The runner is [harnessbench](https://github.com/theycallmeswift/harnessbench), a pytest plugin that boots each `(eval × arm)` cell in a microVM and grades the result with deterministic checkers plus an LLM judge. It's a private, pre-release git dependency in the opt-in `evals` group; the `make evals*` targets sync it on demand (`uv run --group evals …`), so a plain `make install` never needs access to it.
+The runner is [harnessbench](https://github.com/theycallmeswift/harnessbench), a pytest plugin that boots each `(eval × arm)` cell in a microVM and grades the result with deterministic checkers plus an LLM judge. It's a private, pre-release git dependency and is deliberately not in `pyproject.toml`: uv resolves every dependency group on sync, so a private source there would break `make install` for anyone without access, CI included. `make evals:install` puts it in the venv with `uv pip install` (needs GitHub access to the repo), and the `make evals*` targets do that on demand. `make install` prunes it again; the next eval target reinstalls.
 
-**Requirements for a graded run:** an Apple Silicon Mac or Linux with `/dev/kvm`, microsandbox (installed with the group), and credentials in `.env` (copy `.env.example`): `CLAUDE_CODE_OAUTH_TOKEN` or `ANTHROPIC_API_KEY` for the agent and judge, and `GEMINI_API_KEY` for harnessbench's assertion binder. The first run builds a VM snapshot (a few minutes); later runs reuse it.
+**Requirements for a graded run:** an Apple Silicon Mac or Linux with `/dev/kvm`, microsandbox (installed with harnessbench), and credentials in `.env` (copy `.env.example`): `CLAUDE_CODE_OAUTH_TOKEN` or `ANTHROPIC_API_KEY` for the agent and judge, and `GEMINI_API_KEY` for harnessbench's assertion binder. The first run builds a VM snapshot (a few minutes); later runs reuse it.
 
 **One eval set**, `default` in `pyproject.toml`: a `baseline` arm runs the agent bare and a `trial` arm runs it with the whole plugin loaded (`harness_args = ["--plugin-dir", "/project"]`, the staged copy of this repo), both on `claude-code` / `sonnet`. No `setup.sh` anywhere — loading the plugin is the install. Two kinds of eval run in it, and they differ only in what they assert:
 
@@ -92,7 +93,7 @@ The runner is [harnessbench](https://github.com/theycallmeswift/harnessbench), a
 
 `SKILL=<name>` narrows discovery to `evals/<name>`; `EVAL_ARGS="-k <scenario>"` narrows further.
 
-**Authoring loop.** `make evals:lint` is free and static. `uv run --group evals harnessbench analyze` asks the binder which assertions grade deterministically. `make evals SKILL=<name> EVAL_ARGS="--collect-only -q"` lists the cells without spawning anything — do this before any run broader than one eval, because every cell is a VM boot plus an agent call, and every punted assertion is a judge call. The format reference is `docs/writing-evals.md` in the harnessbench repo; the design methodology (scenarios, discriminating assertions, RED → GREEN → REFACTOR) is `skills/writing-agent-skills/references/evaluating-skills.md`.
+**Authoring loop.** `make evals:lint` is free and static. `uv run --no-sync harnessbench analyze` asks the binder which assertions grade deterministically. `make evals SKILL=<name> EVAL_ARGS="--collect-only -q"` lists the cells without spawning anything — do this before any run broader than one eval, because every cell is a VM boot plus an agent call, and every punted assertion is a judge call. The format reference is `docs/writing-evals.md` in the harnessbench repo; the design methodology (scenarios, discriminating assertions, RED → GREEN → REFACTOR) is `skills/writing-agent-skills/references/evaluating-skills.md`.
 
 **Recording results.** Runs write `tmp/evals/iteration_NN/benchmark.md` (git-ignored). When a skill lands or changes, copy that report to `docs/evals/<skill>.md` so the last measured baseline and delta travel with the repo.
 

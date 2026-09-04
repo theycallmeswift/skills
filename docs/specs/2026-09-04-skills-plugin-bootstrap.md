@@ -42,7 +42,7 @@ tmp/evals/iteration_NN/benchmark.md ──copy──► docs/evals/<name>.md
 - **Plugin is `core`, marketplace is `mechaswift`.** Matches the install line the README on `main` already advertised (`core@mechaswift`) and leaves room for sibling plugins later. Skills are invoked as `core:<name>`; `SKILL.md` frontmatter stays unprefixed. Marketplace `source` is `./`, so the repo root is both marketplace and plugin.
 - **Hermes needs no extra manifest.** A tap is any repo with `skills/<name>/SKILL.md`; `name` and `description` are the only required frontmatter. `skills.sh.json` adds hub category labels without touching frontmatter; each skill PR adds its own entry.
 - **`SessionStart` hook ships with the infrastructure.** One short directive to route through a matching skill. Claude-only by nature; it lives in `hooks/`, not in any `SKILL.md`.
-- **harnessbench is an opt-in dependency group.** It is private and unpublished, so it cannot be a default dev dependency without breaking `make install` for anyone without repo access (CI included). `[dependency-groups] evals` plus a `[tool.uv.sources]` git pin; the `make evals*` targets use `uv run --group evals`. `make test` sets `PYTEST_DISABLE_PLUGIN_AUTOLOAD=1` because harnessbench's pytest plugin errors when loaded into a plain unit run.
+- **harnessbench stays out of `pyproject.toml`.** It is private and unpublished, and uv resolves every dependency group on sync — so even an opt-in group with a git source breaks `make install` for anyone without repo access, CI included (observed on the first CI run). `make evals:install` puts it in the venv with `uv pip install` from git; the `make evals*` targets call that on demand and run with `uv run --no-sync` so a sync can't prune it mid-run. `make test` sets `PYTEST_DISABLE_PLUGIN_AUTOLOAD=1` because harnessbench's pytest plugin errors when loaded into a plain unit run.
 - **One eval set, the plugin is the install.** `baseline` runs the agent bare; `trial` runs it with `harness_args = ["--plugin-dir", "/project"]`, the staged copy of this repo, so every eval measures the plugin as shipped — hook included — and no `setup.sh` exists anywhere. Routing evals are ordinary evals in the same set (harnessbench has no separate trigger format); their baseline column is uninformative and rides along. Both on `sonnet`; a routing miss that only opus resolves is recorded as a model-tier boundary, as the upstream suites did.
 - **Evals live under a root `evals/` tree, skills ship clean.** `evals/<name>/<scenario>/eval.md` (+ `workspace/`) for output evals and `evals/<name>/<query>.eval.md` for routing queries. Sibling files make the group the skill name, so query slugs shared across skills (`tighten-prompt`, `fix-typeerror`) don't collide on harnessbench's `(group, eval_id)` key. `SKILL=<name>` sets `--eval-paths evals/<name>`.
 - **Eval migration is mechanical and per skill.** `prompt.md` → `eval.md` with `seed:`/`text` renamed to `history:`/`content`; `fixtures/` → `workspace/`; `trigger-evals.md` → one `<query>.eval.md` per line carrying the verbatim query and a single `` Skill `<name>` invoked `` / `` not invoked `` assertion. Positives that presuppose a prior design discussion (to-spec's) get a short shared `history:` recap, because a bare session has nothing to write up and the agent correctly declines rather than routing.
@@ -65,7 +65,7 @@ tmp/evals/iteration_NN/benchmark.md ──copy──► docs/evals/<name>.md
 ### Interface
 - **Manifests validate under strict mode** — `plugin.json`, `marketplace.json`, and every `SKILL.md` pass `claude plugin validate --strict`.
 - **A fresh clone builds without the private runner** — the default `uv sync` resolves with public packages only, and `make test` / `make lint` are green.
-- **The opt-in group resolves** — `uv sync --group evals` installs harnessbench from git for a maintainer with repo access, and `harnessbench lint` runs clean on every suite.
+- **The runner installs on demand** — `make evals:install` puts harnessbench in the venv for a maintainer with repo access, and `make evals:lint` runs clean on every suite.
 
 ## Documentation Plan
 
@@ -95,6 +95,6 @@ tmp/evals/iteration_NN/benchmark.md ──copy──► docs/evals/<name>.md
 - `claude plugin validate --strict . && claude plugin validate --strict .claude-plugin/plugin.json && claude plugin validate --strict skills` — manifests and skills are well-formed.
 - `claude -p --plugin-dir . "List every skill whose name starts with core:"` — every landed skill loads under the `core:` namespace.
 - `CLAUDE_PLUGIN_ROOT=. hooks/session-start | python3 -m json.tool` — the hook emits valid JSON.
-- `make evals:lint` — the opt-in runner resolves and every suite lints clean.
+- `make evals:lint` — the runner installs on demand and every suite lints clean.
 - `make evals SKILL=<name> EVAL_ARGS="-n 4"` — per skill PR, both arms run over the skill's output and routing evals; the report is copied to `docs/evals/<name>.md`.
 - `python3 skills/to-spec/scripts/validate_spec.py docs/specs/2026-09-04-skills-plugin-bootstrap.md` — this spec is structurally valid.
