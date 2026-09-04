@@ -1,0 +1,104 @@
+# Developing MechaSwift
+
+How to work on the plugin: environment, `make` targets, loading it into Claude Code and Hermes, and how skill evals are laid out and run. Pairs with `AGENTS.md` (working rules) and the authoring references shipped inside the skills themselves.
+
+## Prerequisites
+
+- [`uv`](https://docs.astral.sh/uv/) — Python and venv management. `pytest` and `ruff` install through it.
+- Claude Code and/or Hermes, to load and trigger the skills.
+- **Evals only:** see [Evals](#evals) for the extra dependency group and credentials.
+
+## Commands
+
+| Command | Does |
+|---|---|
+| `make install` | `uv sync` — creates `.venv` with the `dev` group (pytest, ruff). |
+| `make test` | Unit tests under `tests/`: plugin manifest checks plus each skill's script tests. Runs with pytest plugin autoload off so the harnessbench plugin never leaks into unit runs. |
+| `make lint` | `ruff check .` |
+| `make format` | `ruff format .` |
+| `make evals` | Output evals, baseline vs trial, in microVMs. `SKILL=to-spec` scopes to one skill; `EVAL_ARGS="-n 6"` adds pytest args. |
+| `make evals:triggers` | Trigger evals: does the description route? One arm, whole plugin loaded, opus. Same `SKILL=` / `EVAL_ARGS=` knobs. |
+| `make evals:lint` | Static lint of eval assertions. No credentials, no sandbox. |
+| `make clean` | Remove `.venv` and caches. |
+
+CI (`.github/workflows/ci.yml`) runs `make lint`, `claude plugin validate .`, and `make test` on every PR and on pushes to `main` and `dev`. Evals never run in CI.
+
+## Layout of a skill
+
+```
+skills/to-spec/
+  SKILL.md                     Model-invoked entry point: name + description + thin procedure
+  assets/, references/, ...    Templates and docs the skill tells the agent when to load
+  scripts/validate_spec.py     Tiny CLI the skill runs (stdlib only)
+  evals/
+    <slug>/eval.md             One output eval: history + prompt + assertions
+    <slug>/workspace/          Starting files for that eval (optional)
+    <slug>/setup.sh            Installs the skill on the trial arm, nothing on baseline
+    to-spec-triggers/          One <query>.eval.md per routing query; no setup.sh
+tests/skills/to-spec/
+  test_validate_spec.py        Deterministic unit tests for the script
+  conftest.py                  Puts scripts/ on sys.path
+docs/evals/to-spec.md          The recorded benchmark from the skill's last eval run
+```
+
+Frontmatter is `name` and `description` only (`tests/test_plugin.py` enforces it). Keep skill prose harness-neutral; the rules are in `skills/writing-agent-skills/references/skill-conventions.md`, and the `writing-agent-skills` skill is the workflow for changing one. Editing a skill without re-running its evals is the same mistake as shipping one without them.
+
+## Testing in Claude Code
+
+Load the plugin from disk for one session, from any directory you want to work in:
+
+```bash
+cd /some/project
+claude --plugin-dir /path/to/mechaswift
+```
+
+- `/plugin` lists the `core` plugin and its skills.
+- Trigger a skill with natural language ("spec this out") or by name (`/core:to-spec`).
+- `/reload-plugins` picks up `SKILL.md` edits. Restart Claude Code for `plugin.json`, `marketplace.json`, or `hooks/` changes.
+- `claude plugin validate --strict .` checks the manifests; `claude plugin validate --strict skills` checks every `SKILL.md`. `claude --plugin-dir . plugin details core` prints the component inventory and projected token cost.
+
+To test the marketplace install path rather than `--plugin-dir`:
+
+```
+/plugin marketplace add /path/to/mechaswift
+/plugin install core@mechaswift
+```
+
+## Testing in Hermes
+
+Hermes reads skills from `~/.hermes/skills/<name>/SKILL.md`. For local iteration, link the skill directories in and start a session:
+
+```bash
+for s in /path/to/mechaswift/skills/*/; do
+  ln -s "$s" ~/.hermes/skills/$(basename "$s")
+done
+hermes skills list
+```
+
+Hermes also loads repo-local skills from `./.agents/skills` in a project you've marked trusted (`hermes skills trust`), which is another way to try a skill against a real project without touching `~/.hermes`.
+
+The published path is the tap in the README: `hermes skills tap add theycallmeswift/mechaswift`, then `hermes skills install theycallmeswift/mechaswift/<name>`. Hermes downloads `SKILL.md` and every subdirectory beside it, so `references/`, `assets/`, and `scripts/` arrive intact. Skills installed from a tap go through Hermes's security scan and show its third-party notice on first install.
+
+## Evals
+
+The runner is [harnessbench](https://github.com/theycallmeswift/harnessbench), a pytest plugin that boots each `(eval × arm)` cell in a microVM and grades the result with deterministic checkers plus an LLM judge. It's a private, pre-release git dependency in the opt-in `evals` group; the `make evals*` targets sync it on demand (`uv run --group evals …`), so a plain `make install` never needs access to it.
+
+**Requirements for a graded run:** an Apple Silicon Mac or Linux with `/dev/kvm`, microsandbox (installed with the group), and credentials in `.env` (copy `.env.example`): `CLAUDE_CODE_OAUTH_TOKEN` or `ANTHROPIC_API_KEY` for the agent and judge, and `GEMINI_API_KEY` for harnessbench's assertion binder. The first run builds a VM snapshot (a few minutes); later runs reuse it.
+
+**Two eval sets** are declared under `[tool.harnessbench]` in `pyproject.toml`:
+
+- `default` — output evals. A `baseline` arm installs nothing and a `trial` arm's `setup.sh` installs the skill (plus any sibling it delegates to), both on `claude-code` / `sonnet`. The delta is what the skill taught.
+- `triggers` — routing evals. One `trial` arm on `opus` with `--plugin-dir /project`, so the whole plugin is loaded and each description competes with its real peers. Every trigger eval is one query plus a single `` Skill `X` invoked `` or `` not invoked `` assertion, which harnessbench grades deterministically from the agent's dispatches. There is no baseline: an uninstalled skill can't fire.
+
+`make evals` and `make evals:triggers` pick the set and filter on the `triggers` group name; `SKILL=<name>` narrows discovery to that skill's tree.
+
+**Authoring loop.** `make evals:lint` is free and static. `uv run --group evals harnessbench analyze` asks the binder which assertions grade deterministically. `make evals SKILL=<name> EVAL_ARGS="--collect-only -q"` lists the cells without spawning anything — do this before any run broader than one eval, because every cell is a VM boot plus an agent call, and every punted assertion is a judge call. The format reference is `docs/writing-evals.md` in the harnessbench repo; the design methodology (scenarios, discriminating assertions, RED → GREEN → REFACTOR) is `skills/writing-agent-skills/references/evaluating-skills.md`.
+
+**Recording results.** Runs write `tmp/evals/iteration_NN/benchmark.md` (git-ignored). When a skill lands or changes, copy that report to `docs/evals/<skill>.md` so the last measured baseline and delta travel with the repo.
+
+## Further reading
+
+- `AGENTS.md` — working rules for agents editing this repo.
+- `skills/writing-agent-skills/references/skill-conventions.md` — frontmatter, layout, portability, discipline patterns.
+- `skills/writing-agent-skills/references/evaluating-skills.md` — eval design: scenarios, assertions, RED → GREEN → REFACTOR.
+- `skills/writing-prompts/references/agent-md.md` — how `AGENTS.md` / `CLAUDE.md` should be written.
