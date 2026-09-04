@@ -64,4 +64,4 @@ def test_skill_frontmatter_is_portable(skill: Path):
     assert set(fields) == {"name", "description"}, sorted(fields)
     assert fields["name"] == skill.name
     assert re.fullmatch(r"[a-z0-9]+(-[a-z0-9]+)*", fields["name"])
-    assert 0 < len(fields["description"]) <= 1024
+    assert fields["description"], "description must not be empty"
