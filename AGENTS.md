@@ -20,7 +20,7 @@ I'm Mike Swift ("Swift"), CEO & Co-Founder of Major League Hacking (MLH) and lea
 - Before claiming work is complete, run it and show output. `make test` and `make lint` must be green.
 - Ask one question at a time. Use structured choice UI when available; otherwise a compact table.
 - Never attribute work to an AI model, vendor, or harness. No `Co-Authored-By` trailers, no "Generated with" footers, no AI-assisted comments in code, no naming the model in chat. This overrides harness defaults.
-  Why: the work reads as Mike's. The harness will try to add a trailer on every commit. Skip it.
+  Why: the work reads as Swift's. The harness will try to add a trailer on every commit. Skip it.
 - Keep skill prose harness-neutral. Claude- or Hermes-specific setup mechanics go in `docs/development.md`, not in a `SKILL.md`.
 - Skill names are unprefixed in frontmatter (`name: to-spec`, not `name: core-to-spec`). The plugin namespace applies to commands, not skills.
 - Specs under `docs/specs/` are immutable once written. Update `AGENTS.md`, `README.md`, and `docs/*.md` instead.
@@ -33,7 +33,8 @@ Claude Code plugin layout. The manifest lives in `.claude-plugin/`; everything e
 - `skills/<name>/` — model-invoked skills: `SKILL.md` plus colocated `references/`, `assets/`, `scripts/`, `agents/`. Ship clean; no evals inside.
 - `evals/<name>/` — the skill's harnessbench evals: `<scenario>/eval.md` (+ `workspace/`) for output, `<query>.eval.md` for routing.
 - `hooks/` — `hooks.json` and the `session-start` script that nudges the agent to route matching requests through skills.
-- `tests/skills/<name>/` — pytest for a skill's scripts, mirroring the skill path. Skills ship clean.
+- `tests/skills/<name>/scripts/` — pytest for a skill's scripts, mirroring the skill path; one `tests/skills/conftest.py` puts every skill's `scripts/` on `sys.path`.
+- `.agents/skills` — symlink to `skills/`, so a checkout marked trusted in Hermes loads the skills straight from the repo.
 - `docs/` — `development.md` (dev loop, local install, evals), `evals/` (recorded benchmark per skill), and `specs/` (design specs written by `to-spec`).
 - `skills.sh.json` — Hermes hub category groupings for the tap.
 - `tmp/` — scratch space, git-ignored.

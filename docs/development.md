@@ -33,9 +33,10 @@ evals/to-spec/
   <scenario>/eval.md           One output eval: history + prompt + assertions
   <scenario>/workspace/        Starting files for that eval (optional)
   <query>.eval.md              One routing eval per query: the verbatim ask + one activation assertion
-tests/skills/to-spec/
-  test_validate_spec.py        Deterministic unit tests for the script
-  conftest.py                  Puts scripts/ on sys.path
+tests/skills/
+  conftest.py                  Puts every skills/*/scripts/ on sys.path, once for all skills
+  to-spec/scripts/
+    test_validate_spec.py      Deterministic unit tests, mirroring skills/to-spec/scripts/
 docs/evals/to-spec.md          The recorded benchmark from the skill's last eval run
 ```
 
@@ -66,16 +67,15 @@ To test the marketplace install path rather than `--plugin-dir`:
 
 ## Testing in Hermes
 
-Hermes reads skills from `~/.hermes/skills/<name>/SKILL.md`. For local iteration, link the skill directories in and start a session:
+Hermes loads repo-local skills from `./.agents/skills` in a project you've marked trusted, and `.agents/skills` here is a symlink to `skills/`. So the local loop is:
 
 ```bash
-for s in /path/to/mechaswift/skills/*/; do
-  ln -s "$s" ~/.hermes/skills/$(basename "$s")
-done
-hermes skills list
+cd /path/to/mechaswift
+hermes skills trust        # once per checkout
+hermes skills list         # the four skills show as project skills
 ```
 
-Hermes also loads repo-local skills from `./.agents/skills` in a project you've marked trusted (`hermes skills trust`), which is another way to try a skill against a real project without touching `~/.hermes`.
+Edits to `skills/` are live in the next session. To try a skill against some other project instead, link the skill directories into `~/.hermes/skills/<name>`.
 
 The published path is the tap in the README: `hermes skills tap add theycallmeswift/mechaswift`, then `hermes skills install theycallmeswift/mechaswift/<name>`. Hermes downloads `SKILL.md` and every subdirectory beside it, so `references/`, `assets/`, and `scripts/` arrive intact. Skills installed from a tap go through Hermes's security scan and show its third-party notice on first install.
 

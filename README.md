@@ -38,7 +38,7 @@ make test              # unit tests for skill scripts
 make lint              # ruff
 ```
 
-Load the plugin from disk to try changes: `claude --plugin-dir /path/to/mechaswift`, then `/reload-plugins` after edits. The full loop — Hermes local install, evals, credentials — is in [`docs/development.md`](docs/development.md).
+Load the plugin from disk to try changes: `claude --plugin-dir /path/to/mechaswift`, then `/reload-plugins` after edits. For Hermes, `hermes skills trust` in the checkout loads `skills/` directly (via the `.agents/skills` symlink). The full loop — evals, credentials — is in [`docs/development.md`](docs/development.md).
 
 ## Project Structure
 
