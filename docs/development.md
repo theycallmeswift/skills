@@ -17,7 +17,7 @@ How to work on the plugin: environment, `make` targets, loading it into Claude C
 | `make lint` | `ruff check .` |
 | `make format` | `ruff format .` |
 | `make evals` | Output evals, baseline vs trial, in microVMs. `SKILL=to-spec` scopes to one skill; `EVAL_ARGS="-n 6"` adds pytest args. |
-| `make evals:triggers` | Trigger evals: does the description route? One arm, whole plugin loaded, opus. Same `SKILL=` / `EVAL_ARGS=` knobs. |
+| `make evals:triggers` | The routing evals — ordinary harnessbench evals whose only assertion is `` Skill `X` invoked `` / `not invoked` — run under the `triggers` set: one arm, whole plugin loaded, opus. Same `SKILL=` / `EVAL_ARGS=` knobs. |
 | `make evals:lint` | Static lint of eval assertions. No credentials, no sandbox. |
 | `make clean` | Remove `.venv` and caches. |
 
@@ -88,7 +88,7 @@ The runner is [harnessbench](https://github.com/theycallmeswift/harnessbench), a
 **Two eval sets** are declared under `[tool.harnessbench]` in `pyproject.toml`:
 
 - `default` — output evals. A `baseline` arm installs nothing and a `trial` arm's `setup.sh` installs the skill (plus any sibling it delegates to), both on `claude-code` / `sonnet`. The delta is what the skill taught.
-- `triggers` — routing evals. One `trial` arm on `opus` with `--plugin-dir /project`, so the whole plugin is loaded and each description competes with its real peers. Every trigger eval is one query plus a single `` Skill `X` invoked `` or `` not invoked `` assertion, which harnessbench grades deterministically from the agent's dispatches. There is no baseline: an uninstalled skill can't fire.
+- `triggers` — routing evals. harnessbench has no separate trigger-eval format: a routing eval is an ordinary `eval.md` whose prompt is the verbatim query and whose only assertion is `` Skill `X` invoked `` or `` not invoked ``, graded deterministically from the agent's dispatches. They get their own set because they need different arms: one `trial` on `opus` with `--plugin-dir /project`, so the whole plugin is loaded and each description competes with its real peers, and no baseline, since an uninstalled skill can't fire.
 
 `make evals` and `make evals:triggers` pick the set and filter on the `triggers` group name; `SKILL=<name>` narrows discovery to that skill's tree.
 
