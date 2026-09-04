@@ -142,8 +142,9 @@ Tests whether the `description:` fires the skill via real routing, not a judge's
 There is no separate trigger-eval format: a routing eval is an ordinary eval whose prompt is
 the verbatim user query and whose only assertion is the activation line —
 `` Skill `<name>` invoked `` for a should-trigger query, `` Skill `<name>` not invoked `` for a
-near-miss. They live as sibling files `evals/<skill>/<query-slug>.eval.md`, so the group is
-the skill name and a slug shared with another skill's suite doesn't collide.
+near-miss. They live in `evals/<skill>/<skill>-triggers/<query-slug>.eval.md`, one file per query;
+the folder carries the skill name because harnessbench keys every eval on (folder, file stem)
+across the run and sibling suites share query slugs.
 
 They run in the same set as everything else. On `trial` the whole plugin is loaded, so the
 skill competes against its real peers (hook included); the `baseline` column is

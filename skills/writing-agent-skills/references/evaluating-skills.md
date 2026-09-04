@@ -27,10 +27,11 @@ evals/your-skill/
 ├── <scenario>/
 │   ├── eval.md                 # one self-contained output eval (eval id == folder name)
 │   └── workspace/              # starting files for that eval (optional)
-└── <query-slug>.eval.md        # one routing eval per query, siblings in the skill folder
+└── your-skill-triggers/
+    └── <query-slug>.eval.md    # one routing eval per query
 ```
 
-The runner discovers any `eval.md` or `<stem>.eval.md` beneath `evals/`; the filename is the marker. Case identity is `(group, eval_id)`, both kebab-case — the folder name and the file stem — so routing evals as sibling files get the skill name as their group and a slug shared with another skill's suite doesn't collide. There is no install script: the `trial` arm loads the whole plugin from the staged repo with `--plugin-dir /project`, and `baseline` runs bare.
+The runner discovers any `eval.md` or `<stem>.eval.md` beneath `evals/`; the filename is the marker. Case identity is `(group, eval_id)`, both kebab-case — the folder name and the file stem — so the routing folder carries the skill name (`<skill>-triggers/`) because sibling suites share query slugs and a bare `triggers/` would collide. There is no install script: the `trial` arm loads the whole plugin from the staged repo with `--plugin-dir /project`, and `baseline` runs bare.
 
 `eval.md`: YAML frontmatter (the `---`/`---` delimiters are required even when empty; `history:` is the **only** allowed key — a list of prior `{role, content}` turns rendered as a transcript prefix, e.g. an assistant proposal the `## Prompt` then approves), then a required `## Prompt` and a required `## Assertions` checklist. The `## Prompt` is the single graded turn. One assertion per `- [ ] …` line, except a line with indented `- [ ]` children is a display-only header (never graded) whose children flatten to one assertion each — one nesting level only, and `###` subheadings under Assertions are likewise display-only groups. Anything else — unknown headings, prose before the first `##`, plain `-` bullets, other frontmatter keys — fails at collection with the path quoted.
 
@@ -130,7 +131,7 @@ Output evals test what happens *after* the skill loads. The `description:` field
 
 Build 20 queries, ≈50/50 should-trigger / should-not, weighted toward near-miss negatives (share keywords, need something different). Substantive queries only — trivial one-step asks don't trigger skills regardless of description quality.
 
-Each query is one file, `evals/<skill>/<query-slug>.eval.md`: the verbatim user message as the `## Prompt` (routing-sensitive; never reword) and exactly one assertion — `` Skill `<skill>` invoked `` for a should-trigger query, `` Skill `<skill>` not invoked `` for a near-miss. A positive that presupposes a prior design discussion ("write up what we landed on") gets a short `history:` recap so the ask refers to something; in an empty session the agent correctly says there is nothing to write up instead of routing. They run in the same set as the output evals, so on `trial` the skill competes with its real peers; the `baseline` column is uninformative for them and rides along.
+Each query is one file, `evals/<skill>/<skill>-triggers/<query-slug>.eval.md`: the verbatim user message as the `## Prompt` (routing-sensitive; never reword) and exactly one assertion — `` Skill `<skill>` invoked `` for a should-trigger query, `` Skill `<skill>` not invoked `` for a near-miss. A positive that presupposes a prior design discussion ("write up what we landed on") gets a short `history:` recap so the ask refers to something; in an empty session the agent correctly says there is nothing to write up instead of routing. They run in the same set as the output evals, so on `trial` the skill competes with its real peers; the `baseline` column is uninformative for them and rides along.
 
 Run: `make evals SKILL=<skill>` (or `-k` the query slugs). See [`running-evals.md`](running-evals.md). A query that routes on opus but not on a weaker tier is a model-tier boundary to note alongside the skill, not a description defect to chase with more trigger phrases.
 
