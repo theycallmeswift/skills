@@ -12,10 +12,10 @@
 
 ```
 PR 1  infra:  .claude-plugin/ hooks/ pyproject.toml Makefile tests/test_plugin.py docs/
-PR 2  skills/writing-prompts/        evals migrated, run, recorded in docs/evals/
-PR 3  skills/writing-agent-skills/   + references ported from evalspec to harnessbench
-PR 4  skills/to-spec/                + tests/skills/to-spec/
-PR 5  skills/interview-me/
+PR 2  skills/writing-prompts/ + evals/writing-prompts/   migrated, run, recorded in docs/evals/
+PR 3  skills/writing-agent-skills/ + evals/…             + references ported from evalspec to harnessbench
+PR 4  skills/to-spec/ + evals/to-spec/                   + tests/skills/to-spec/
+PR 5  skills/interview-me/ + evals/interview-me/
 ```
 
 Each skill PR is based on the one before it, so the stack merges in order and every PR carries its own eval evidence.
@@ -30,12 +30,12 @@ Each skill PR is based on the one before it, so the stack merges in order and ev
 ## Implementation Decisions
 
 ```
-knowledge-base/skills/<name>/ ──copy──► skills/<name>/ ──migrate_evals──► evals/<slug>/eval.md + workspace/ + setup.sh
-                                                                          evals/<name>-triggers/<query>.eval.md
+knowledge-base/skills/<name>/ ──copy (minus evals/)──► skills/<name>/
+knowledge-base/skills/<name>/evals/ ──migrate──► evals/<name>/<scenario>/eval.md + workspace/
+                                                 evals/<name>/<query>.eval.md
 .claude-plugin/plugin.json (core) + marketplace.json (mechaswift) ──► claude plugin validate --strict
 hooks/session-start ──► hooks/hooks.json (SessionStart, ${CLAUDE_PLUGIN_ROOT})
-pyproject.toml [tool.harnessbench] sets.default (baseline/trial, sonnet) ──► make evals
-                                   sets.triggers (trial, opus, --plugin-dir /project) ──► make evals:triggers
+pyproject.toml [tool.harnessbench] sets.default: baseline (bare) / trial (--plugin-dir /project), sonnet ──► make evals
 tmp/evals/iteration_NN/benchmark.md ──copy──► docs/evals/<name>.md
 ```
 
@@ -43,8 +43,9 @@ tmp/evals/iteration_NN/benchmark.md ──copy──► docs/evals/<name>.md
 - **Hermes needs no extra manifest.** A tap is any repo with `skills/<name>/SKILL.md`; `name` and `description` are the only required frontmatter. `skills.sh.json` adds hub category labels without touching frontmatter; each skill PR adds its own entry.
 - **`SessionStart` hook ships with the infrastructure.** One short directive to route through a matching skill. Claude-only by nature; it lives in `hooks/`, not in any `SKILL.md`.
 - **harnessbench is an opt-in dependency group.** It is private and unpublished, so it cannot be a default dev dependency without breaking `make install` for anyone without repo access (CI included). `[dependency-groups] evals` plus a `[tool.uv.sources]` git pin; the `make evals*` targets use `uv run --group evals`. `make test` sets `PYTEST_DISABLE_PLUGIN_AUTOLOAD=1` because harnessbench's pytest plugin errors when loaded into a plain unit run.
-- **Two eval sets.** `default` is the capability-lift pair (`baseline` installs nothing, `trial`'s per-eval `setup.sh` installs the skill plus declared sibling deps, both `claude-code` / `sonnet`). `triggers` is one `trial` arm on `opus` with `harness_args = ["--plugin-dir", "/project"]`, so routing is measured against the real plugin and its hook; a baseline arm is meaningless there because an uninstalled skill cannot fire. `make evals` filters `-k 'not triggers'` and `make evals:triggers` filters `-k triggers`; `SKILL=<name>` sets `--eval-paths skills/<name>`.
-- **Eval migration is mechanical and per skill.** `evals/<slug>/prompt.md` → `evals/<slug>/eval.md` with `seed:`/`text` renamed to `history:`/`content`; `fixtures/` → `workspace/`; the per-suite `setup.sh` keyed on `$EVALSPEC_ARM` becomes a per-eval `setup.sh` keyed on `$HARNESSBENCH_ARM` that tars the skill (minus `evals/`) into `/home/harnessbench/skills/`; `trigger-evals.md` becomes `evals/<name>-triggers/<query>.eval.md`, each carrying the query as its prompt and one `` Skill `<name>` invoked `` / `` not invoked `` assertion. Trigger group folders are prefixed with the skill name because harnessbench keys evals on `(group, eval_id)` and several skills share query slugs.
+- **One eval set, the plugin is the install.** `baseline` runs the agent bare; `trial` runs it with `harness_args = ["--plugin-dir", "/project"]`, the staged copy of this repo, so every eval measures the plugin as shipped — hook included — and no `setup.sh` exists anywhere. Routing evals are ordinary evals in the same set (harnessbench has no separate trigger format); their baseline column is uninformative and rides along. Both on `sonnet`; a routing miss that only opus resolves is recorded as a model-tier boundary, as the upstream suites did.
+- **Evals live under a root `evals/` tree, skills ship clean.** `evals/<name>/<scenario>/eval.md` (+ `workspace/`) for output evals and `evals/<name>/<query>.eval.md` for routing queries. Sibling files make the group the skill name, so query slugs shared across skills (`tighten-prompt`, `fix-typeerror`) don't collide on harnessbench's `(group, eval_id)` key. `SKILL=<name>` sets `--eval-paths evals/<name>`.
+- **Eval migration is mechanical and per skill.** `prompt.md` → `eval.md` with `seed:`/`text` renamed to `history:`/`content`; `fixtures/` → `workspace/`; `trigger-evals.md` → one `<query>.eval.md` per line carrying the verbatim query and a single `` Skill `<name>` invoked `` / `` not invoked `` assertion. Positives that presuppose a prior design discussion (to-spec's) get a short shared `history:` recap, because a bare session has nothing to write up and the agent correctly declines rather than routing.
 - **Skill descriptions and bodies ship as eval-tuned upstream.** Only `writing-agent-skills` changes: its `SKILL.md` steps and its `running-evals.md` / `evaluating-skills.md` references describe the evalspec runner and are ported to harnessbench in its own PR, then re-run.
 - **`tests/test_plugin.py` is the structural gate.** It checks the manifests agree, the hook script exists and is executable, `skills.sh.json` names real skills, and every `SKILL.md` has exactly `name` + `description` with `name` matching its directory. It is also why `make test` collects something before any skill lands.
 - **`AGENTS.md` carries the no-attribution rule forward.** The rule existed on `dev`; it is restated with its why so it survives the branch reset. `CLAUDE.md` is a symlink.
@@ -57,7 +58,7 @@ tmp/evals/iteration_NN/benchmark.md ──copy──► docs/evals/<name>.md
 
 ### Behavior
 - **Every migrated output eval runs on both arms** and the trial arm's assertions pass, including activation.
-- **Every migrated trigger eval passes on the plugin-loaded arm** — positives fire the skill, near-miss negatives do not.
+- **Every migrated routing eval fires as expected on the trial arm** — positives invoke the skill, near-miss negatives do not — with any model-tier boundary recorded rather than hidden.
 - **The plugin loads from disk** — a Claude Code session started with `--plugin-dir` at the repo root sees each landed skill under the `core:` namespace.
 - **The session hook emits valid `SessionStart` JSON** with `hookSpecificOutput.additionalContext` when run with `CLAUDE_PLUGIN_ROOT` set.
 
@@ -95,5 +96,5 @@ tmp/evals/iteration_NN/benchmark.md ──copy──► docs/evals/<name>.md
 - `claude -p --plugin-dir . "List every skill whose name starts with core:"` — every landed skill loads under the `core:` namespace.
 - `CLAUDE_PLUGIN_ROOT=. hooks/session-start | python3 -m json.tool` — the hook emits valid JSON.
 - `make evals:lint` — the opt-in runner resolves and every suite lints clean.
-- `make evals SKILL=<name> EVAL_ARGS="-n 6"` and `make evals:triggers SKILL=<name> EVAL_ARGS="-n 6"` — per skill PR, both arms run and the trial arm passes; the report is copied to `docs/evals/<name>.md`.
+- `make evals SKILL=<name> EVAL_ARGS="-n 4"` — per skill PR, both arms run over the skill's output and routing evals; the report is copied to `docs/evals/<name>.md`.
 - `python3 skills/to-spec/scripts/validate_spec.py docs/specs/2026-09-04-skills-plugin-bootstrap.md` — this spec is structurally valid.

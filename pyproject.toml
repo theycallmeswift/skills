@@ -35,29 +35,19 @@ target-version = "py311"
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B"]
 
-# Skill evals (harnessbench). Discovery walks skills/ for eval.md / *.eval.md. Each skill keeps
-# output evals in evals/<slug>/ and routing evals in evals/<skill>-triggers/. See docs/development.md.
+# Skill evals (harnessbench). Discovery walks evals/ for eval.md / *.eval.md: evals/<skill>/<scenario>/
+# eval.md is an output eval, evals/<skill>/<query>.eval.md a routing eval. See docs/development.md.
 [tool.harnessbench]
 default-set = "default"
-eval_paths = ["skills"]
+eval_paths = ["evals"]
 
-# Output evals: what the skill teaches. baseline installs nothing; trial installs the skill.
+# baseline runs the agent bare; trial loads the whole plugin from the staged repo, so output
+# evals measure what the plugin taught and routing evals compete each description with its peers.
 [tool.harnessbench.sets.default]
 harness = "claude-code"
 model = "sonnet"
 baseline = "baseline"
 arms = [
   { name = "baseline" },
-  { name = "trial" },
-]
-
-# Trigger evals: does the description route? One arm running the whole plugin from the staged
-# repo, so each skill competes with its real peers — a baseline can't fire a skill it doesn't
-# have. opus routes the synthesize-context phrasings that sonnet under-triggers.
-[tool.harnessbench.sets.triggers]
-harness = "claude-code"
-model = "opus"
-harness_args = ["--plugin-dir", "/project"]
-arms = [
-  { name = "trial" },
+  { name = "trial", harness_args = ["--plugin-dir", "/project"] },
 ]

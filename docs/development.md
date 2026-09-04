@@ -16,8 +16,7 @@ How to work on the plugin: environment, `make` targets, loading it into Claude C
 | `make test` | Unit tests under `tests/`: plugin manifest checks plus each skill's script tests. Runs with pytest plugin autoload off so the harnessbench plugin never leaks into unit runs. |
 | `make lint` | `ruff check .` |
 | `make format` | `ruff format .` |
-| `make evals` | Output evals, baseline vs trial, in microVMs. `SKILL=to-spec` scopes to one skill; `EVAL_ARGS="-n 6"` adds pytest args. |
-| `make evals:triggers` | The routing evals — ordinary harnessbench evals whose only assertion is `` Skill `X` invoked `` / `not invoked` — run under the `triggers` set: one arm, whole plugin loaded, opus. Same `SKILL=` / `EVAL_ARGS=` knobs. |
+| `make evals` | Skill evals, baseline vs trial, in microVMs. `SKILL=to-spec` scopes to `evals/to-spec`; `EVAL_ARGS="-n 6"` adds pytest args. |
 | `make evals:lint` | Static lint of eval assertions. No credentials, no sandbox. |
 | `make clean` | Remove `.venv` and caches. |
 
@@ -30,16 +29,17 @@ skills/to-spec/
   SKILL.md                     Model-invoked entry point: name + description + thin procedure
   assets/, references/, ...    Templates and docs the skill tells the agent when to load
   scripts/validate_spec.py     Tiny CLI the skill runs (stdlib only)
-  evals/
-    <slug>/eval.md             One output eval: history + prompt + assertions
-    <slug>/workspace/          Starting files for that eval (optional)
-    <slug>/setup.sh            Installs the skill on the trial arm, nothing on baseline
-    to-spec-triggers/          One <query>.eval.md per routing query; no setup.sh
+evals/to-spec/
+  <scenario>/eval.md           One output eval: history + prompt + assertions
+  <scenario>/workspace/        Starting files for that eval (optional)
+  <query>.eval.md              One routing eval per query: the verbatim ask + one activation assertion
 tests/skills/to-spec/
   test_validate_spec.py        Deterministic unit tests for the script
   conftest.py                  Puts scripts/ on sys.path
 docs/evals/to-spec.md          The recorded benchmark from the skill's last eval run
 ```
+
+Skills ship clean: nothing under `skills/<name>/` but what the agent loads. Evals live beside them under `evals/<name>/`, which is what harnessbench walks.
 
 Frontmatter is `name` and `description` only (`tests/test_plugin.py` enforces it). Keep skill prose harness-neutral; the rules are in `skills/writing-agent-skills/references/skill-conventions.md`, and the `writing-agent-skills` skill is the workflow for changing one. Editing a skill without re-running its evals is the same mistake as shipping one without them.
 
@@ -85,12 +85,12 @@ The runner is [harnessbench](https://github.com/theycallmeswift/harnessbench), a
 
 **Requirements for a graded run:** an Apple Silicon Mac or Linux with `/dev/kvm`, microsandbox (installed with the group), and credentials in `.env` (copy `.env.example`): `CLAUDE_CODE_OAUTH_TOKEN` or `ANTHROPIC_API_KEY` for the agent and judge, and `GEMINI_API_KEY` for harnessbench's assertion binder. The first run builds a VM snapshot (a few minutes); later runs reuse it.
 
-**Two eval sets** are declared under `[tool.harnessbench]` in `pyproject.toml`:
+**One eval set**, `default` in `pyproject.toml`: a `baseline` arm runs the agent bare and a `trial` arm runs it with the whole plugin loaded (`harness_args = ["--plugin-dir", "/project"]`, the staged copy of this repo), both on `claude-code` / `sonnet`. No `setup.sh` anywhere — loading the plugin is the install. Two kinds of eval run in it, and they differ only in what they assert:
 
-- `default` — output evals. A `baseline` arm installs nothing and a `trial` arm's `setup.sh` installs the skill (plus any sibling it delegates to), both on `claude-code` / `sonnet`. The delta is what the skill taught.
-- `triggers` — routing evals. harnessbench has no separate trigger-eval format: a routing eval is an ordinary `eval.md` whose prompt is the verbatim query and whose only assertion is `` Skill `X` invoked `` or `` not invoked ``, graded deterministically from the agent's dispatches. They get their own set because they need different arms: one `trial` on `opus` with `--plugin-dir /project`, so the whole plugin is loaded and each description competes with its real peers, and no baseline, since an uninstalled skill can't fire.
+- **Output evals** (`evals/<skill>/<scenario>/eval.md`) grade the work: the files written and the final message. The delta is what the plugin taught.
+- **Routing evals** (`evals/<skill>/<query>.eval.md`) are the same format with the verbatim user ask as the prompt and one assertion, `` Skill `X` invoked `` or `` not invoked ``, which harnessbench grades deterministically from the agent's dispatches. On the trial arm every description competes with its real peers; the baseline column is uninformative for them (an uninstalled skill can't fire) and just rides along. Positives that presuppose a prior design discussion carry a short `history:` recap so the ask refers to something.
 
-`make evals` and `make evals:triggers` pick the set and filter on the `triggers` group name; `SKILL=<name>` narrows discovery to that skill's tree.
+`SKILL=<name>` narrows discovery to `evals/<name>`; `EVAL_ARGS="-k <scenario>"` narrows further.
 
 **Authoring loop.** `make evals:lint` is free and static. `uv run --group evals harnessbench analyze` asks the binder which assertions grade deterministically. `make evals SKILL=<name> EVAL_ARGS="--collect-only -q"` lists the cells without spawning anything — do this before any run broader than one eval, because every cell is a VM boot plus an agent call, and every punted assertion is a judge call. The format reference is `docs/writing-evals.md` in the harnessbench repo; the design methodology (scenarios, discriminating assertions, RED → GREEN → REFACTOR) is `skills/writing-agent-skills/references/evaluating-skills.md`.
 

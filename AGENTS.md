@@ -30,7 +30,8 @@ I'm Mike Swift ("Swift"), CEO & Co-Founder of Major League Hacking (MLH) and lea
 Claude Code plugin layout. The manifest lives in `.claude-plugin/`; everything else sits at the repo root, and Hermes reads the same `skills/` tree as a tap.
 
 - `.claude-plugin/` — `plugin.json` (the `core` plugin) and `marketplace.json` (the `mechaswift` marketplace). Nothing else belongs here.
-- `skills/<name>/` — model-invoked skills: `SKILL.md` plus colocated `references/`, `assets/`, `scripts/`, `agents/`, `evals/`.
+- `skills/<name>/` — model-invoked skills: `SKILL.md` plus colocated `references/`, `assets/`, `scripts/`, `agents/`. Ship clean; no evals inside.
+- `evals/<name>/` — the skill's harnessbench evals: `<scenario>/eval.md` (+ `workspace/`) for output, `<query>.eval.md` for routing.
 - `hooks/` — `hooks.json` and the `session-start` script that nudges the agent to route matching requests through skills.
 - `tests/skills/<name>/` — pytest for a skill's scripts, mirroring the skill path. Skills ship clean.
 - `docs/` — `development.md` (dev loop, local install, evals), `evals/` (recorded benchmark per skill), and `specs/` (design specs written by `to-spec`).

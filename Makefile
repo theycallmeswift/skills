@@ -1,4 +1,4 @@
-.PHONY: help install test lint format evals evals\:triggers evals\:lint clean
+.PHONY: help install test lint format evals evals\:lint clean
 .DEFAULT_GOAL := help
 
 help:  ## Show this help
@@ -18,12 +18,8 @@ format:  ## Format Python with ruff
 
 # Evals need the opt-in `evals` dependency group (harnessbench, a private git dep) — `uv run --group`
 # syncs it on demand. See docs/development.md for credentials and how a suite is laid out.
-SCOPE = $(if $(SKILL),--eval-paths skills/$(SKILL),)
-evals:  ## Output evals, baseline vs trial. SKILL=to-spec scopes to one skill; EVAL_ARGS adds pytest args (-n 6, --count 3, -k …)
-	uv run --group evals harnessbench run $(if $(SET),--set $(SET),) $(SCOPE) -- -k 'not triggers' $(EVAL_ARGS)
-
-evals\:triggers:  ## Trigger evals (description routing only). SKILL=to-spec scopes; EVAL_ARGS adds pytest args
-	uv run --group evals harnessbench run --set triggers $(SCOPE) -- -k triggers $(EVAL_ARGS)
+evals:  ## Run evals, baseline vs trial. SKILL=to-spec scopes to evals/to-spec; EVAL_ARGS adds pytest args (-n 6, --count 3, -k …)
+	uv run --group evals harnessbench run $(if $(SET),--set $(SET),) $(if $(SKILL),--eval-paths evals/$(SKILL),) -- $(EVAL_ARGS)
 
 evals\:lint:  ## Statically lint eval assertions (no credentials, no sandbox)
 	uv run --group evals harnessbench lint
