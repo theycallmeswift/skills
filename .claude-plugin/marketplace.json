@@ -1,0 +1,19 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "mechaswift",
+  "owner": {
+    "name": "Mike Swift"
+  },
+  "metadata": {
+    "description": "MechaSwift — Swift's agent brain. Skills, tools, and prompts for Claude Code and Hermes.",
+    "version": "0.1.0"
+  },
+  "plugins": [
+    {
+      "name": "core",
+      "source": "./",
+      "description": "Core skills: interview-me, to-spec, writing-prompts, writing-agent-skills.",
+      "category": "productivity"
+    }
+  ]
+}

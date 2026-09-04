@@ -5,6 +5,7 @@ tmp/*
 !tmp/.gitkeep
 *-workspace/
 .worktrees/
+.claude/worktrees/
 
 # Secrets
 .env
@@ -16,5 +17,6 @@ tmp/*
 __pycache__/
 *.pyc
 .pytest_cache/
+.ruff_cache/
 .venv/
 uv.lock

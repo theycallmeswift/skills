@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+# SessionStart hook: emits hookSpecificOutput.additionalContext (which Claude Code
+# splices into the session) directing the agent to route a matching request through
+# the Skill tool rather than hand-rolling it.
+set -euo pipefail
+
+ctx="<EXTREMELY_IMPORTANT>\nBefore acting on the user's request, review the available skills. If any skill's description matches the request — even loosely — you MUST invoke it with the Skill tool BEFORE attempting the task yourself. Skills encode the correct procedure; hand-rolling a task that a skill covers is a failure. When in doubt, invoke the matching skill.\n</EXTREMELY_IMPORTANT>"
+
+printf '{\n  "hookSpecificOutput": {\n    "hookEventName": "SessionStart",\n    "additionalContext": "%s"\n  }\n}\n' "$ctx"
+exit 0

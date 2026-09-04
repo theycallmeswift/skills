@@ -1,0 +1,18 @@
+{
+  "name": "core",
+  "version": "0.1.0",
+  "description": "MechaSwift's core plugin: the skills and session hooks Swift runs in every Claude Code session.",
+  "author": {
+    "name": "Mike Swift"
+  },
+  "homepage": "https://github.com/theycallmeswift/mechaswift",
+  "repository": "https://github.com/theycallmeswift/mechaswift",
+  "license": "MIT",
+  "keywords": [
+    "skills",
+    "spec",
+    "interview",
+    "prompts",
+    "agent-skills"
+  ]
+}
