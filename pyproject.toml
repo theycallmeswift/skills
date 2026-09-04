@@ -15,6 +15,7 @@ dev = [
 # see docs/development.md.
 evals = [
     "harnessbench[microsandbox]",
+    "pytest-repeat>=0.9,<1",  # --count N sampling; <1 because harnessbench reads its internal step param
 ]
 
 [tool.uv]
