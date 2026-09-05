@@ -1,6 +1,6 @@
 # interview-me — eval record
 
-Recorded 2026-09-04 from `iteration_17`, `iteration_18` (harnessbench 0.0.1, Claude Code in the guest; baseline bare, trial with the plugin loaded via `--plugin-dir`, sonnet). Re-run with `make evals SKILL=interview-me`.
+Recorded 2026-09-04 from `iteration_17`, `iteration_18` (benchspec 0.0.1 (then named benchspec), Claude Code in the guest; baseline bare, trial with the plugin loaded via `--plugin-dir`, sonnet). Re-run with `make evals SKILL=interview-me`.
 
 ## Output evals — baseline vs trial
 
@@ -45,6 +45,6 @@ Recorded 2026-09-04 from `iteration_17`, `iteration_18` (harnessbench 0.0.1, Cla
 
 **`catch-all-pose` is the one soft spot.** Once the stated goal is resolved, the skill should pose exactly one open, prose-only "anything we haven't covered?" catch-all. The miss is the agent asking one more scoped question with an options table instead — the §5 rule losing to the §3 every-decision-gets-a-visual habit. The 3× re-sample above shows how often. A tuning pass should make the catch-all's "open prose, no table" carve-out harder to miss in the body.
 
-**No refusals on multi-turn context.** Unlike the `writing-agent-skills` commit-message scenario, none of the five `history:`-driven scenarios triggered the fabricated-transcript refusal harnessbench's inline rendering can provoke; the recaps here are dialogue the agent is asked to continue, not an approval it is asked to trust.
+**No refusals on multi-turn context.** Unlike the `writing-agent-skills` commit-message scenario, none of the five `history:`-driven scenarios triggered the fabricated-transcript refusal benchspec's inline rendering can provoke; the recaps here are dialogue the agent is asked to continue, not an approval it is asked to trust.
 
 **Routing: 20/20 on sonnet.** Every "interview me / grill me / stress-test" positive fires, and the near-miss negatives — `to-spec` write-ups, brainstorming, prompt tightening, implementation plans, job-interview prep — all stay quiet with the full plugin loaded.
