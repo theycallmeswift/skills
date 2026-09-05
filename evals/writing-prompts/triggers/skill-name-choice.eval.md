@@ -8,3 +8,4 @@ what's the right name for a skill that runs `make test` and analyzes failures? `
 ## Assertions
 
 - [ ] Skill `writing-prompts` not invoked
+- [ ] Skill `writing-agent-skills` invoked
