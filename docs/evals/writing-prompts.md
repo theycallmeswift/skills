@@ -1,6 +1,6 @@
 # writing-prompts — eval record
 
-Recorded 2026-09-04 from `iteration_11`, `iteration_12` (harnessbench 0.0.1, Claude Code in the guest; baseline bare, trial with the plugin loaded via `--plugin-dir`, sonnet). Re-run with `make evals SKILL=writing-prompts`.
+Recorded 2026-09-04 from `iteration_11`, `iteration_12` (benchspec 0.0.1 (then named benchspec), Claude Code in the guest; baseline bare, trial with the plugin loaded via `--plugin-dir`, sonnet). Re-run with `make evals SKILL=writing-prompts`.
 
 ## Output evals — baseline vs trial
 
