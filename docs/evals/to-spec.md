@@ -1,6 +1,6 @@
 # to-spec — eval record
 
-Recorded 2026-09-04 from `iteration_16` (harnessbench 0.0.1, Claude Code in the guest; baseline bare, trial with the plugin loaded via `--plugin-dir`, sonnet). Re-run with `make evals SKILL=to-spec`.
+Recorded 2026-09-04 from `iteration_16` (benchspec 0.0.1 (then named benchspec), Claude Code in the guest; baseline bare, trial with the plugin loaded via `--plugin-dir`, sonnet). Re-run with `make evals SKILL=to-spec`.
 
 ## Output evals — baseline vs trial
 
@@ -40,6 +40,6 @@ Recorded 2026-09-04 from `iteration_16` (harnessbench 0.0.1, Claude Code in the 
 
 **`spec-from-context` — one recurring miss.** The prompt says the cache size is unresolved and must be flagged, not guessed; in roughly two of five samples across runs the spec states "capacity 256" as settled in Solution / Implementation Decisions instead of parking it under Open Questions. Everything else in that scenario — the grounded "no TTL exists in `./service/reads.py`" finding, the skim-first structure, the Testing Plan as a coverage contract — holds. That single behaviour is the first thing a tuning pass on the skill's step 4/5 wording should address.
 
-**Migration note.** "Exactly one spec file exists under `./docs/specs/`" now reads "Exactly one `*.md` file", matching the sibling scenario: harnessbench binds the line to a file count, and the seeded `.gitkeep` was making the count two.
+**Migration note.** "Exactly one spec file exists under `./docs/specs/`" now reads "Exactly one `*.md` file", matching the sibling scenario: benchspec binds the line to a file count, and the seeded `.gitkeep` was making the count two.
 
 **Routing: 20/20 on sonnet, with a recap.** The ten positives carry a short shared `history:` recap of a design discussion. Without it, three positives ("draft a design spec from what we discussed", "write the design spec for the feature we just designed", "spec this out before we lose the thread") don't route in an empty session — the agent correctly says there is nothing to write up — and the upstream suite had annotated most of these positives as sonnet misses. With something to refer to, all ten route on sonnet.
