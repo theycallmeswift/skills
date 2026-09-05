@@ -31,13 +31,17 @@ Claude Code plugin layout. The manifest lives in `.claude-plugin/`; everything e
 
 - `.claude-plugin/` — `plugin.json` (the `core` plugin) and `marketplace.json` (the `mechaswift` marketplace). Nothing else belongs here.
 - `skills/<name>/` — model-invoked skills: `SKILL.md` plus colocated `references/`, `assets/`, `scripts/`, `agents/`. Ship clean; no evals inside.
-- `evals/<name>/` — the skill's benchspec evals: `<scenario>/eval.md` (+ `workspace/`) for output, `<query>.eval.md` for routing.
+- `evals/<name>/` — the skill's benchspec evals: `<scenario>/eval.md` (+ `workspace/`) for output, `triggers/` and `not-triggers/` for routing (each query lives once, under the skill it routes to).
 - `hooks/` — `hooks.json` and the `session-start` script that nudges the agent to route matching requests through skills.
 - `tests/skills/<name>/scripts/` — pytest for a skill's scripts, mirroring the skill path; one `tests/skills/conftest.py` puts every skill's `scripts/` on `sys.path`.
 - `.agents/skills` — symlink to `skills/`, so a checkout marked trusted in Hermes loads the skills straight from the repo.
 - `docs/` — `development.md` (dev loop, local install, evals), `evals/` (recorded benchmark per skill), and `specs/` (design specs written by `to-spec`).
 - `skills.sh.json` — Hermes hub category groupings for the tap.
 - `tmp/` — scratch space, git-ignored.
+
+## Skills
+
+- **writing-prompts** — draft and tighten anything an LLM will read: system prompts, subagent briefs, `SKILL.md` text, `AGENTS.md`.
 
 ## References
 

@@ -6,6 +6,8 @@ Swift's Agent Brain. An opinionated set of skills, tools, and prompts for use in
 
 Model-invoked. The agent picks them up when the request matches; you can also call them by name.
 
+- **writing-prompts** — Draft or tighten anything an LLM will read: system prompts, subagent briefs, slash-command bodies, `SKILL.md` text, `AGENTS.md` / `CLAUDE.md`. Ends with an editorial pass that cuts filler without changing meaning.
+
 ## Install
 
 ### Claude Code
@@ -46,7 +48,7 @@ Load the plugin from disk to try changes: `claude --plugin-dir /path/to/mechaswi
 mechaswift/
 ├── .claude-plugin/          # plugin.json (core) + marketplace.json (mechaswift)
 ├── skills/                  # One directory per skill: SKILL.md + references/, assets/, scripts/
-├── evals/                   # benchspec evals per skill: <skill>/<scenario>/eval.md + <skill>/<query>.eval.md
+├── evals/                   # benchspec evals per skill: <skill>/<scenario>/eval.md + <skill>/{triggers,not-triggers}/<query>.eval.md
 ├── hooks/                   # SessionStart hook (Claude Code)
 ├── tests/skills/            # pytest for skill scripts, mirroring skills/
 ├── docs/

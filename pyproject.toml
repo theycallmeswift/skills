@@ -33,7 +33,7 @@ target-version = "py311"
 select = ["E", "F", "I", "UP", "B"]
 
 # Skill evals (benchspec). Discovery walks evals/ for eval.md / *.eval.md: evals/<skill>/<scenario>/
-# eval.md is an output eval, evals/<skill>/<query>.eval.md a routing eval. See docs/development.md.
+# eval.md is an output eval, evals/<skill>/{triggers,not-triggers}/<query>.eval.md a routing eval. See docs/development.md.
 [tool.benchspec]
 default-set = "default"
 eval_paths = ["evals"]
