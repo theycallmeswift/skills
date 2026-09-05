@@ -46,7 +46,7 @@ Load the plugin from disk to try changes: `claude --plugin-dir /path/to/mechaswi
 mechaswift/
 ├── .claude-plugin/          # plugin.json (core) + marketplace.json (mechaswift)
 ├── skills/                  # One directory per skill: SKILL.md + references/, assets/, scripts/
-├── evals/                   # harnessbench evals per skill: <skill>/<scenario>/eval.md + <skill>/<query>.eval.md
+├── evals/                   # benchspec evals per skill: <skill>/<scenario>/eval.md + <skill>/<query>.eval.md
 ├── hooks/                   # SessionStart hook (Claude Code)
 ├── tests/skills/            # pytest for skill scripts, mirroring skills/
 ├── docs/

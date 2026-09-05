@@ -11,12 +11,16 @@ dev = [
     "pytest-xdist>=3",
     "ruff>=0.6",
 ]
-# The eval runner (harnessbench) is a private git dependency and deliberately NOT declared here:
-# uv resolves every group on sync, so a private source would break `make install` for anyone
-# without access, CI included. `make evals:install` puts it in the venv; see docs/development.md.
+# Opt-in: the eval runner lives in its own group so `make install` stays pytest + ruff.
+# `uv run --group evals …` syncs it on demand; see docs/development.md.
+evals = [
+    "benchspec[microsandbox]>=0.0.1,<0.1",
+    "pytest-repeat>=0.9,<1",  # --count N sampling; <1 because benchspec reads its internal step param
+]
 
 [tool.uv]
 package = false
+default-groups = ["dev"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
@@ -28,15 +32,15 @@ target-version = "py311"
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B"]
 
-# Skill evals (harnessbench). Discovery walks evals/ for eval.md / *.eval.md: evals/<skill>/<scenario>/
+# Skill evals (benchspec). Discovery walks evals/ for eval.md / *.eval.md: evals/<skill>/<scenario>/
 # eval.md is an output eval, evals/<skill>/<query>.eval.md a routing eval. See docs/development.md.
-[tool.harnessbench]
+[tool.benchspec]
 default-set = "default"
 eval_paths = ["evals"]
 
 # baseline runs the agent bare; trial loads the whole plugin from the staged repo, so output
 # evals measure what the plugin taught and routing evals compete each description with its peers.
-[tool.harnessbench.sets.default]
+[tool.benchspec.sets.default]
 harness = "claude-code"
 model = "sonnet"
 baseline = "baseline"
