@@ -32,8 +32,8 @@ skills/to-spec/
 evals/to-spec/
   <scenario>/eval.md           One output eval: history + prompt + assertions
   <scenario>/workspace/        Starting files for that eval (optional)
-  to-spec-triggers/
-    <query>.eval.md            One routing eval per query: the verbatim ask + one activation assertion
+  triggers/<query>.eval.md     Routing evals: asks that must reach this skill, one per query
+  not-triggers/<query>.eval.md Near-misses that must not, when no other skill owns the ask
 tests/skills/
   conftest.py                  Puts every skills/*/scripts/ on sys.path, once for all skills
   to-spec/scripts/
@@ -89,7 +89,7 @@ The runner is [benchspec](https://pypi.org/project/benchspec/), a pytest plugin 
 **One eval set**, `default` in `pyproject.toml`: a `baseline` arm runs the agent bare and a `trial` arm runs it with the whole plugin loaded (`harness_args = ["--plugin-dir", "/project"]`, the staged copy of this repo), both on `claude-code` / `sonnet`. No `setup.sh` anywhere — loading the plugin is the install. Two kinds of eval run in it, and they differ only in what they assert:
 
 - **Output evals** (`evals/<skill>/<scenario>/eval.md`) grade the work: the files written and the final message. The delta is what the plugin taught.
-- **Routing evals** (`evals/<skill>/<skill>-triggers/<query>.eval.md`) are the same format with the verbatim user ask as the prompt and one assertion, `` Skill `X` invoked `` or `` not invoked ``, which benchspec grades deterministically from the agent's dispatches. On the trial arm every description competes with its real peers; the baseline column is uninformative for them (an uninstalled skill can't fire) and just rides along. Positives that presuppose a prior design discussion carry a short `history:` recap so the ask refers to something.
+- **Routing evals** (`evals/<skill>/triggers/` and `not-triggers/`) are the same format with the verbatim user ask as the prompt and one `` Skill `X` invoked `` / `` not invoked `` line per skill that has a stake in it, graded deterministically from the agent's dispatches. Every query lives once, under the skill it should route to (`triggers/`) or, when no skill in the plugin owns it, under the first skill whose suite listed it as a near-miss (`not-triggers/`); a later skill that shares the vocabulary adds its own line to that file rather than duplicating the query, since benchspec keys evals on (folder, file stem) across the whole run. On the trial arm every description competes with its real peers; the baseline column is uninformative for them (an uninstalled skill can't fire) and just rides along. Positives that presuppose a prior design discussion carry a short `history:` recap so the ask refers to something.
 
 `SKILL=<name>` narrows discovery to `evals/<name>`; `EVAL_ARGS="-k <scenario>"` narrows further.
 

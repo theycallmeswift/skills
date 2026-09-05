@@ -1,31 +1,31 @@
 # writing-prompts — eval record
 
-Recorded 2026-09-04 from `iteration_11`, `iteration_12` (benchspec 0.0.1 (then named benchspec), Claude Code in the guest; baseline bare, trial with the plugin loaded via `--plugin-dir`, sonnet). Re-run with `make evals SKILL=writing-prompts`.
+Recorded 2026-09-04 from `iteration_23`, `iteration_24` (benchspec 0.0.1, Claude Code in the guest; baseline bare, trial with the plugin loaded via `--plugin-dir`, sonnet). Re-run with `make evals SKILL=writing-prompts`.
 
 ## Output evals — baseline vs trial
 
 | Eval | baseline | trial | Δ |
 |---|---|---|---|
-| code-review-subagent | 7/9 (77%) | 9/9 (100%) | +23pp |
-| contradictory-financial-filings | 4/9 (44%) | 9/9 (100%) | +56pp |
-| onboarding-context-doc | 9/9 (100%) | 9/9 (100%) | +0pp |
-| vague-triage-intent | 2/9, 4/9, 2/9 (29%) | 3/9, 9/9, 2/9 (51%) | +22pp |
-| **All (pooled)** | 28/54 (51%) | 41/54 (75%) | +24pp |
+| code-review-subagent | 8/9 (88%) | 9/9 (100%) | +12pp |
+| contradictory-financial-filings | 8/9 (88%) | 9/9 (100%) | +12pp |
+| onboarding-context-doc | 2/9 (22%) | 9/9 (100%) | +78pp |
+| vague-triage-intent | 2/9, 2/9, 2/9 (22%) | 8/9, 3/9, 3/9 (51%) | +29pp |
+| **All (pooled)** | 24/54 (44%) | 41/54 (75%) | +31pp |
 
 ## Routing evals — trial arm: 9/10
 
 | Query | Expected | Result |
 |---|---|---|
-| clean-slash-command | invoked | pass |
-| database-schema-saas | not invoked | pass |
-| draft-slack-launch | not invoked | pass |
-| draft-system-prompt | invoked | pass |
-| fix-typeerror | not invoked | pass |
-| security-review-pr | not invoked | pass |
-| tighten-prompt | invoked | pass |
-| trim-claude-md | invoked | pass |
-| write-agents-md | invoked | pass |
-| writing-tests-doc | invoked | **fail** |
+| clean-slash-command | writing-prompts invoked | pass |
+| database-schema-saas | writing-prompts not invoked | pass |
+| draft-slack-launch | writing-prompts not invoked | pass |
+| draft-system-prompt | writing-prompts invoked | pass |
+| fix-typeerror | writing-prompts not invoked | pass |
+| security-review-pr | writing-prompts not invoked | pass |
+| tighten-prompt | writing-prompts invoked | pass |
+| trim-claude-md | writing-prompts invoked | pass |
+| write-agents-md | writing-prompts invoked | pass |
+| writing-tests-doc | writing-prompts invoked | **fail** |
 
 ## Notes
 
@@ -33,4 +33,4 @@ Recorded 2026-09-04 from `iteration_11`, `iteration_12` (benchspec 0.0.1 (then n
 
 **Routing: `writing-tests-doc` misses on sonnet.** "I need a docs/style/writing-tests.md for our team's pytest conventions" routes on opus and haiku but not sonnet — the upstream suite recorded the same `fails-on [sonnet]` boundary.
 
-**Ten queries deferred to the `writing-agent-skills` PR.** The upstream suite had twenty queries: seven positives, four unrelated near-misses, and nine negatives that are really guards for `writing-agent-skills` — build/fix/scaffold-a-skill asks, eval setup, restructuring a long body, and two skill-or-CLAUDE.md advice questions. A guard for a collision is only measurable with both skills loaded. With this skill alone the outcome is situational: in an earlier install-only run two of the build asks fired `writing-prompts` and wrote a full SKILL.md through it; in the plugin-loaded run none did, because the agent stopped to ask where to put the skill, could not find the skill it was asked to fix, or scaffolded a stub with the description blank. A pass on "not invoked" here is luck, not a boundary. The nine guards, plus `draft-pr-review-skill-md` — the overlap positive both descriptions claim, which fires here alone and routes to `writing-agent-skills` once it is present — land with that skill and are recorded there. This suite keeps the six positives and four near-misses that measure this description on its own.
+**Ten upstream queries live under `writing-agent-skills`.** The upstream suite listed nine build/fix/scaffold/eval/restructure/advice asks as negatives here and one overlap positive ("draft the SKILL.md for a `pr-review` skill"). All ten are asks that should route to `writing-agent-skills`, and a routing query lives once, under the skill it should reach, so they sit in `evals/writing-agent-skills/triggers/` and are measured there with both skills loaded. With this skill alone their outcome is situational (in one run two of the build asks fired `writing-prompts`; in another none did, for reasons unrelated to the boundary), which is why they are not recorded here.
