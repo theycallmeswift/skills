@@ -81,7 +81,7 @@ The published path is the tap in the README: `hermes skills tap add theycallmesw
 
 ## Evals
 
-The runner is [benchspec](https://pypi.org/project/benchspec/) (formerly benchspec), a pytest plugin that boots each `(eval × arm)` cell in a microVM and grades the result with deterministic checkers plus an LLM judge. It lives in the opt-in `evals` dependency group so a plain `make install` stays pytest + ruff; the `make evals*` targets sync it on demand with `uv run --group evals`.
+The runner is [benchspec](https://pypi.org/project/benchspec/), a pytest plugin that boots each `(eval × arm)` cell in a microVM and grades the result with deterministic checkers plus an LLM judge. It lives in the opt-in `evals` dependency group so a plain `make install` stays pytest + ruff; the `make evals*` targets sync it on demand with `uv run --group evals`.
 
 **Requirements for a graded run:** an Apple Silicon Mac or Linux with `/dev/kvm`, microsandbox (installed with benchspec), and credentials in `.env` (copy `.env.example`): `CLAUDE_CODE_OAUTH_TOKEN` or `ANTHROPIC_API_KEY` for the agent and judge, and `GEMINI_API_KEY` for benchspec's assertion binder. The first run builds a VM snapshot (a few minutes); later runs reuse it.
 
