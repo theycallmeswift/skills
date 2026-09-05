@@ -70,8 +70,9 @@ evals/skill-name/          # the skill's evals live beside it, not inside it
 ├── <scenario>/
 │   ├── eval.md            # history: (optional) + ## Prompt + ## Assertions
 │   └── workspace/         # starting files for that eval (optional)
-└── skill-name-triggers/
-    └── <query>.eval.md    # one routing eval per query: the verbatim ask + one activation assertion
+├── triggers/          # asks that must reach this skill: the verbatim ask + one activation line per skill
+│   └── <query>.eval.md
+└── not-triggers/      # near-misses no loaded skill owns
 ```
 
 Create only what you need. Don't scaffold empty directories. Name the directory for what the agent DOES, not the thing it produces or operates on — the name should be predictable from the verb in the request, in kebab-case. Skills ship clean and evals ship as *files*, not runner code: the runner is benchspec (a pytest plugin), invoked with `make evals`.
@@ -127,7 +128,7 @@ Output evals run on the model their arm inherits from the resolved eval set (`[t
 
 ### 9. Trigger evals
 
-Output evals test what happens *after* the skill loads. The `description:` decides whether it loads at all. Write `evals/<skill>/<skill>-triggers/<query>.eval.md`, one per query: 20 queries, ≈50/50 should-trigger / should-not, near-miss negatives weighted up, each carrying the verbatim query as its prompt and a single `` Skill `<skill>` invoked `` or `` not invoked `` assertion. See [`references/evaluating-skills.md`](references/evaluating-skills.md) § Routing evals for the full schema.
+Output evals test what happens *after* the skill loads. The `description:` decides whether it loads at all. Write `evals/<skill>/triggers/<query>.eval.md` (or `not-triggers/` for a near-miss no loaded skill owns), one per query: 20 queries, ≈50/50 should-trigger / should-not, near-miss negatives weighted up, each carrying the verbatim query as its prompt and a single `` Skill `<skill>` invoked `` or `` not invoked `` assertion. See [`references/evaluating-skills.md`](references/evaluating-skills.md) § Routing evals for the full schema.
 
 Run: `make evals SKILL=<skill>` — they are ordinary evals in the same set. Uses real routing — the whole plugin loaded via `--plugin-dir`, so the description competes with its real peers.
 

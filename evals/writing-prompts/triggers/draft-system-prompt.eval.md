@@ -8,3 +8,4 @@ writing the system prompt for our internal support triage LLM — accepts ticket
 ## Assertions
 
 - [ ] Skill `writing-prompts` invoked
+- [ ] Skill `writing-agent-skills` not invoked

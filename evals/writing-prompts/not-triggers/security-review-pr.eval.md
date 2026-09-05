@@ -8,3 +8,4 @@ review this PR for security issues — looking for sql injection, xss, auth bypa
 ## Assertions
 
 - [ ] Skill `writing-prompts` not invoked
+- [ ] Skill `writing-agent-skills` not invoked

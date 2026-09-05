@@ -142,9 +142,10 @@ Tests whether the `description:` fires the skill via real routing, not a judge's
 There is no separate trigger-eval format: a routing eval is an ordinary eval whose prompt is
 the verbatim user query and whose only assertion is the activation line —
 `` Skill `<name>` invoked `` for a should-trigger query, `` Skill `<name>` not invoked `` for a
-near-miss. They live in `evals/<skill>/<skill>-triggers/<query-slug>.eval.md`, one file per query;
-the folder carries the skill name because benchspec keys every eval on (folder, file stem)
-across the run and sibling suites share query slugs.
+near-miss. A query lives once: under `evals/<skill>/triggers/` for the skill it should reach, or
+under `not-triggers/` of the first skill that listed it as a near-miss when no loaded skill owns
+it. A later skill that shares the vocabulary adds its own line to that file instead of duplicating
+the query, because benchspec keys every eval on (folder, file stem) across the whole run.
 
 They run in the same set as everything else. On `trial` the whole plugin is loaded, so the
 skill competes against its real peers (hook included); the `baseline` column is
