@@ -8,3 +8,4 @@ I'm writing a new AGENTS.md from scratch — small SaaS startup, async-first, Ty
 ## Assertions
 
 - [ ] Skill `writing-prompts` invoked
+- [ ] Skill `writing-agent-skills` not invoked

@@ -8,3 +8,4 @@ I need a docs/style/writing-tests.md for our team's pytest conventions — namin
 ## Assertions
 
 - [ ] Skill `writing-prompts` invoked
+- [ ] Skill `writing-agent-skills` not invoked

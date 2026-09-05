@@ -8,3 +8,4 @@ rewrite this prompt to be tighter — 'You are a helpful assistant that summariz
 ## Assertions
 
 - [ ] Skill `writing-prompts` invoked
+- [ ] Skill `writing-agent-skills` not invoked

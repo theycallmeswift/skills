@@ -8,3 +8,4 @@ draft the body for `/clean` slash command — finds stale branches, asks for con
 ## Assertions
 
 - [ ] Skill `writing-prompts` invoked
+- [ ] Skill `writing-agent-skills` not invoked

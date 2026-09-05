@@ -42,6 +42,7 @@ Claude Code plugin layout. The manifest lives in `.claude-plugin/`; everything e
 ## Skills
 
 - **writing-prompts** — draft and tighten anything an LLM will read: system prompts, subagent briefs, `SKILL.md` text, `AGENTS.md`.
+- **writing-agent-skills** — author, debug, and eval skills end to end. Calls `writing-prompts` for wording.
 
 ## References
 
