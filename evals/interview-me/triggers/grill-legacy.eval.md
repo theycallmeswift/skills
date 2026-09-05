@@ -1,0 +1,10 @@
+---
+---
+
+## Prompt
+
+grill me on this design
+
+## Assertions
+
+- [ ] Skill `interview-me` invoked

@@ -18,3 +18,4 @@ turn this into a PRD
 ## Assertions
 
 - [ ] Skill `to-spec` invoked
+- [ ] Skill `interview-me` not invoked
