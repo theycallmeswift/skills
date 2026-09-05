@@ -1,12 +1,12 @@
 # Running evals
 
-Execution, grading, and aggregation reference for the `harnessbench` runner (a pytest plugin
+Execution, grading, and aggregation reference for the `benchspec` runner (a pytest plugin
 driven through `make evals` and `make evals:lint`). Covers the honesty contract, clean-room
 isolation, binder-plus-judge grading, routing evals, the +20pp rule, and the analyst pass.
 
 For eval *design* (scenario selection, assertion writing, eval-first discipline) see
 [`evaluating-skills.md`](evaluating-skills.md). For the runner's own reference — every config
-key, flag, and exit code — see `docs/` in the harnessbench repo.
+key, flag, and exit code — see `docs/` in the benchspec repo.
 
 ---
 
@@ -36,7 +36,7 @@ the surrounding project. The runner enforces it:
    injected at the network boundary, never as readable environment variables in the guest.
 
    **Requirements:** a supported host (Apple Silicon or Linux with KVM), microsandbox
-   (installed with harnessbench by `make evals:install`), and credentials in a repo-root `.env`:
+   (installed with benchspec by `make evals:install`), and credentials in a repo-root `.env`:
    `CLAUDE_CODE_OAUTH_TOKEN` (from `claude setup-token`) or `ANTHROPIC_API_KEY` for the agent
    and judge, plus `GEMINI_API_KEY` for the binder. Preflight fails fast if any are unmet.
 3. **No placeholder reaches either arm.** Eval prompts must be self-contained. `{TODAY}` is the
@@ -66,10 +66,10 @@ fresh agent process in a clean room outside the project.
 
 ## How the runner works
 
-harnessbench is a pytest plugin. It walks the configured search path (`evals/` here) for
+benchspec is a pytest plugin. It walks the configured search path (`evals/` here) for
 `eval.md` / `*.eval.md` files, keys each on `(group, eval_id)` — the parent folder and the
 file stem — and parametrizes one `test_eval` over `(eval × arm)`, the unit of parallelism.
-Arms come from the one eval set in `pyproject.toml` (`[tool.harnessbench.sets.default]`):
+Arms come from the one eval set in `pyproject.toml` (`[tool.benchspec.sets.default]`):
 `baseline` bare, `trial` with `--plugin-dir /project`.
 
 **For each `(eval, arm)` cell:**
@@ -143,7 +143,7 @@ There is no separate trigger-eval format: a routing eval is an ordinary eval who
 the verbatim user query and whose only assertion is the activation line —
 `` Skill `<name>` invoked `` for a should-trigger query, `` Skill `<name>` not invoked `` for a
 near-miss. They live in `evals/<skill>/<skill>-triggers/<query-slug>.eval.md`, one file per query;
-the folder carries the skill name because harnessbench keys every eval on (folder, file stem)
+the folder carries the skill name because benchspec keys every eval on (folder, file stem)
 across the run and sibling suites share query slugs.
 
 They run in the same set as everything else. On `trial` the whole plugin is loaded, so the
@@ -194,14 +194,14 @@ Aggregate pass rates hide things worth knowing. Do this before calling a skill d
 
 ## CLI usage
 
-Run from the project root via the `make` targets, which wrap `harnessbench run` with the right
+Run from the project root via the `make` targets, which wrap `benchspec run` with the right
 set and group filter. `SKILL=<name>` narrows discovery to that skill's tree; everything in
 `EVAL_ARGS` goes to pytest verbatim.
 
 ```
 make evals SKILL=<name> [EVAL_ARGS="…"]      # the skill's evals, baseline vs trial
 make evals:lint                               # static assertion lint, free
-uv run --no-sync harnessbench analyze     # which assertions bind vs. punt (Gemini)
+uv run --no-sync benchspec analyze     # which assertions bind vs. punt (Gemini)
 ```
 
 Useful pytest args for `EVAL_ARGS`:
@@ -214,9 +214,9 @@ Useful pytest args for `EVAL_ARGS`:
   --count N            # N samples per cell (pytest-repeat); benchmark surfaces noise
 ```
 
-Pass runner flags through the same variable: `--harnessbench-model haiku` overrides the set's
+Pass runner flags through the same variable: `--benchspec-model haiku` overrides the set's
 task model for every inheriting arm (both arms move, so the delta stays real);
-`--harnessbench-set NAME` picks another set; `--harnessbench-config FILE` layers a scratch set.
+`--benchspec-set NAME` picks another set; `--benchspec-config FILE` layers a scratch set.
 
 | Want | Invocation |
 |---|---|
@@ -226,7 +226,7 @@ task model for every inheriting arm (both arms move, so the delta stays real);
 | Baseline (bare agent) only | `make evals SKILL=to-spec EVAL_ARGS="-k baseline"` |
 | Repeat one eval 5× in parallel | `make evals SKILL=to-spec EVAL_ARGS="-k spec-from-context --count 5 -n 5"` |
 | Routing evals only | `make evals SKILL=to-spec EVAL_ARGS="-k 'not (spec-from-context or too-thin-defers or under-determined-open-questions)'"` — or name the query slugs |
-| Everything on haiku | `make evals SKILL=to-spec EVAL_ARGS="--harnessbench-model haiku"` |
+| Everything on haiku | `make evals SKILL=to-spec EVAL_ARGS="--benchspec-model haiku"` |
 
 **Always `--collect-only` first** for scope broader than a single eval — it lists the cells
 pytest will run and spawns nothing. Confirm the count (each cell is one VM boot plus one agent

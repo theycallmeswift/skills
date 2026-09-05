@@ -42,7 +42,7 @@ Assertion typing — every assertion is plain prose; the **binder** classifies e
 - Otherwise it punts the line to the LLM judge.
 - Keep a deterministic claim atomic (one fact per line, no `and`) if you want the binder to bind it rather than punt. `` Skill `X` invoked `` and `` Skill `X` not invoked `` are exact by convention. There is no checker syntax to author — the split is invisible from the suite.
 
-**Arms are declared in `pyproject.toml`, not implied by the runner.** `[tool.harnessbench.sets.default]` is the one eval set: its `arms` are the report columns (`harness`/`model`/`effort`/`env`/`harness_args` *inherit* from set-level defaults unless the arm overrides them), and the set-level `baseline` key names the arm every Δ is measured against. Here `baseline` is bare and `trial` carries `harness_args = ["--plugin-dir", "/project"]`, both on the set's `model`. (`--harnessbench-model haiku` overrides the *set's* `model` for every inheriting arm, so both run at haiku and the trial still yields a real Δ.)
+**Arms are declared in `pyproject.toml`, not implied by the runner.** `[tool.benchspec.sets.default]` is the one eval set: its `arms` are the report columns (`harness`/`model`/`effort`/`env`/`harness_args` *inherit* from set-level defaults unless the arm overrides them), and the set-level `baseline` key names the arm every Δ is measured against. Here `baseline` is bare and `trial` carries `harness_args = ["--plugin-dir", "/project"]`, both on the set's `model`. (`--benchspec-model haiku` overrides the *set's* `model` for every inheriting arm, so both run at haiku and the trial still yields a real Δ.)
 
 The runner validates at collection, so the plan preview doubles as a schema check:
 
@@ -50,7 +50,7 @@ The runner validates at collection, so the plan preview doubles as a schema chec
 make evals SKILL=<skill> EVAL_ARGS="--collect-only -q"
 ```
 
-Any unknown field or shape mismatch is a hard error. `make evals:lint` is free and static: it flags wording the judge cannot fairly grade — vague adverbs (`properly`, `gracefully`), paths without a `./` anchor, relative claims (`better`) with no comparand. `uv run --no-sync harnessbench analyze` asks the binder itself which lines bind and which punt, so you can tighten wording until the facts you care most about grade deterministically.
+Any unknown field or shape mismatch is a hard error. `make evals:lint` is free and static: it flags wording the judge cannot fairly grade — vague adverbs (`properly`, `gracefully`), paths without a `./` anchor, relative claims (`better`) with no comparand. `uv run --no-sync benchspec analyze` asks the binder itself which lines bind and which punt, so you can tighten wording until the facts you care most about grade deterministically.
 
 ## Workspace layout for runs
 
@@ -110,7 +110,7 @@ Read the transcripts: for discipline-enforcing skills, verbatim rationalizations
 
 Run `make evals SKILL=<skill>` (both arms by default). It runs the trial arm (the plugin loaded inside an isolated microVM, not a subagent), grades both arms with the binder plus an LLM judge fed deterministic facts, and writes grading and benchmark files.
 
-For output evals on a weaker model *with the baseline/trial contrast preserved*, pass `EVAL_ARGS="--harnessbench-model haiku"`: it overrides the set's `model` default so both arms run at haiku and the Δ is real. (The plural `--harnessbench-models` is a sweep that replaces the declared arms with one per value — it drops the baseline/trial contrast and is only for explicit sweep runs.)
+For output evals on a weaker model *with the baseline/trial contrast preserved*, pass `EVAL_ARGS="--benchspec-model haiku"`: it overrides the set's `model` default so both arms run at haiku and the Δ is real. (The plural `--benchspec-models` is a sweep that replaces the declared arms with one per value — it drops the baseline/trial contrast and is only for explicit sweep runs.)
 
 ## REFACTOR — iterate until the signal flattens
 

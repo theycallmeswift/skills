@@ -1,6 +1,6 @@
 # writing-agent-skills — eval record
 
-Recorded 2026-09-04 from `iteration_13`, `iteration_15` (harnessbench 0.0.1, Claude Code in the guest; baseline bare, trial with the plugin loaded via `--plugin-dir`, sonnet). Re-run with `make evals SKILL=writing-agent-skills`.
+Recorded 2026-09-04 from `iteration_13`, `iteration_15` (benchspec 0.0.1 (then named benchspec), Claude Code in the guest; baseline bare, trial with the plugin loaded via `--plugin-dir`, sonnet). Re-run with `make evals SKILL=writing-agent-skills`.
 
 ## Output evals — baseline vs trial
 
@@ -40,7 +40,7 @@ Recorded 2026-09-04 from `iteration_13`, `iteration_15` (harnessbench 0.0.1, Cla
 
 ## Notes
 
-**`build-commit-message-skill` is the high-variance scenario.** Trial samples swing between a full SKILL.md scaffold and stopping at the RED-gate confirmation the scripted history already granted; one earlier sample refused outright because harnessbench renders `history:` as an inline transcript block and the agent read the scripted "approved" turn as fabricated context. When a scaffold is written it usually misses two discipline points (one of the four productive samples got both right): the skill is named `commit-message` (a noun, where the conventions want verb-first or gerund) and `writing-prompts` is neither invoked nor recommended despite the REQUIRED SUB-SKILL marker. Those two are real gaps in the skill body — the first things a tuning pass should address — and the gate hesitation is the same one-shot-gate rule the body already tries to state.
+**`build-commit-message-skill` is the high-variance scenario.** Trial samples swing between a full SKILL.md scaffold and stopping at the RED-gate confirmation the scripted history already granted; one earlier sample refused outright because benchspec renders `history:` as an inline transcript block and the agent read the scripted "approved" turn as fabricated context. When a scaffold is written it usually misses two discipline points (one of the four productive samples got both right): the skill is named `commit-message` (a noun, where the conventions want verb-first or gerund) and `writing-prompts` is neither invoked nor recommended despite the REQUIRED SUB-SKILL marker. Those two are real gaps in the skill body — the first things a tuning pass should address — and the gate hesitation is the same one-shot-gate rule the body already tries to state.
 
 **`writing-prompts` is skipped across scenarios.** The `db-migrate-internals-trap` process assertion misses for the same reason. The skill body says the sub-skill is required for every description; the agent doesn't reach for it. Same tuning pass.
 

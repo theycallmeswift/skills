@@ -74,7 +74,7 @@ evals/skill-name/          # the skill's evals live beside it, not inside it
     └── <query>.eval.md    # one routing eval per query: the verbatim ask + one activation assertion
 ```
 
-Create only what you need. Don't scaffold empty directories. Name the directory for what the agent DOES, not the thing it produces or operates on — the name should be predictable from the verb in the request, in kebab-case. Skills ship clean and evals ship as *files*, not runner code: the runner is harnessbench (a pytest plugin), invoked with `make evals`.
+Create only what you need. Don't scaffold empty directories. Name the directory for what the agent DOES, not the thing it produces or operates on — the name should be predictable from the verb in the request, in kebab-case. Skills ship clean and evals ship as *files*, not runner code: the runner is benchspec (a pytest plugin), invoked with `make evals`.
 
 ### 3. Draft evals BEFORE the skill
 
@@ -123,7 +123,7 @@ Snapshot the skill before editing (`cp -r skill-name tmp/skill-snapshots/skill-n
 
 Re-run the iteration on a weaker model (Sonnet for an Opus-authored skill, Haiku for a Sonnet-authored one). What's redundant for Opus is often load-bearing for Sonnet — and Sonnet failures surface routing or wording bugs the stronger model's inference papered over.
 
-Output evals run on the model their arm inherits from the resolved eval set (`[tool.harnessbench.sets.<name>]`, `sonnet` here), so to grade a skill on a weaker model *with a baseline contrast* pass `make evals SKILL=<skill> EVAL_ARGS="--harnessbench-model haiku"`: the scalar `--harnessbench-model` overrides the set's `model` default, so both arms run at haiku and the trial still yields a real Δ. (Don't use the plural `--harnessbench-models` sweep here — it *replaces* the declared arms with one per value, discarding the baseline/trial contrast.)
+Output evals run on the model their arm inherits from the resolved eval set (`[tool.benchspec.sets.<name>]`, `sonnet` here), so to grade a skill on a weaker model *with a baseline contrast* pass `make evals SKILL=<skill> EVAL_ARGS="--benchspec-model haiku"`: the scalar `--benchspec-model` overrides the set's `model` default, so both arms run at haiku and the trial still yields a real Δ. (Don't use the plural `--benchspec-models` sweep here — it *replaces* the declared arms with one per value, discarding the baseline/trial contrast.)
 
 ### 9. Trigger evals
 
