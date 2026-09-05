@@ -41,6 +41,7 @@ Claude Code plugin layout. The manifest lives in `.claude-plugin/`; everything e
 
 ## Skills
 
+- **interview-me** — relentless one-question-at-a-time interviewer with a stop condition (manual, handoff to a named skill, or goal). Hands a clean scope to `to-spec`.
 - **to-spec** — synthesize the current conversation and codebase into a skim-first design spec under `docs/specs/`. No interview.
 - **writing-prompts** — draft and tighten anything an LLM will read: system prompts, subagent briefs, `SKILL.md` text, `AGENTS.md`.
 - **writing-agent-skills** — author, debug, and eval skills end to end. Calls `writing-prompts` for wording.
