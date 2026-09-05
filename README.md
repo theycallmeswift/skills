@@ -7,6 +7,7 @@ Swift's Agent Brain. An opinionated set of skills, tools, and prompts for use in
 Model-invoked. The agent picks them up when the request matches; you can also call them by name.
 
 - **writing-prompts** — Draft or tighten anything an LLM will read: system prompts, subagent briefs, slash-command bodies, `SKILL.md` text, `AGENTS.md` / `CLAUDE.md`. Ends with an editorial pass that cuts filler without changing meaning.
+- **writing-agent-skills** — Build, debug, and evaluate skills end to end: eval-first (RED → GREEN → REFACTOR), trigger-description tuning, and the conventions that keep a skill portable across harnesses. Calls `writing-prompts` for the wording.
 
 ## Install
 

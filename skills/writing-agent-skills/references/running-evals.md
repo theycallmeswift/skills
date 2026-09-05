@@ -36,7 +36,7 @@ the surrounding project. The runner enforces it:
    injected at the network boundary, never as readable environment variables in the guest.
 
    **Requirements:** a supported host (Apple Silicon or Linux with KVM), microsandbox
-   (installed with benchspec by `make evals:install`), and credentials in a repo-root `.env`:
+   (installed with benchspec through the `evals` dependency group), and credentials in a repo-root `.env`:
    `CLAUDE_CODE_OAUTH_TOKEN` (from `claude setup-token`) or `ANTHROPIC_API_KEY` for the agent
    and judge, plus `GEMINI_API_KEY` for the binder. Preflight fails fast if any are unmet.
 3. **No placeholder reaches either arm.** Eval prompts must be self-contained. `{TODAY}` is the
@@ -77,7 +77,8 @@ Arms come from the one eval set in `pyproject.toml` (`[tool.benchspec.sets.defau
 1. The eval's `workspace/` is copied to a fresh host temp dir outside the project and mounted
    at `/workspace`; the SHA-256 of every seeded file is recorded for byte-identity assertions.
 2. The staged repo mounts read-only at `/project`; on `trial` the agent is launched with it
-   as a plugin directory.
+   as a plugin directory. benchspec also runs a `setup.sh` from the eval folder if one exists;
+   this plugin has none, since loading the plugin is the install.
 3. The agent runs on the eval's prompt (any `history:` turns are rendered as a transcript
    prefix), streaming a trajectory from which the dispatched skills are read back.
 4. The facts are collected — file tree, contents, SHA-256s, the final message, the tool and
@@ -86,12 +87,19 @@ Arms come from the one eval set in `pyproject.toml` (`[tool.benchspec.sets.defau
    (`grading.json`, `timing.json`, `transcript.json`, `provenance.json`, `session.jsonl`), with
    `meta.json`, `index.jsonl`, `benchmark.json`, and `benchmark.md` at the iteration root.
 
-**Pass/fail.** A cell passes when every assertion passes — including activation, so an agent
-that hand-rolled the task fails on that line and the delta stays meaningful. The baseline arm's
-failures are the desired signal, not a bug; both arms feed the delta.
+**Pass, fail, error.** A cell's pytest outcome is about infrastructure: it passes when the agent
+ran and grading completed, and *errors* (excluded from pass rates, surfaced through the
+`errored` flag and the report) when the agent CLI crashed or timed out or the judge failed at
+the transport level. A *failed* assertion is a measurement, not a test failure: the agent ran
+and the claim did not hold. Assertion results feed the benchmark; the only gate is
+`--fail-under`, which fails the run when a non-baseline arm's raw delta drops below the
+threshold in any group. The baseline arm's misses are the desired signal, not a bug.
 
 **Iteration numbering** auto-increments (`iteration_01`, `iteration_02`, …), chosen once per
 run and shared across `-n` workers. The workspace is ephemeral and gitignored under `tmp/`.
+The first run builds the agent-ready VM snapshot under a file lock
+(`tmp/.benchspec-snapshot-<name>.lock`); later runs reuse it until the harness version, the
+base image, or the environment script changes.
 
 ---
 
@@ -102,8 +110,9 @@ fixed Gemini call (hence `GEMINI_API_KEY`):
 
 - **Bind**: the prose maps to one deterministic checker, run on the host against the final
   workspace or the run's process facts. Zero variance, zero judge cost.
-- **Punt**: everything else goes to the **judge** — a separate `claude -p` on the host, no
-  plugin, no cwd constraint — which receives the assertion list, the workdir file tree,
+- **Punt**: everything else goes to the **judge** — the configured judge harness run on the
+  host (`[tool.benchspec.judge]`; default Claude Code on `sonnet`, and benchspec's advice for
+  published numbers is a judge from a different model family than the arms) — which receives the assertion list, the workdir file tree,
   relevant file contents, the runner-computed SHA-256s, the agent's final message, and the
   dispatched tools and skills, and emits a structured verdict per assertion reasoning only
   from that evidence. All of a cell's punted lines go to the judge in one call.
@@ -119,10 +128,11 @@ duplicated") always punt; an explicit byte-identity claim binds to `sha256_match
 ```json
 {
   "eval_id": "your-eval-id",
-  "group": "your-eval-id",
+  "skill": "your-group",
   "arm": "trial",
   "sample": 0,
   "errored": false,
+  "binder_degraded": 0,
   "assertions": [
     {"text": "the assertion text", "passed": true, "evidence": "quoted from the output", "type": "deterministic"},
     {"text": "another assertion", "passed": false, "evidence": "output says X, not Y", "type": "semantic"}
@@ -130,8 +140,12 @@ duplicated") always punt; an explicit byte-identity claim binds to `sha256_match
 }
 ```
 
-`errored` flags an infra failure (excluded from the benchmark) versus an honest assertion
-miss. There is no separate shared-assertion checklist — fold session-level claims into the
+`skill` is the group (the eval's parent folder). `errored` flags an infra failure (excluded
+from the benchmark) versus an honest assertion miss; `binder_degraded` counts lines the binder
+could not classify and handed to the judge. Beside it sit `timing.json` (duration, judge time,
+token split), `transcript.json` (prompt, result, tool count, workdir tree, skills dispatched),
+`provenance.json` (the agent version observed in the guest, the snapshot), and `session.jsonl`
+(the raw stream). There is no separate shared-assertion checklist — fold session-level claims into the
 single `## Assertions` list, and put any lead-up the assertion depends on into `history:`.
 
 ---
@@ -140,9 +154,10 @@ single `## Assertions` list, and put any lead-up the assertion depends on into `
 
 Tests whether the `description:` fires the skill via real routing, not a judge's prediction.
 There is no separate trigger-eval format: a routing eval is an ordinary eval whose prompt is
-the verbatim user query and whose only assertion is the activation line —
-`` Skill `<name>` invoked `` for a should-trigger query, `` Skill `<name>` not invoked `` for a
-near-miss. A query lives once: under `evals/<skill>/triggers/` for the skill it should reach, or
+the verbatim user query and whose assertions are activation lines, one per skill with a stake
+in the ask — `` Skill `<name>` invoked `` for the skill it should reach, `` Skill `<other>` not
+invoked `` for a sibling that shares the vocabulary. A namespaced dispatch (`core:to-spec`)
+satisfies a line written against `to-spec`. A query lives once: under `evals/<skill>/triggers/` for the skill it should reach, or
 under `not-triggers/` of the first skill that listed it as a near-miss when no loaded skill owns
 it. A later skill that shares the vocabulary adds its own line to that file instead of duplicating
 the query, because benchspec keys every eval on (folder, file stem) across the whole run.
@@ -165,7 +180,7 @@ boundary to record in the skill's eval notes, not a description defect.
 
 When the run finishes the runner writes `benchmark.{json,md}` and prints the report path.
 The headline is one line per non-baseline arm — `baseline 72% → trial 86% (+14pp)` — with a
-noise band when the run has enough samples to compute one; the matrix below it has one row
+noise band once every arm has at least two samples (`--count 2` or more); the matrix below it has one row
 per `group/eval_id` and one column per arm, baseline first, each trial cell showing its rate
 and delta. Per-arm sections carry harness, model, tokens, and duration.
 
@@ -217,7 +232,10 @@ Useful pytest args for `EVAL_ARGS`:
 
 Pass runner flags through the same variable: `--benchspec-model haiku` overrides the set's
 task model for every inheriting arm (both arms move, so the delta stays real);
-`--benchspec-set NAME` picks another set; `--benchspec-config FILE` layers a scratch set.
+`--benchspec-set NAME` picks another set; `--benchspec-config FILE` layers a scratch set;
+`--benchspec-fail-under PP` turns the run into a gate. Exit codes: 0 clean, 1 a lint finding
+or an errored cell or a tripped gate, 2 a usage or preflight error before anything ran, 5
+no evals discovered.
 
 | Want | Invocation |
 |---|---|
