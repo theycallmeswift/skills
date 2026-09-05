@@ -31,7 +31,7 @@ Claude Code plugin layout. The manifest lives in `.claude-plugin/`; everything e
 
 - `.claude-plugin/` — `plugin.json` (the `core` plugin) and `marketplace.json` (the `mechaswift` marketplace). Nothing else belongs here.
 - `skills/<name>/` — model-invoked skills: `SKILL.md` plus colocated `references/`, `assets/`, `scripts/`, `agents/`. Ship clean; no evals inside.
-- `evals/<name>/` — the skill's harnessbench evals: `<scenario>/eval.md` (+ `workspace/`) for output, `<query>.eval.md` for routing.
+- `evals/<name>/` — the skill's benchspec evals: `<scenario>/eval.md` (+ `workspace/`) for output, `<query>.eval.md` for routing.
 - `hooks/` — `hooks.json` and the `session-start` script that nudges the agent to route matching requests through skills.
 - `tests/skills/<name>/scripts/` — pytest for a skill's scripts, mirroring the skill path; one `tests/skills/conftest.py` puts every skill's `scripts/` on `sys.path`.
 - `.agents/skills` — symlink to `skills/`, so a checkout marked trusted in Hermes loads the skills straight from the repo.
