@@ -202,7 +202,7 @@ set and group filter. `SKILL=<name>` narrows discovery to that skill's tree; eve
 ```
 make evals SKILL=<name> [EVAL_ARGS="…"]      # the skill's evals, baseline vs trial
 make evals:lint                               # static assertion lint, free
-uv run --no-sync benchspec analyze     # which assertions bind vs. punt (Gemini)
+uv run --group evals benchspec analyze   # which assertions bind vs. punt (Gemini)
 ```
 
 Useful pytest args for `EVAL_ARGS`:

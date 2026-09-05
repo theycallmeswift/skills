@@ -12,7 +12,7 @@ Build the eval before the skill. Run without the skill to establish a baseline, 
 
 **Output evals** measure the quality of what the skill produces. The same prompt runs across two arms declared in `pyproject.toml` — a `baseline` that runs the agent bare and a `trial` that runs it with the plugin loaded; the set's `baseline = "baseline"` key makes the delta (trial − baseline) the quality metric.
 
-**Routing evals** measure whether the description fires the skill at all. 20 queries, half should-trigger half not, each an ordinary eval with a single activation assertion, in the same set.
+**Routing evals** measure whether the description fires the skill at all. 20 queries, half should-trigger half not, each an ordinary eval whose assertions are activation lines — one per skill that has a stake in the ask — in the same set.
 
 Author both. Output evals don't matter if the skill never loads.
 
@@ -40,7 +40,7 @@ The runner discovers any `eval.md` or `<stem>.eval.md` beneath `evals/`; the fil
 Write every path in the eval `./`-relative (`./notes/standup.md`), because that is how the agent, the checkers, and the judge all see the workspace. `{TODAY}` is the one placeholder; any other `{UPPERCASE}` token is rejected.
 
 Assertion typing — every assertion is plain prose; the **binder** classifies each line at grade time:
-- When confident, it maps the prose to one deterministic checker (`file_exists`, `glob_count`, `regex`, `frontmatter_has`, `sha256_match`, `skill_invoked`, and their negations), run on the host for zero judge cost.
+- When confident, it maps the prose to one deterministic checker — `file_exists` / `not_file_exists`, `glob_count`, `regex`, `frontmatter_has`, `sha256_match`, `skill_invoked` / `not_skill_invoked` — run on the host for zero judge cost. Persistence and negation claims other than those two negated forms ("still present", "not duplicated") always punt.
 - Otherwise it punts the line to the LLM judge.
 - Keep a deterministic claim atomic (one fact per line, no `and`) if you want the binder to bind it rather than punt. `` Skill `X` invoked `` and `` Skill `X` not invoked `` are exact by convention. There is no checker syntax to author — the split is invisible from the suite.
 
@@ -52,7 +52,7 @@ The runner validates at collection, so the plan preview doubles as a schema chec
 make evals SKILL=<skill> EVAL_ARGS="--collect-only -q"
 ```
 
-Any unknown field or shape mismatch is a hard error. `make evals:lint` is free and static: it flags wording the judge cannot fairly grade — vague adverbs (`properly`, `gracefully`), paths without a `./` anchor, relative claims (`better`) with no comparand. `uv run --no-sync benchspec analyze` asks the binder itself which lines bind and which punt, so you can tighten wording until the facts you care most about grade deterministically.
+Any unknown field or shape mismatch is a hard error. `make evals:lint` is free and static: it flags wording the judge cannot fairly grade — vague adverbs (`properly`, `gracefully`), paths without a `./` anchor, relative claims (`better`) with no comparand. `uv run --group evals benchspec analyze` asks the binder itself which lines bind and which punt (it needs `GEMINI_API_KEY` and always exits 0), so you can tighten wording until the facts you care most about grade deterministically.
 
 ## Workspace layout for runs
 
@@ -104,7 +104,7 @@ For subjective outputs (style, design, judgment), evals work poorly — prefer q
 
 **Gate: do not draft SKILL.md until baselines are captured.** Drafting from imagined problems addresses imagined gaps.
 
-Run `make evals SKILL=<skill> EVAL_ARGS="-k baseline"` (the `baseline` arm is the bare-agent clean room). It handles clean-room isolation (a fresh agent in a microVM seeded with only the eval's `workspace/` — no spec, no skill source), grading, and workspace layout. See [`running-evals.md`](running-evals.md).
+Run `make evals SKILL=<skill> EVAL_ARGS="-k baseline"` (the `baseline` arm is the bare-agent clean room). It handles clean-room isolation (a fresh agent in a microVM whose working directory holds only the eval's `workspace/`; the repo is mounted read-only at `/project` on every arm, but nothing loads it as a plugin on baseline), grading, and workspace layout. See [`running-evals.md`](running-evals.md).
 
 Read the transcripts: for discipline-enforcing skills, verbatim rationalizations are the skill's actual content; for technique skills, structural misses are what the skill needs to fix.
 
@@ -133,7 +133,7 @@ Output evals test what happens *after* the skill loads. The `description:` field
 
 Build 20 queries, ≈50/50 should-trigger / should-not, weighted toward near-miss negatives (share keywords, need something different). Substantive queries only — trivial one-step asks don't trigger skills regardless of description quality.
 
-Each query is one file, `evals/<skill>/triggers/<query-slug>.eval.md`: the verbatim user message as the `## Prompt` (routing-sensitive; never reword) and exactly one assertion — `` Skill `<skill>` invoked `` for a should-trigger query, `` Skill `<skill>` not invoked `` for a near-miss. A positive that presupposes a prior design discussion ("write up what we landed on") gets a short `history:` recap so the ask refers to something; in an empty session the agent correctly says there is nothing to write up instead of routing. They run in the same set as the output evals, so on `trial` the skill competes with its real peers; the `baseline` column is uninformative for them and rides along.
+Each query is one file — `evals/<skill>/triggers/<query-slug>.eval.md` for an ask that must reach this skill, `evals/<skill>/not-triggers/<query-slug>.eval.md` for a near-miss no loaded skill owns — with the verbatim user message as the `## Prompt` (routing-sensitive; never reword) and one activation line per skill that has a stake in it: `` Skill `<skill>` invoked `` for the owner, `` Skill `<other>` not invoked `` for a sibling that shares the vocabulary. Leave the sibling line out when the owner may legitimately delegate to that sibling mid-task, since activation counts any dispatch in the run. A positive that presupposes a prior design discussion ("write up what we landed on") gets a short `history:` recap so the ask refers to something; in an empty session the agent correctly says there is nothing to write up instead of routing. They run in the same set as the output evals, so on `trial` the skill competes with its real peers; the `baseline` column is uninformative for them and rides along.
 
 Run: `make evals SKILL=<skill>` (or `-k` the query slugs). See [`running-evals.md`](running-evals.md). A query that routes on opus but not on a weaker tier is a model-tier boundary to note alongside the skill, not a description defect to chase with more trigger phrases.
 
