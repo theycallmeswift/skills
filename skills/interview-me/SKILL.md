@@ -23,7 +23,7 @@ Why a subagent over reading inline: it keeps the interview context clean, works 
 
 ## 3. Grill, one question at a time
 
-Walk the decision tree branch by branch, resolving dependencies one at a time. For each decision: lay out 2–3 options, give an explicit recommendation, then follow up. If a question is answerable by exploring the codebase, explore instead of asking.
+Walk the decision tree branch by branch, resolving dependencies one at a time. For each decision: lay out 2–3 options, give an explicit recommendation, then follow up. If a question is answerable by exploring the codebase, explore instead of asking. An answered decision is settled, not a prompt to re-verify its reasons. Once the stop gate is met, stop asking decisions (§5).
 
 **One unresolved question per turn — and watch the decision-vs-fact trap.** After the visual, ask the user to do exactly one thing: *either* pick from the options *or* supply one missing fact — never both. The trap: when your recommendation is conditional ("C, but if the API is fully authenticated then A"), it is tempting to ask "which way — and is it fully authenticated?". That is two questions. Resolve the determining fact *first*, as its own turn; present the decision next turn once you know. End every turn with a single "?"; if a second slipped in (an "and…", a tacked-on clarifier), cut it and hold it.
 
@@ -58,11 +58,11 @@ Sufficiency = the decision tree is exhausted, the resolved mode's stop gate is s
 
 At stop, emit a final **Shared Understanding** block (the step-4 shape).
 
-**Modes B/C — one catch-all before you stop.** When the tree and the stop gate are otherwise met, emit that Shared Understanding block, then pose exactly **one** open catch-all — B: "Before I hand off to `<target>`, is there anything important we haven't covered?"; C: "Before we wrap, is there anything important we haven't covered?" This is a conjunct of sufficiency, not an afterthought: you are not done until it comes back empty. A non-empty answer is a new addition — reopen grilling at §3. Only an empty answer satisfies the gate (then hand off in mode B per §6, or wrap in mode C).
+**Modes B/C — one catch-all before you stop.** When the tree and the stop gate are otherwise met, emit that Shared Understanding block, then end the turn with exactly **one** open catch-all in bare prose — no table, no options, no new decision: B: "Before I hand off to `<target>`, is there anything important we haven't covered?"; C: "Before we wrap, is there anything important we haven't covered?" A non-empty answer is a new addition — reopen grilling at §3. Only an empty answer satisfies the gate (then hand off in mode B per §6, or wrap in mode C).
 
 Re-pose it every time sufficiency is otherwise met; converge with **no** "already asked" flag. That flag is exactly the cross-turn state the one-question grammar tends to drop mid-interview — statelessness is the design, not a shortcut.
 
-**Skip the catch-all** only when the user's latest message already signals completeness ("that's everything", "nothing else", "wrap it up", "that's all") — then stop straight away. Being an open prompt, not a 2–3 option decision, it is exempt from §3's every-decision-ships-a-visual rule. Mode A never poses it.
+**Skip the catch-all** only when the user's latest message already signals completeness ("that's everything", "nothing else", "wrap it up", "that's all") — then stop straight away. Mode A never poses it.
 
 ## 6. Hand off — never auto-invoke
 
