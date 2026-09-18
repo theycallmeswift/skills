@@ -8,4 +8,6 @@ I need a docs/style/writing-tests.md for our team's pytest conventions — namin
 ## Assertions
 
 - [ ] Skill `writing-prompts` invoked
+  - if: {BENCHSPEC_ARM} != {BENCHSPEC_BASELINE}
 - [ ] Skill `writing-agent-skills` not invoked
+  - if: {BENCHSPEC_ARM} != {BENCHSPEC_BASELINE}

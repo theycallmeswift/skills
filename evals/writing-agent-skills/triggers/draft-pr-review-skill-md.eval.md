@@ -8,3 +8,4 @@ draft the SKILL.md for a `pr-review` skill that reviews PR diffs and finds corre
 ## Assertions
 
 - [ ] Skill `writing-agent-skills` invoked
+  - if: {BENCHSPEC_ARM} != {BENCHSPEC_BASELINE}

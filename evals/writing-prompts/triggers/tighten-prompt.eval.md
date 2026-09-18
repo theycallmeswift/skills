@@ -8,4 +8,6 @@ rewrite this prompt to be tighter — 'You are a helpful assistant that summariz
 ## Assertions
 
 - [ ] Skill `writing-prompts` invoked
+  - if: {BENCHSPEC_ARM} != {BENCHSPEC_BASELINE}
 - [ ] Skill `writing-agent-skills` not invoked
+  - if: {BENCHSPEC_ARM} != {BENCHSPEC_BASELINE}

@@ -163,8 +163,8 @@ it. A later skill that shares the vocabulary adds its own line to that file inst
 the query, because benchspec keys every eval on (folder, file stem) across the whole run.
 
 They run in the same set as everything else. On `trial` the whole plugin is loaded, so the
-skill competes against its real peers (hook included); the `baseline` column is
-uninformative — an uninstalled skill can't fire — and just rides along. A positive that
+skill competes against its real peers (hook included). Each activation line carries
+`- if: {BENCHSPEC_ARM} != {BENCHSPEC_BASELINE}`, since an uninstalled skill can't fire on `baseline`. A positive that
 presupposes a prior design discussion carries a short `history:` recap, because in an empty
 session the agent correctly says there is nothing to write up rather than routing.
 

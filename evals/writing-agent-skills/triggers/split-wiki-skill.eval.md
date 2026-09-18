@@ -8,3 +8,4 @@ my skill at .claude/skills/wiki/SKILL.md is 600 lines, fires correctly but slows
 ## Assertions
 
 - [ ] Skill `writing-agent-skills` invoked
+  - if: {BENCHSPEC_ARM} != {BENCHSPEC_BASELINE}

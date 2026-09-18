@@ -15,6 +15,7 @@ wrote it.
 ## Assertions
 
 - [ ] Skill `to-spec` invoked
+  - if: {BENCHSPEC_ARM} != {BENCHSPEC_BASELINE}
 - [ ] A spec file was written at './docs/specs/{TODAY}-<slug>.md' with the full skim-first section set
 - [ ] Exactly one `*.md` file exists under './docs/specs/'
 - [ ] The two unresolved decisions (whether to log request bodies, and which log sink) appear under '## Open Questions' — phrased as open, not resolved

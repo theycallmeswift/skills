@@ -13,6 +13,7 @@ tell me your decision.
 ## Assertions
 
 - [ ] Skill `to-spec` invoked
+  - if: {BENCHSPEC_ARM} != {BENCHSPEC_BASELINE}
 - [ ] No spec file was written under './docs/specs/' — the context is too thin to ground a spec, so the skill did not emit a confident hollow one
 - [ ] The final message reports specifically what is missing to write a spec (e.g. a concrete problem, a proposed change, constraints) and hands the decision back to the user
 - [ ] The skill does NOT fabricate a problem statement, user stories, or implementation decisions to fill the gap, and does NOT silently redirect to a different skill

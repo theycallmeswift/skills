@@ -45,6 +45,7 @@ SKILL.md file on disk.
 ## Assertions
 
 - [ ] Skill `writing-agent-skills` invoked
+  - if: {BENCHSPEC_ARM} != {BENCHSPEC_BASELINE}
 - [ ] A SKILL.md scaffold was written to disk with frontmatter (name, description) and a body — a concrete artifact, not abstract advice.
 - [ ] The SKILL.md frontmatter has only `name` and `description` — no `allowed-tools`, `model`, or `tools` array.
 - [ ] The SKILL.md description is third-person, pushy, and includes trigger-phrase variants (e.g., 'commit', 'stage and commit', 'create a commit'), optionally with negative triggers.

@@ -12,6 +12,7 @@ SKILL.md to disk.
 ## Assertions
 
 - [ ] Skill `writing-agent-skills` invoked
+  - if: {BENCHSPEC_ARM} != {BENCHSPEC_BASELINE}
 - [ ] A SKILL.md was written to disk at ./.claude/skills/changelog/SKILL.md — a concrete artifact, not abstract advice.
 - [ ] The written SKILL.md description is broadened past 'Generates changelogs.' to the user's natural-language triggers (release notes, what changed since the last release/tag) and avoids first/second person.
 - [ ] The written SKILL.md body is shorter than the original 200 lines.

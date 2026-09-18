@@ -8,3 +8,4 @@ ask me relentless questions one at a time until we reach shared understanding on
 ## Assertions
 
 - [ ] Skill `interview-me` invoked
+  - if: {BENCHSPEC_ARM} != {BENCHSPEC_BASELINE}

@@ -53,5 +53,6 @@ to continue.
 ## Assertions
 
 - [ ] Skill `interview-me` invoked
+  - if: {BENCHSPEC_ARM} != {BENCHSPEC_BASELINE}
 - [ ] The catch-all surfaced a requirement that bears directly on the backend choice (exactly-once execution), so the skill REOPENS the decision rather than parking it as out of scope or wrapping — it engages with exactly-once as live input to the Postgres-vs-Redis call, either asking a follow-up to resolve it or laying out how each backend delivers exactly-once and which way that points.
 - [ ] No spec file was written under ./docs/specs/.
