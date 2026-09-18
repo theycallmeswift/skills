@@ -13,6 +13,7 @@ examples or context, just the raw 10-K.
 ## Assertions
 
 - [ ] Skill `writing-prompts` invoked
+  - if: {BENCHSPEC_ARM} != "baseline"
 - [ ] Output contains an explicit role/task statement.
 - [ ] Output is third-person/imperative voice — no 'I'll help you...' or 'you'll get...'.
 - [ ] Output uses XML tags or other clear section delimiters (markdown headings count for doc-shaped outputs).

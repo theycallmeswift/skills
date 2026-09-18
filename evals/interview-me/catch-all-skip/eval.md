@@ -75,6 +75,7 @@ the `interview-me` skill to continue.
 ## Assertions
 
 - [ ] Skill `interview-me` invoked
+  - if: {BENCHSPEC_ARM} != "baseline"
 - [ ] The user's latest message both resolves the reopened decision and signals completeness ("nothing else"), so the skill converges: it emits a final "Shared Understanding" synthesis block covering at least what's decided, the key facts, and the non-goals (an "open questions" line may read "none" or be absent at convergence).
 - [ ] The skill stops here — it does NOT re-pose the catch-all (the user just signalled completeness) and does NOT keep asking new design questions.
 - [ ] process: The skill did NOT invoke any downstream skill — no Skill or Task call running `to-spec` or similar — because mode C resolves a goal in-conversation and stops, with no handoff.

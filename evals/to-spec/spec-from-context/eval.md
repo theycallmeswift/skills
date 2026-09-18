@@ -21,6 +21,7 @@ wrote it.
 ## Assertions
 
 - [ ] Skill `to-spec` invoked
+  - if: {BENCHSPEC_ARM} != "baseline"
 - [ ] A spec file was written at './docs/specs/{TODAY}-<slug>.md' — the filename is today's date plus a kebab-case slug derived from the title, with NO '-design' suffix
 - [ ] Exactly one `*.md` file exists under './docs/specs/'
 - [ ] No spec file under './docs/specs/' carries a '-design' suffix

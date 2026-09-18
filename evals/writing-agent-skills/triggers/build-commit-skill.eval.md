@@ -8,3 +8,4 @@ I want to build a skill that drafts conventional commits from staged diffs — f
 ## Assertions
 
 - [ ] Skill `writing-agent-skills` invoked
+  - if: {BENCHSPEC_ARM} != "baseline"

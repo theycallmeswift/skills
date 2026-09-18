@@ -73,6 +73,7 @@ interview the way it ends when the design is settled.
 ## Assertions
 
 - [ ] Skill `interview-me` invoked
+  - if: {BENCHSPEC_ARM} != "baseline"
 - [ ] At stop the skill emits a "Shared Understanding" synthesis block that covers what's decided, the key facts, the non-goals, and any open questions (the exact headings may vary, but all four of those buckets are present).
 - [ ] The skill ANNOUNCES that it is ready to hand off to `to-spec` and HALTS — it states handoff readiness rather than continuing to grill.
 - [ ] Because the user's latest message already signals completeness ("that's everything … wrap it up"), the skill does NOT pose a separate catch-all "anything we missed / anything else" open question — it proceeds straight to the handoff announcement (the catch-all skip path).

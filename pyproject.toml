@@ -14,7 +14,7 @@ dev = [
 # Opt-in: the eval runner lives in its own group so `make install` stays pytest + ruff.
 # `uv run --group evals …` syncs it on demand; see docs/development.md.
 evals = [
-    "benchspec[microsandbox]>=0.0.1,<0.1",
+    "benchspec[microsandbox]>=0.0.4,<0.1",
     "pytest-repeat>=0.9,<1",  # --count N sampling; <1 because benchspec reads its internal step param
 ]
 

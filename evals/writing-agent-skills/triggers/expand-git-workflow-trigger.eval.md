@@ -8,3 +8,4 @@ I want my git-workflow skill to fire whenever someone does any git operation, no
 ## Assertions
 
 - [ ] Skill `writing-agent-skills` invoked
+  - if: {BENCHSPEC_ARM} != "baseline"

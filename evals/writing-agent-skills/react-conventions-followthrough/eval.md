@@ -35,5 +35,6 @@ on disk.
 ## Assertions
 
 - [ ] Skill `writing-agent-skills` invoked
+  - if: {BENCHSPEC_ARM} != "baseline"
 - [ ] A file was written to disk at ./docs/style/react.md — a concrete artifact, not advice or an offer to draft.
 - [ ] ./docs/style/react.md states the conventions discussed: functional components, hooks only (no class components), Zustand instead of Redux, and composition over prop-drilling.

@@ -8,3 +8,4 @@ set up evals for my changelog skill — happy path, edge case, failure mode, wit
 ## Assertions
 
 - [ ] Skill `writing-agent-skills` invoked
+  - if: {BENCHSPEC_ARM} != "baseline"

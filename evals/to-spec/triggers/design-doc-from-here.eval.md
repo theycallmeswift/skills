@@ -18,3 +18,4 @@ take this design we landed on and write the spec doc
 ## Assertions
 
 - [ ] Skill `to-spec` invoked
+  - if: {BENCHSPEC_ARM} != "baseline"

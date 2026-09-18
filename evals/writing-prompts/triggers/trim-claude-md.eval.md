@@ -8,4 +8,6 @@ ok my team's CLAUDE.md is up to 380 lines, claude is starting to drift on basic 
 ## Assertions
 
 - [ ] Skill `writing-prompts` invoked
+  - if: {BENCHSPEC_ARM} != "baseline"
 - [ ] Skill `writing-agent-skills` not invoked
+  - if: {BENCHSPEC_ARM} != "baseline"

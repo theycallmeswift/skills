@@ -18,4 +18,6 @@ turn this into a PRD
 ## Assertions
 
 - [ ] Skill `to-spec` invoked
+  - if: {BENCHSPEC_ARM} != "baseline"
 - [ ] Skill `interview-me` not invoked
+  - if: {BENCHSPEC_ARM} != "baseline"
