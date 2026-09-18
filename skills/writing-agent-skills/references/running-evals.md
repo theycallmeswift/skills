@@ -164,7 +164,7 @@ the query, because benchspec keys every eval on (folder, file stem) across the w
 
 They run in the same set as everything else. On `trial` the whole plugin is loaded, so the
 skill competes against its real peers (hook included). Each activation line carries
-`- if: {BENCHSPEC_ARM} != {BENCHSPEC_BASELINE}`, since an uninstalled skill can't fire on `baseline`. A positive that
+`- if: {BENCHSPEC_ARM} != "baseline"`, since an uninstalled skill can't fire on `baseline`. A positive that
 presupposes a prior design discussion carries a short `history:` recap, because in an empty
 session the agent correctly says there is nothing to write up rather than routing.
 

@@ -13,7 +13,7 @@ build it.
 ## Assertions
 
 - [ ] Skill `writing-agent-skills` invoked
-  - if: {BENCHSPEC_ARM} != {BENCHSPEC_BASELINE}
+  - if: {BENCHSPEC_ARM} != "baseline"
 - [ ] Output flags that hardcoding the project's internal schema and migrations paths it was handed couples the skill to a layout it doesn't control, and proposes a portable alternative — caller-supplied path inputs, a workspace-root convention, or a documented interface such as the migration tool's CLI.
 - [ ] Output flags that importing the db-connect skill's bundled connection-helper script reaches into another skill's internals, and proposes invoking db-connect by name (or depending on a documented project interface) instead of touching its files.
 - [ ] Output stays constructive — it helps build a db-migrate skill using public surfaces, rather than only refusing. It does NOT hand back a design that bakes the specific internal paths and the cross-skill file import in as-is without raising the coupling concern.

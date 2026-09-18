@@ -18,4 +18,4 @@ write the design spec for the feature we just designed
 ## Assertions
 
 - [ ] Skill `to-spec` invoked
-  - if: {BENCHSPEC_ARM} != {BENCHSPEC_BASELINE}
+  - if: {BENCHSPEC_ARM} != "baseline"

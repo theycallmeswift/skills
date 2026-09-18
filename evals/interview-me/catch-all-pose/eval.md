@@ -47,7 +47,7 @@ Use the `interview-me` skill to continue the interview.
 ## Assertions
 
 - [ ] Skill `interview-me` invoked
-  - if: {BENCHSPEC_ARM} != {BENCHSPEC_BASELINE}
+  - if: {BENCHSPEC_ARM} != "baseline"
 - [ ] The stated goal (the queue-backend choice) is now resolved and the user's message signals neither "keep going" nor completeness, so the skill poses exactly ONE open catch-all — an "is there anything important we haven't covered" sweep phrased for the wrap (e.g. "before we wrap…") — rather than a new scoped design decision. (Emitting a Shared Understanding block that shows no open questions before the catch-all is fine — the catch-all is the gate that follows it.)
 - [ ] The catch-all is rendered as bare open prose — NOT an options table and NOT an AskUserQuestion-style option preview — because it is an open question, not a 2–3 option decision.
 - [ ] process: The skill did NOT dispatch a subagent to read another skill's `SKILL.md` for a requirements checklist — this is mode C (a stated goal), which has no downstream handoff target.

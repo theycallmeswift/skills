@@ -18,4 +18,4 @@ draft a design spec from what we discussed
 ## Assertions
 
 - [ ] Skill `to-spec` invoked
-  - if: {BENCHSPEC_ARM} != {BENCHSPEC_BASELINE}
+  - if: {BENCHSPEC_ARM} != "baseline"

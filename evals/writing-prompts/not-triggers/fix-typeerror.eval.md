@@ -8,6 +8,6 @@ fix this TypeError in my python script: 'list' object has no attribute 'append_t
 ## Assertions
 
 - [ ] Skill `writing-prompts` not invoked
-  - if: {BENCHSPEC_ARM} != {BENCHSPEC_BASELINE}
+  - if: {BENCHSPEC_ARM} != "baseline"
 - [ ] Skill `writing-agent-skills` not invoked
-  - if: {BENCHSPEC_ARM} != {BENCHSPEC_BASELINE}
+  - if: {BENCHSPEC_ARM} != "baseline"

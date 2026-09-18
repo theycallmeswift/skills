@@ -18,4 +18,4 @@ capture this design as a spec before we lose the context
 ## Assertions
 
 - [ ] Skill `to-spec` invoked
-  - if: {BENCHSPEC_ARM} != {BENCHSPEC_BASELINE}
+  - if: {BENCHSPEC_ARM} != "baseline"

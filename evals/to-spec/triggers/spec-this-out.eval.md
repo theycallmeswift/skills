@@ -18,4 +18,4 @@ can you spec this out before we lose the thread?
 ## Assertions
 
 - [ ] Skill `to-spec` invoked
-  - if: {BENCHSPEC_ARM} != {BENCHSPEC_BASELINE}
+  - if: {BENCHSPEC_ARM} != "baseline"

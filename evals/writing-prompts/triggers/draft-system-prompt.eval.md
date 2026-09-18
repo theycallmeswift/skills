@@ -8,6 +8,6 @@ writing the system prompt for our internal support triage LLM — accepts ticket
 ## Assertions
 
 - [ ] Skill `writing-prompts` invoked
-  - if: {BENCHSPEC_ARM} != {BENCHSPEC_BASELINE}
+  - if: {BENCHSPEC_ARM} != "baseline"
 - [ ] Skill `writing-agent-skills` not invoked
-  - if: {BENCHSPEC_ARM} != {BENCHSPEC_BASELINE}
+  - if: {BENCHSPEC_ARM} != "baseline"

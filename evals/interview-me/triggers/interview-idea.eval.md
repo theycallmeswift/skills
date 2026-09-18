@@ -8,4 +8,4 @@ interview me about my idea
 ## Assertions
 
 - [ ] Skill `interview-me` invoked
-  - if: {BENCHSPEC_ARM} != {BENCHSPEC_BASELINE}
+  - if: {BENCHSPEC_ARM} != "baseline"

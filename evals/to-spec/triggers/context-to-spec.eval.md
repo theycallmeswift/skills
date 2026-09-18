@@ -18,4 +18,4 @@ synthesize everything we just figured out into a spec file
 ## Assertions
 
 - [ ] Skill `to-spec` invoked
-  - if: {BENCHSPEC_ARM} != {BENCHSPEC_BASELINE}
+  - if: {BENCHSPEC_ARM} != "baseline"

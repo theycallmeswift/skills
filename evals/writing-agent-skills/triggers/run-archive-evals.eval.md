@@ -8,4 +8,4 @@ run the eval suite for the archive skill on sonnet
 ## Assertions
 
 - [ ] Skill `writing-agent-skills` invoked
-  - if: {BENCHSPEC_ARM} != {BENCHSPEC_BASELINE}
+  - if: {BENCHSPEC_ARM} != "baseline"

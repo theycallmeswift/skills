@@ -64,7 +64,7 @@ way it ends a manual-stop session.
 ## Assertions
 
 - [ ] Skill `interview-me` invoked
-  - if: {BENCHSPEC_ARM} != {BENCHSPEC_BASELINE}
+  - if: {BENCHSPEC_ARM} != "baseline"
 - [ ] Now that the user has said stop, the skill halts and emits a final "Shared Understanding" synthesis block covering decided / key facts / non-goals / open questions.
 - [ ] The skill stops at the user's command and does not keep asking new design questions after the explicit stop.
 - [ ] The skill does NOT pose a catch-all "anything we missed / anything else" open question — the modes-B/C catch-all does not apply in mode A, so the user's explicit stop ends the interview immediately.

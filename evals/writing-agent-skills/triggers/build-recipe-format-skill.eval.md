@@ -8,4 +8,4 @@ build a skill for our cookbook plugin called `recipe-format` that ensures all re
 ## Assertions
 
 - [ ] Skill `writing-agent-skills` invoked
-  - if: {BENCHSPEC_ARM} != {BENCHSPEC_BASELINE}
+  - if: {BENCHSPEC_ARM} != "baseline"
