@@ -1,0 +1,77 @@
+#!/usr/bin/env bash
+# Stand-in for the Codex CLI inside the eval VM. Logs every `exec` call (argv + stdin) to
+# /workspace/.fake-codex/calls.log, replays canned output from $FAKE_CODEX_DIR, and emits
+# the same JSONL event shapes as codex-cli 0.144.
+set -u
+DATA="${FAKE_CODEX_DIR:-/opt/fake-codex}"
+LOG_DIR=/workspace/.fake-codex
+THREAD=0199a1b2-c3d4-7e5f-8a9b-0c1d2e3f4a5b
+
+case "${1:-}" in
+  --version) echo "codex-cli 0.144.1"; exit 0 ;;
+  login)
+    if [ "${2:-}" = "status" ]; then
+      if [ -f "$DATA/logged-out" ]; then echo "Not logged in" >&2; exit 1; fi
+      echo "Logged in using ChatGPT"; exit 0
+    fi
+    echo "fake codex: interactive login is unavailable here" >&2; exit 1 ;;
+  exec) shift ;;
+  *) echo "fake codex: unsupported command: $*" >&2; exit 2 ;;
+esac
+
+mode=implement; out=""; cd_dir="$PWD"; args=("$@"); prompt=""; dash=0
+[ "${1:-}" = "resume" ] && mode=resume
+i=0
+while [ $i -lt ${#args[@]} ]; do
+  a="${args[$i]}"
+  case "$a" in
+    -o|--output-last-message|--output-schema|-m|--model|-p|--profile|--color|-i|--image)
+      [ "$a" = -o ] || [ "$a" = --output-last-message ] && out="${args[$((i+1))]}"
+      i=$((i+1)) ;;
+    -C|--cd) i=$((i+1)); cd_dir="${args[$i]}" ;;
+    -s|--sandbox) i=$((i+1)); [ "${args[$i]}" = read-only ] && [ "$mode" != resume ] && mode=review ;;
+    -c|--config|--add-dir|--enable|--disable) i=$((i+1)) ;;
+    --sandbox=read-only|-s=read-only) mode=review ;;
+    -) dash=1 ;;
+    -*|resume|exec) ;;
+    *) prompt="$a" ;;
+  esac
+  i=$((i+1))
+done
+
+# Like the real CLI: stdin is the prompt for `-`, or when no prompt argument was given.
+if [ $dash = 1 ] || [ -z "$prompt" ]; then stdin_text="$(cat)"; else stdin_text="$prompt"; fi
+mkdir -p "$LOG_DIR"
+n=$(( $(ls "$LOG_DIR" | grep -c '^call-' || true) + 1 ))
+{
+  echo "=== codex exec call $n (mode: $mode) ==="
+  echo "argv: codex exec ${args[*]}"
+  echo "--- stdin ---"
+  printf '%s\n' "$stdin_text"
+  echo "--- end stdin ---"
+} | tee "$LOG_DIR/call-$n.txt" >> "$LOG_DIR/calls.log"
+
+if [ -f "$DATA/logged-out" ]; then
+  echo '{"type":"error","message":"Not logged in. Run `codex login` to authenticate."}'
+  echo "Error: Not logged in. Run \`codex login\` to authenticate." >&2
+  exit 1
+fi
+
+sleep 2
+# A scenario ships canned output for the mode it is about; replay that one even when the
+# caller picked other flags, so a differently-flagged call still gets a realistic reply.
+src="$DATA/$mode"
+if [ ! -d "$src" ]; then
+  for m in review implement resume; do [ -d "$DATA/$m" ] && { src="$DATA/$m"; break; }; done
+fi
+if [ -d "$src/files" ]; then cp -R "$src/files/." "$cd_dir/"; fi
+last="$(cat "$src/last.md" 2>/dev/null || echo "STATUS: DONE")"
+[ -n "$out" ] && printf '%s\n' "$last" > "$out"
+
+esc() { sed -e 's/\\/\\\\/g' -e 's/"/\\"/g' | awk 'BEGIN{ORS="\\n"} {print}'; }
+echo "{\"type\":\"thread.started\",\"thread_id\":\"$THREAD\"}"
+echo '{"type":"turn.started"}'
+echo "{\"type\":\"item.completed\",\"item\":{\"id\":\"item_0\",\"type\":\"agent_message\",\"text\":\"$(printf '%s' "$last" | esc)\"}}"
+echo '{"type":"turn.completed","usage":{"input_tokens":41210,"cached_input_tokens":30720,"output_tokens":2210,"reasoning_output_tokens":640}}'
+printf '%s\n' "$last"  >&2
+exit 0

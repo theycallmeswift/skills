@@ -73,7 +73,7 @@ Hermes loads repo-local skills from `./.agents/skills` in a project you've marke
 ```bash
 cd /path/to/mechaswift
 hermes skills trust        # once per checkout
-hermes skills list         # the four skills show as project skills
+hermes skills list         # the skills show as project skills
 ```
 
 Edits to `skills/` are live in the next session. To try a skill against some other project instead, link the skill directories into `~/.hermes/skills/<name>`.
@@ -86,7 +86,7 @@ The runner is [benchspec](https://pypi.org/project/benchspec/), a pytest plugin 
 
 **Requirements for a graded run:** an Apple Silicon Mac or Linux with `/dev/kvm`, microsandbox (installed with benchspec), and credentials in `.env` (copy `.env.example`): `CLAUDE_CODE_OAUTH_TOKEN` or `ANTHROPIC_API_KEY` for the agent and judge, and `GEMINI_API_KEY` for benchspec's assertion binder. The first run builds a VM snapshot (a few minutes); later runs reuse it.
 
-**One eval set**, `default` in `pyproject.toml`: a `baseline` arm runs the agent bare and a `trial` arm runs it with the whole plugin loaded (`harness_args = ["--plugin-dir", "/project"]`, the staged copy of this repo), both on `claude-code` / `sonnet`. No `setup.sh` anywhere — loading the plugin is the install. Two kinds of eval run in it, and they differ only in what they assert:
+**One eval set**, `default` in `pyproject.toml`: a `baseline` arm runs the agent bare and a `trial` arm runs it with the whole plugin loaded (`harness_args = ["--plugin-dir", "/project"]`, the staged copy of this repo), both on `claude-code` / `sonnet`. Loading the plugin is the install, so no eval uses `setup.sh` to install skills. The one exception is `setup.sh` for environment, which runs identically on both arms (see [Evals that need an external CLI](#evals-that-need-an-external-cli)). Two kinds of eval run in it, and they differ only in what they assert:
 
 - **Output evals** (`evals/<skill>/<scenario>/eval.md`) grade the work: the files written and the final message. The delta is what the plugin taught.
 - **Routing evals** (`evals/<skill>/triggers/` and `not-triggers/`) are the same format with the verbatim user ask as the prompt and one `` Skill `X` invoked `` / `` not invoked `` line per skill that has a stake in it, graded deterministically from the agent's dispatches. Every query lives once, under the skill it should route to (`triggers/`) or, when no skill in the plugin owns it, under the first skill whose suite listed it as a near-miss (`not-triggers/`); a later skill that shares the vocabulary adds its own line to that file rather than duplicating the query, since benchspec keys evals on (folder, file stem) across the whole run. On the trial arm every description competes with its real peers; the baseline column is uninformative for them (an uninstalled skill can't fire) and just rides along. Positives that presuppose a prior design discussion carry a short `history:` recap so the ask refers to something.
@@ -96,6 +96,26 @@ The runner is [benchspec](https://pypi.org/project/benchspec/), a pytest plugin 
 **Authoring loop.** `make evals:lint` is free and static. `uv run --group evals benchspec analyze` asks the binder which assertions grade deterministically. `make evals SKILL=<name> EVAL_ARGS="--collect-only -q"` lists the cells without spawning anything — do this before any run broader than one eval, because every cell is a VM boot plus an agent call, and every punted assertion is a judge call. The format reference is `docs/writing-evals.md` in the benchspec repo; the design methodology (scenarios, discriminating assertions, RED → GREEN → REFACTOR) is `skills/writing-agent-skills/references/evaluating-skills.md`.
 
 **Recording results.** Runs write `tmp/evals/iteration_NN/benchmark.md` (git-ignored). When a skill lands or changes, copy that report to `docs/evals/<skill>.md` so the last measured baseline and delta travel with the repo.
+
+### Evals that need an external CLI
+
+The eval VM is bare Ubuntu with the agent installed: no `python3`, no `git`, and no third-party CLIs or their credentials. `evals/delegating-to-codex/` shows the pattern for a skill that drives an external tool:
+
+- Each scenario's `setup.sh` runs `bash ../_harness/install.sh` from the scenario folder. It installs `python3` and `git` if they're missing, puts `_harness/fake-codex` on PATH as `codex`, turns `/workspace` into a git repo, and installs a `post-commit` hook. The script is identical for both arms, so it provisions the environment and never the skill.
+- The fake replays canned output from the scenario's `fake/<mode>/` (`last.md`, plus `files/` it copies into the worktree). It logs every call's argv and stdin to `./.fake-codex/calls.log`. The hook logs commits to `./.fake-codex/commits.log`. Assertions grade those files deterministically, which avoids asking the judge about commands it can't see.
+- `fake/logged-out` makes `codex login status` fail. A `base/` folder becomes the `main` commit, and the seeded workspace becomes a `feature` branch on top of it, which is what review scenarios diff against.
+
+## Delegating to Codex
+
+`delegating-to-codex` needs the Codex CLI on PATH and signed in (`codex login`; check with `codex login status`). Job state lives outside the repo, under the first root that is set:
+
+| Harness | Root |
+|---|---|
+| Claude Code | `$CLAUDE_PLUGIN_DATA/codex-jobs/` (the plugin's persistent data dir) |
+| Hermes | `$HERMES_HOME/mechaswift/codex-jobs/` |
+| Anything else (Codex, OpenCode, a shell) | `${XDG_STATE_HOME:-~/.local/state}/mechaswift/codex-jobs/` |
+
+Under that root, each worktree gets its own `<repo>-<hash>/` folder, and the 50 newest jobs are kept. The script refuses to run inside Codex itself (`CODEX_THREAD_ID` is set there), so the skill can't delegate to itself through `.agents/skills`.
 
 ## Further reading
 
