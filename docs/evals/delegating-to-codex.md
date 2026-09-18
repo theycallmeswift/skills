@@ -2,7 +2,7 @@
 
 Recorded 2026-09-18 from `iteration_08` (benchspec 0.0.4, Claude Code 2.1.276 in the guest; baseline bare, trial with the plugin loaded via `--plugin-dir`, sonnet, one sample per cell). The shared `writing-prompts` query comes from `iteration_06`. Re-run with `make evals SKILL=delegating-to-codex`.
 
-The guest has no Codex. Every scenario's `setup.sh` runs `_harness/install.sh`, which puts a fake `codex` on PATH, logs each call's argv and stdin to `./.fake-codex/calls.log`, and logs commits to `./.fake-codex/commits.log`. Most assertions grade those logs deterministically.
+The guest has no Codex, and the scenarios use a fake one on purpose. What's graded is the orchestrator's behavior (flags, verification, judgment), and one scenario needs a planted bogus finding, which real Codex won't produce on demand. Also, benchspec only injects the agent-under-test's credentials at the network boundary, so an OpenAI key would sit readable in the guest. Drift in the real CLI is covered by an opt-in live test instead (`tests/skills/delegating-to-codex/scripts/test_codex_run_live.py`; see `docs/development.md`). Every scenario's `setup.sh` runs `_harness/install.sh`, which puts a fake `codex` on PATH, logs each call's argv and stdin to `./.fake-codex/calls.log`, and logs commits to `./.fake-codex/commits.log`. Most assertions grade those logs deterministically.
 
 ## Output evals — baseline vs trial
 
@@ -14,30 +14,21 @@ The guest has no Codex. Every scenario's `setup.sh` runs `_harness/install.sh`, 
 | codex-logged-out | 2/4 (50%) | 4/4 (100%) | +50pp |
 | **All (pooled)** | 19/33 (58%) | 33/33 (100%) | +42pp |
 
-## Routing evals — trial arm: 20/20
+## Routing evals — trial arm: 9/9
 
-| Query | Expected | Result |
-|---|---|---|
-| codex-adversarial-review | delegating-to-codex invoked | pass |
-| codex-background-refactor | delegating-to-codex invoked | pass |
-| codex-implement-task | delegating-to-codex invoked | pass |
-| codex-job-status | delegating-to-codex invoked | pass |
-| codex-second-opinion | delegating-to-codex invoked | pass |
-| continue-plan-codex-task | delegating-to-codex invoked | pass |
-| delegate-migration | delegating-to-codex invoked | pass |
-| have-codex-review | delegating-to-codex invoked | pass |
-| other-model-family | delegating-to-codex invoked | pass |
-| send-findings-back | delegating-to-codex invoked | pass |
-| codex-config-effort | delegating-to-codex not invoked | pass |
-| codex-eperm-debug | delegating-to-codex not invoked | pass |
-| codex-vs-claude-code | delegating-to-codex not invoked | pass |
-| gemini-review | delegating-to-codex not invoked | pass |
-| install-codex-cli | delegating-to-codex not invoked | pass |
-| port-plugin-to-codex | delegating-to-codex not invoked | pass |
-| review-codex-pr | delegating-to-codex not invoked | pass |
-| review-my-branch | delegating-to-codex not invoked | pass |
-| subagent-implement | delegating-to-codex not invoked | pass |
-| writing-prompts/agents-md-for-codex | writing-prompts invoked, delegating-to-codex not invoked | pass |
+Four positives and four near-misses, each on a boundary the description has to hold, plus one shared query owned by `writing-prompts`. The set was trimmed from 20 after review; these rows are the survivors' results from the same run.
+
+| Query | Boundary | Expected | Result |
+|---|---|---|---|
+| have-codex-review | user names Codex | invoked | pass |
+| continue-plan-codex-task | plan assigns Codex; the ask doesn't name it | invoked | pass |
+| send-findings-back | follow-up into an existing Codex job | invoked | pass |
+| codex-job-status | managing a running job | invoked | pass |
+| review-my-branch | same ask, Codex not named: never pick it unprompted | not invoked | pass |
+| review-codex-pr | Codex wrote it; reviewing it yourself | not invoked | pass |
+| codex-eperm-debug | debugging Codex itself | not invoked | pass |
+| gemini-review | a different model | not invoked | pass |
+| writing-prompts/agents-md-for-codex | editing context Codex reads | writing-prompts invoked, this skill not | pass |
 
 ## Notes
 
@@ -57,6 +48,5 @@ Every miss on the baseline side is one of those, plus the activation line.
 - The fake Codex fails `exec` when logged out.
 - A call with unexpected flags gets the scenario's canned reply rather than a generic one.
 - The fake reads stdin only for `-` or when no prompt argument is given, as the real CLI does. Before that fix it hung whenever the baseline passed the prompt as an argument in a backgrounded shell, which dragged the baseline down to 10–20% on one scenario.
-- Two trigger queries that referred to "the plan" and "what you just wrote" gained `history:` recaps. In an empty session the agent correctly asked what to act on and said it would use the skill next.
 
 **Honesty caveat.** `/project` is mounted read-only on both arms. In one pre-fix run, a baseline agent stuck on the hung fake found `skills/delegating-to-codex/scripts/codex_run.py` there and used it. The recorded run shows no such contamination, but a baseline that goes looking can find the skill.

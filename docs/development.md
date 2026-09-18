@@ -117,6 +117,12 @@ The eval VM is bare Ubuntu with the agent installed: no `python3`, no `git`, and
 
 Under that root, each worktree gets its own `<repo>-<hash>/` folder, and the 50 newest jobs are kept. The script refuses to run inside Codex itself (`CODEX_THREAD_ID` is set there), so the skill can't delegate to itself through `.agents/skills`.
 
+The evals and unit tests use a fake `codex`, so nothing in `make test` notices when the real CLI changes (renamed flags, `exec resume` options, event shapes). An opt-in live test runs implement → resume → review against the real CLI at low effort (about two minutes and a few cents). Run it before bumping the Codex version you rely on:
+
+```bash
+CODEX_LIVE=1 PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 uv run pytest tests/skills/delegating-to-codex
+```
+
 ## Further reading
 
 - `AGENTS.md` — working rules for agents editing this repo.
