@@ -1,19 +1,22 @@
 # writing-agent-skills — eval record
 
-Recorded 2026-09-04 from `iteration_25`, `iteration_27` (benchspec 0.0.1, Claude Code in the guest; baseline bare, trial with the plugin loaded via `--plugin-dir`, sonnet). Re-run with `make evals SKILL=writing-agent-skills`.
+Recorded 2026-09-18 from `iteration_06` (benchspec 0.0.4, Claude Code in the guest; baseline bare, trial with the plugin loaded via `--plugin-dir`, sonnet, `--count 3`). Re-run with `make evals SKILL=writing-agent-skills EVAL_ARGS="--count 3"`.
+
+Activation lines (`` Skill `…` invoked ``) are scoped off baseline and excluded from the output tallies, so these rates don't compare 1:1 with the 2026-09-04 record.
 
 ## Output evals — baseline vs trial
 
 | Eval | baseline | trial | Δ |
 |---|---|---|---|
-| build-commit-message-skill | 0/8, 1/8, 1/8 (8%) | 6/8, 7/8, 7/8 (83%) | +75pp |
-| db-migrate-internals-trap | 1/6 (16%) | 4/6 (66%) | +50pp |
-| improve-changelog-skill | 5/6, 5/6, 4/6 (77%) | 6/6, 5/6, 6/6 (94%) | +17pp |
-| react-conventions-followthrough | 2/3 (66%) | 2/3 (66%) | +0pp |
-| react-conventions-trap | 1/5 (20%) | 5/5 (100%) | +80pp |
-| **All (pooled)** | 20/56 (35%) | 48/56 (85%) | +50pp |
+| build-commit-message-skill | 9/21 (43%) | 20/21 (95%) | +52pp |
+| db-migrate-internals-trap | 4/15 (27%) | 5/15 (33%) | +7pp |
+| improve-changelog-skill | 14/15 (93%) | 15/15 (100%) | +7pp |
+| react-conventions-trap | 0/12 (0%) | 12/12 (100%) | +100pp |
+| **All (pooled)** | 27/63 (42%) | 52/63 (82%) | +40pp |
 
-## Routing evals — trial arm: 13/15
+Pooled sums assertions; `benchmark.md`'s headline averages per-eval rates.
+
+## Routing evals — trial arm: 14/15
 
 | Query | Expected | Result |
 |---|---|---|
@@ -29,20 +32,18 @@ Recorded 2026-09-04 from `iteration_25`, `iteration_27` (benchspec 0.0.1, Claude
 | run-trigger-evals-ingest | writing-agent-skills invoked | pass |
 | scaffold-notion-sync | writing-agent-skills invoked | pass |
 | setup-changelog-evals | writing-agent-skills invoked | pass |
-| skill-name-choice | writing-agent-skills invoked · writing-prompts not invoked | **flaky** (2/3) |
+| skill-name-choice | writing-agent-skills invoked · writing-prompts not invoked | pass |
 | split-wiki-skill | writing-agent-skills invoked | pass |
-| todo-list-skill-or-claude-md | writing-agent-skills invoked · writing-prompts not invoked | **fail** |
+| todo-list-skill-or-claude-md | writing-agent-skills invoked · writing-prompts not invoked | **fail** (0/3) |
 
 ## Notes
 
-**`build-commit-message-skill` — two recurring discipline gaps.** Over the 3× re-sample every trial sample writes a full SKILL.md scaffold (no RED-gate hesitation or refusal this time), and what it misses is consistent: the skill is named `commit-message` (a noun, where the conventions want verb-first or gerund) in two of three, and `writing-prompts` is neither invoked nor recommended for the description in two of three despite the REQUIRED SUB-SKILL marker. Both are gaps in the skill body, not in the eval.
+**`writing-prompts` holds where the skill writes a SKILL.md.** The unchanged body passes the process line 9/9 across build-commit, improve-changelog, and react-conventions-trap at n=3; consolidating the repeated mandates into one §5 step dropped it to 4/9, so the repetition stays. It is still 0/9 on `db-migrate-internals-trap` (see below).
 
-**`writing-prompts` is skipped across scenarios.** The `db-migrate-internals-trap` process line misses for the same reason, and that sample also stopped at analysis without a concrete artifact.
+**Skill names: noun form in 1 of 3.** `build-commit-message-skill`'s name line misses in one sample (`commit-message`). An inline verb/gerund rule in §2 had no measured effect and was not kept. Open gap.
 
-**`improve-changelog-skill` — the length cut is the flaky line.** The description is broadened every time; whether the 200-line body also gets shortened varies sample to sample.
+**`db-migrate-internals-trap` often stops at clarifying questions.** Samples flag the cross-skill import but end on questions instead of a design or eval plan, missing the artifact and `writing-prompts` lines. High variance: a trial re-sample scored 7/15, a control on the prior description 8/15.
 
-**`react-conventions-followthrough` activation fails by design.** The substantive assertions pass on both arms (the file is written with the agreed conventions). The agent reasons that writing a `docs/style/` reference is not skill-building and skips the skill — exactly what the skill's "When NOT to create a skill" section tells it — and the history turn where the skill fired is rendered as text, not session state, so nothing in the graded turn can satisfy the activation line. The substantive assertions discriminate; the activation line cannot.
+**`react-conventions-followthrough` removed.** Once the user agrees conventions aren't a skill, loading the skill would be wrong, so its activation line rewarded a mistake; bare agents already write the doc (6/6). `react-conventions-trap` still grades the pushback.
 
-**Routing.** Ten of this skill's fifteen queries are its own upstream positives; the other five are `writing-prompts` upstream negatives that are really this skill's asks (build/fix/scaffold/restructure work, two skill-or-CLAUDE.md advice questions, and the overlap "draft the SKILL.md for a `pr-review` skill", which both descriptions claim and this skill wins with both loaded). Every build/fix/scaffold/eval/restructure ask routes here. **The advisory asks don't route reliably**: "what's the right name for a skill that runs `make test`?" fires 3 of 4 samples and "do I need a skill for my todo list, or just CLAUDE.md?" 0 of 4, while `writing-prompts` correctly stays quiet on both every time. The body owns both calls — the "When NOT to create a skill" section and the naming rule — but the description advertises neither.
-
-**The other side of the boundary holds.** `writing-prompts`' ten routing files now each carry a "`writing-agent-skills` not invoked" line; run with both skills loaded they score 9/10, every one of those lines passing, the miss being `writing-prompts`' own sonnet boundary on `writing-tests-doc`.
+**Routing.** The description now claims deciding whether something should be a skill, and naming one; `skill-name-choice` went from 0/3 on the prior description to 3/3. "Do I need a skill for my todo list, or just CLAUDE.md?" stays 0/3 across every wording tried, with `writing-prompts` correctly quiet; recorded as a sonnet boundary.
