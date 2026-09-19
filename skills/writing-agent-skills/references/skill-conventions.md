@@ -239,17 +239,9 @@ If the skill needs harness-specific behavior, isolate it behind a single decisio
 
 ## Persistent state and external CLIs
 
-**State a script keeps between calls lives outside the skill directory and the user's repo.** The skill directory is replaced on update, and the repo gets committed. Resolve one root through a single function, taking the most specific location the harness offers:
-
-1. `$CLAUDE_PLUGIN_DATA` (Claude Code's persistent per-plugin directory, already namespaced).
-2. `$HERMES_HOME/<plugin>`.
-3. `${XDG_STATE_HOME:-~/.local/state}/<plugin>`. This covers OpenCode, Codex and plain shells, which expose no data-dir variable to subprocesses.
-
-Never store state under `CLAUDE_PLUGIN_ROOT`, which is wiped on update, or `CODEX_HOME`, which isn't passed to subprocesses. Key per-project state by a hash of the worktree root, cap how much you keep, and prune the oldest. Harness session variables (`CLAUDE_CODE_SESSION_ID`, `CODEX_THREAD_ID`) are useful for filtering and guards but optional, so the script must still work when they're unset.
-
-**When wrapping another agent's CLI, pass task settings explicitly and inherit the user's policy.** Settings that shape one task (reasoning effort, sandbox, network, service tier) go on every call. Otherwise a user's config default, such as `effort = "ultra"`, silently decides the cost of a cheap review. Model is the exception: pass it only when the task needs a specific one, so no model names sit in the skill to go stale. User policy (attribution, instructions files, MCP servers, auth, profiles) comes from the user's own config. Never pass an "ignore user config" flag. Turn on the tool's strict-config mode when it has one, so a mistyped override fails the run rather than being dropped.
-
-**Evals for a skill that drives an external CLI replace the CLI with a fake.** A clean-room eval has neither the binary nor its credentials. Install a fake on PATH in per-eval setup (identical on every arm). It should log each call's argv and stdin to a file in the workspace and replay canned output. Then assert on the log: "the recorded call contains `--sandbox read-only`" grades deterministically, and a judge can't see which commands ran anyway.
+- **State lives outside the skill dir and the repo.** Resolve one root: `$CLAUDE_PLUGIN_DATA`, else `$HERMES_HOME/<plugin>`, else `${XDG_STATE_HOME:-~/.local/state}/<plugin>`. Never `CLAUDE_PLUGIN_ROOT` (wiped on update). Key by worktree hash; prune old entries.
+- **Wrapping another agent's CLI:** pass task settings (effort, sandbox, network) on every call; inherit user policy (auth, attribution, instructions). Pass a model only when the task needs one. Enable strict config if offered.
+- **Evals fake the CLI.** Per-eval setup puts a scripted fake on PATH that logs argv and prompt to a workspace file; assert on the log.
 
 ## Content discipline
 
