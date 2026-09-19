@@ -1,20 +1,20 @@
 # interview-me — eval record
 
-Recorded 2026-09-04 from `iteration_30`, `iteration_32` (benchspec 0.0.1, Claude Code in the guest; baseline bare, trial with the plugin loaded via `--plugin-dir`, sonnet). Re-run with `make evals SKILL=interview-me`.
+Recorded 2026-09-18 from `iteration_10` (benchspec 0.0.4, Claude Code in the guest; baseline bare, trial with the plugin loaded via `--plugin-dir`, sonnet, `--count 3`). Re-run with `make evals SKILL=interview-me EVAL_ARGS="--count 3"`. Activation lines (`Skill … invoked`) are scoped off baseline and excluded from these tallies.
 
 ## Output evals — baseline vs trial
 
 | Eval | baseline | trial | Δ |
 |---|---|---|---|
-| catch-all-pose | 3/5, 3/5, 3/5 (60%) | 3/5, 3/5, 3/5 (60%) | +0pp |
-| catch-all-reopen | 3/3 (100%) | 3/3 (100%) | +0pp |
-| catch-all-skip | 4/5 (80%) | 5/5 (100%) | +20pp |
-| interview-ambiguous-mode | 3/5 (60%) | 5/5 (100%) | +40pp |
-| interview-handoff-to-spec | 5/6 (83%) | 6/6 (100%) | +17pp |
-| interview-manual-stop | 5/6 (83%) | 6/6 (100%) | +17pp |
-| **All (pooled)** | 29/40 (72%) | 34/40 (85%) | +13pp |
+| catch-all-pose | 8/12 (67%) | 10/12 (83%) | +16pp |
+| catch-all-reopen | 6/6 (100%) | 6/6 (100%) | +0pp |
+| catch-all-skip | 9/12 (75%) | 12/12 (100%) | +25pp |
+| interview-ambiguous-mode | 9/12 (75%) | 12/12 (100%) | +25pp |
+| interview-handoff-to-spec | 10/15 (67%) | 15/15 (100%) | +33pp |
+| interview-manual-stop | 10/15 (67%) | 15/15 (100%) | +33pp |
+| **All (pooled)** | 52/72 (72%) | 70/72 (97%) | +25pp |
 
-## Routing evals — trial arm: 18/18
+## Routing evals — trial arm: 16/18 at 3/3, 2 at 2/3
 
 | Query | Expected | Result |
 |---|---|---|
@@ -22,12 +22,12 @@ Recorded 2026-09-04 from `iteration_30`, `iteration_32` (benchspec 0.0.1, Claude
 | brainstorm-feature | interview-me not invoked | pass |
 | interview-notes-summary | interview-me not invoked | pass |
 | job-interview-prep | interview-me not invoked | pass |
-| to-spec-spec-out | interview-me not invoked | pass |
+| to-spec-spec-out | interview-me not invoked | 2/3 |
 | to-spec-writeup | interview-me not invoked | pass |
 | writing-plans-impl | interview-me not invoked | pass |
 | writing-prompts-wordsmith | interview-me not invoked | pass |
 | goal-bounded | interview-me invoked | pass |
-| grill-legacy | interview-me invoked | pass |
+| grill-legacy | interview-me invoked | 2/3 |
 | grill-resolve | interview-me invoked | pass |
 | interview-idea | interview-me invoked | pass |
 | interview-until-stop | interview-me invoked | pass |
@@ -39,10 +39,10 @@ Recorded 2026-09-04 from `iteration_30`, `iteration_32` (benchspec 0.0.1, Claude
 
 ## Notes
 
-**Baselines run high by construction.** Five of the six scenarios are continuations: the scripted `history:` already shows an interview in progress, one question per turn with a table, so a bare agent keeps the pattern going and scores well on format. The deltas are therefore modest, and the skill's value shows up where the stop condition matters — converging on "stop", announcing the handoff without invoking `to-spec`, asking about the stop mode before any design question — which is exactly where trial reaches 100% and baseline drops a line.
+**Baselines run high by construction.** Five of the six scenarios are continuations: the scripted `history:` already shows an interview in progress, one question per turn with a table, so a bare agent keeps the pattern going and scores well on format. The skill's value shows up where the stop condition matters — converging on "stop", announcing the handoff without invoking `to-spec`, asking about the stop mode before any design question — which is exactly where trial reaches 100% and baseline drops a line.
 
-**`catch-all-pose` is the one soft spot.** Once the stated goal is resolved, the skill should pose exactly one open, prose-only "anything we haven't covered?" catch-all. The suite pass got it right (5/5); all three re-samples asked one more scoped question with an options table instead (3/5) — the §3 every-decision-gets-a-visual habit winning over the §5 carve-out, one clean sample in four.
+**`catch-all-pose`: improved, still noisy.** 2 of 3 samples clean here, 6 of 6 across two runs of a near-identical draft; control on the prior text 1 of 3. §3 now says an answered decision is settled and grilling stops at the gate. The scenario's goal reads "help me decide": under "stress-test that one call", probing once more is arguably right, so it could not isolate catch-all timing. The failing sample opens an adjacent branch (delayed jobs, retries) instead.
 
 **No refusals on multi-turn context.** None of the five `history:`-driven scenarios triggered the fabricated-transcript refusal benchspec's inline rendering can provoke; these recaps are dialogue the agent is asked to continue, not an approval it is asked to trust.
 
-**Routing: 18/18 of its own, and both shared queries hold.** Every "interview me / grill me / stress-test" positive fires; the near-misses — brainstorming, prompt tightening, implementation plans, job-interview prep, summarizing interview notes, the `to-spec` write-ups — all stay quiet with the full plugin loaded. Two upstream near-misses live under `to-spec` because that skill owns them ("turn this into a PRD" routes to `to-spec`, "tighten this prompt so it triggers reliably" to neither); both carry this skill's "not invoked" line and pass.
+**Routing: description unchanged.** `grill-legacy` and `to-spec-spec-out` each missed one sample; the control also missed `to-spec-spec-out` once. Near-misses (brainstorming, prompt tightening, implementation plans, job-interview prep, interview-note summaries, `to-spec` write-ups) otherwise stay quiet with the full plugin loaded.

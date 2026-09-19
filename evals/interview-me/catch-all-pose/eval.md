@@ -3,7 +3,7 @@ history:
 - role: user
   content: 'Interview me to scope this out before we commit: should our new
 
-    background-job runner use a Postgres-backed queue or Redis? Stress-test that
+    background-job runner use a Postgres-backed queue or Redis? Help me decide that
 
     one call with me — one question at a time, a visual on every decision — until
 
