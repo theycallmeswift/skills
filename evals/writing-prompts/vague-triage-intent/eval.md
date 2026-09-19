@@ -3,7 +3,7 @@
 
 ## Prompt
 
-Use the `writing-prompts` skill to draft the prompt below.
+Use the `writing-prompts` skill for the request below.
 
 We're getting flooded with support tickets and I want an LLM to help triage them. Can you
 write me a prompt for that?
@@ -12,11 +12,5 @@ write me a prompt for that?
 
 - [ ] Skill `writing-prompts` invoked
   - if: {BENCHSPEC_ARM} != "baseline"
-- [ ] Output contains an explicit role/task statement.
-- [ ] Output is third-person/imperative voice — no 'I'll help you...' or 'you'll get...'.
-- [ ] Output uses XML tags or other clear section delimiters (markdown headings count for doc-shaped outputs).
-- [ ] Output specifies the expected output shape (format, schema, or worked example).
-- [ ] Either the agent asks at least one scoping question before drafting, OR the draft surfaces its assumptions in writing (input shape, priority taxonomy, what 'triage' means here).
-- [ ] If a draft is produced, it defines a structured output shape — not free-form prose.
-- [ ] The draft does not lean on generic boilerplate phrases like 'You are a helpful AI assistant'.
-- [ ] Output ends with a tightened final version produced by an editorial pass.
+- [ ] The agent asks at least one scoping question (e.g. ticket source, priority taxonomy, what 'triage' means, who consumes the output).
+- [ ] Output contains no drafted prompt (no system prompt, template, or fenced prompt text) and the turn ends waiting on the user's answers.
