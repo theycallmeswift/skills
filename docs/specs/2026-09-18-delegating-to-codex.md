@@ -58,7 +58,7 @@ SKILL.md ─► codex_run.py preflight (codex on PATH, `codex login status`, COD
 ### Behavior
 - **Lifecycle** start → status → result → cancel works against a fake; cancel leaves edits.
 - **Guards** (missing, logged out, inside Codex, dirty worktree) exit non-zero with the fix.
-- **Real CLI** round trip (implement → resume → review) passes in an opt-in live test.
+- **Real CLI** round trip (implement → resume → review) passes in an opt-in e2e test.
 
 ### Interface
 - **Routing:** fires when Codex is named or plan-assigned; silent for unnamed reviews, reviewing Codex's work yourself, debugging Codex, other models.
@@ -66,8 +66,9 @@ SKILL.md ─► codex_run.py preflight (codex on PATH, `codex login status`, COD
 ## Documentation Plan
 
 - **`skill-conventions.md`**: persistent state, wrapping external CLIs, faking them in evals.
-- **`docs/development.md`**: Codex setup, job-state paths, fake layout, live test.
-- **`AGENTS.md`, `README.md`, `skills.sh.json`**: add the skill.
+- **`docs/development.md`**: `make test:e2e`.
+- **`evals/support/fake-codex/README.md`**: fake layout.
+- **`AGENTS.md`, `README.md`, `skills.sh.json`**: add the skill; README notes Codex must be signed in.
 - **`docs/evals/delegating-to-codex.md`**: recorded run.
 
 ## Out of Scope
@@ -87,4 +88,4 @@ SKILL.md ─► codex_run.py preflight (codex on PATH, `codex login status`, COD
 
 - `make test`, `make lint` — green.
 - `make evals SKILL=delegating-to-codex EVAL_ARGS="--count 3"` — trial beats baseline; routing passes.
-- `CODEX_LIVE=1 uv run pytest tests/skills/delegating-to-codex` — real round trip passes.
+- `make test:e2e` — real round trip passes.
