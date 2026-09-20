@@ -15,6 +15,7 @@ Self-contained — assumes no project-level conventions doc. Covers frontmatter,
 - [Evaluation and iteration](#evaluation-and-iteration)
 - [Discipline-enforcing skills](#discipline-enforcing-skills)
 - [Harness portability](#harness-portability)
+- [Persistent state and external CLIs](#persistent-state-and-external-clis)
 - [Content discipline](#content-discipline)
 - [Anti-patterns](#anti-patterns)
 - [References](#references)
@@ -235,6 +236,12 @@ Skills run across surfaces with different capabilities. The portable subset:
 - **Forward slashes only** in paths, never backslashes. Unix-style works everywhere; Windows-style breaks on Unix.
 
 If the skill needs harness-specific behavior, isolate it behind a single decision (mode flag, env var, root-definition section) instead of sprinkling conditionals through the workflow.
+
+## Persistent state and external CLIs
+
+- **State lives outside the skill dir and the repo.** Resolve one root: `$CLAUDE_PLUGIN_DATA`, else `$HERMES_HOME/<plugin>`, else `${XDG_STATE_HOME:-~/.local/state}/<plugin>`. Never `CLAUDE_PLUGIN_ROOT` (wiped on update). Key by worktree hash; prune old entries.
+- **Wrapping another agent's CLI:** pass task settings (effort, sandbox, network) on every call; inherit user policy (auth, attribution, instructions). Pass a model only when the task needs one. Enable strict config if offered.
+- **Evals fake the CLI.** Per-eval setup puts a scripted fake on PATH that logs argv and prompt to a workspace file; assert on the log.
 
 ## Content discipline
 
