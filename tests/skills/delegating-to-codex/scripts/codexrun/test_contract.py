@@ -60,12 +60,14 @@ def contract_workspace(tmp_path: Path) -> Iterator[ContractWorkspace]:
     with serve_stub(repo) as (stub, port):
         (codex_home / "config.toml").write_text(config(port))
         (codex_home / "auth.json").write_text('{"OPENAI_API_KEY":"sk-dummy-not-real"}\n')
-        env = {
-            **os.environ,
-            "CLAUDE_PLUGIN_DATA": str(state),
-            "CODEX_HOME": str(codex_home),
-            "STUB_API_KEY": "stub-key",
-        }
+        env: dict[str, str] = dict(os.environ)
+        env.update(
+            {
+                "CLAUDE_PLUGIN_DATA": str(state),
+                "CODEX_HOME": str(codex_home),
+                "STUB_API_KEY": "stub-key",
+            }
+        )
         env.pop("CODEX_THREAD_ID", None)
 
         yield ContractWorkspace(repo, inputs, state, codex_home, env, stub, port)

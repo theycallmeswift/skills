@@ -10,13 +10,12 @@ from collections.abc import Iterator
 from contextlib import contextmanager
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
-from typing import TypeAlias, TypedDict, cast
+from typing import Any, TypeAlias, TypedDict, cast
 
 from codexrun.state import JobMeta, Usage
 
 JsonValue: TypeAlias = None | bool | int | float | str | list["JsonValue"] | dict[str, "JsonValue"]
 JsonObject: TypeAlias = dict[str, JsonValue]
-LogArgument: TypeAlias = str | int | float
 
 
 class ResponseFormat(TypedDict, total=False):
@@ -97,13 +96,13 @@ class Stub:
     def _events(self, index: int, output: str) -> list[JsonObject]:
         """Build the Responses API events for one completed request."""
         response_id = f"resp-{index}"
-        item = {
+        item: JsonObject = {
             "type": "message",
             "role": "assistant",
             "id": f"msg-{index}",
             "content": [{"type": "output_text", "text": output}],
         }
-        usage = {
+        usage: JsonObject = {
             "input_tokens": USAGE["input_tokens"],
             "input_tokens_details": {"cached_tokens": USAGE["cached_input_tokens"]},
             "output_tokens": USAGE["output_tokens"],
@@ -159,8 +158,8 @@ def handler_for(stub: Stub) -> type[BaseHTTPRequestHandler]:
             self.end_headers()
             self.wfile.write(payload)
 
-        def log_message(self, format_string: str, *arguments: LogArgument) -> None:
-            """Suppress the base handler's stderr access log."""
+        def log_message(self, format: str, *args: Any) -> None:
+            """Suppress access logging; base parameter names preserve substitutability."""
             pass
 
     return Handler
@@ -175,7 +174,7 @@ def serve_stub(worktree: Path) -> Iterator[tuple[Stub, int]]:
     thread.start()
 
     try:
-        yield stub, cast(int, server.server_address[1])
+        yield stub, server.server_address[1]
     finally:
         server.shutdown()
         server.server_close()

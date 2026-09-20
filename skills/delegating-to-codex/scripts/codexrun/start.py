@@ -6,7 +6,7 @@ import os
 import subprocess
 import sys
 from pathlib import Path
-from typing import Protocol, cast
+from typing import Protocol, TypedDict
 
 from codexrun import ASSETS, UsageError
 from codexrun.argv import build_argv
@@ -27,7 +27,16 @@ from codexrun.state import (
 from codexrun.worker import spawn_worker
 
 INPUTS = ("brief", "context", "risks", "rules", "report")
-InputValues = dict[str, str | None]
+
+
+class InputValues(TypedDict):
+    """Contents read from the five supported orchestrator input files."""
+
+    brief: str
+    context: str | None
+    risks: str | None
+    rules: str | None
+    report: str | None
 
 
 class StartArgs(Protocol):
@@ -84,7 +93,17 @@ def _check_flags(args: StartArgs) -> None:
 
 def _read_inputs(args: StartArgs) -> InputValues:
     """Read all orchestrator-provided input files."""
-    return {name: _read_input(name, getattr(args, name)) for name in INPUTS}
+    brief = _read_input("brief", args.brief)
+    if brief is None:
+        raise UsageError(f"--brief is required for {args.mode}")
+
+    return {
+        "brief": brief,
+        "context": _read_input("context", args.context),
+        "risks": _read_input("risks", args.risks),
+        "rules": _read_input("rules", args.rules),
+        "report": _read_input("report", args.report),
+    }
 
 
 def _read_input(name: str, path: str | None) -> str | None:
@@ -135,7 +154,7 @@ def _resume_prompt(inputs: InputValues) -> str:
         names = ", ".join(ignored_flags)
         print(f"note: {names} ignored on --resume (the thread has them)", file=sys.stderr)
 
-    return build_resume_prompt(cast(str, inputs["brief"]))
+    return build_resume_prompt(inputs["brief"])
 
 
 def _require_clean(worktree: Path, exclude: frozenset[str]) -> None:

@@ -15,7 +15,7 @@ How to work on the plugin: environment, `make` targets, loading it into Claude C
 | `make install` | `uv sync` — creates `.venv` with the `dev` group (pytest, ruff). |
 | `make test` | Tests under `tests/`: plugin manifest checks, each skill's script tests, and the Codex contract test (needs `codex` installed; it runs the real binary against a fake API server on localhost — no credentials, no internet). Autoload is off so the benchspec plugin never leaks in. |
 | `make test:e2e` | Opt-in end-to-end tests against real external CLIs (today: `codex`, signed in). Skipped by `make test`. |
-| `make lint` | `ruff check .` |
+| `make lint` | `ruff check .` plus `ty check` — lint and type check. |
 | `make format` | `ruff format .` |
 | `make evals` | Skill evals, baseline vs trial, in microVMs. `SKILL=to-spec` scopes to `evals/to-spec`; `EVAL_ARGS="-n 6"` adds pytest args. |
 | `make evals:lint` | Static lint of eval assertions. No credentials, no sandbox. |

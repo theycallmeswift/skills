@@ -38,7 +38,6 @@ HOST_ENV = (
 JsonValue: TypeAlias = None | bool | int | float | str | list["JsonValue"] | dict[str, "JsonValue"]
 JsonObject: TypeAlias = dict[str, JsonValue]
 JobMetaValue: TypeAlias = str | int | list[str] | Usage | None
-BuildArg: TypeAlias = str | bool | Path | None
 
 
 class CodexCall(TypedDict):
@@ -178,7 +177,8 @@ class Repo:
         """Initialize repository, input, and isolated state paths."""
         self.path = root / "repo"
         self.inputs = root / "inputs"
-        self.env = {**os.environ, "CLAUDE_PLUGIN_DATA": str(root / "state")}
+        self.env: dict[str, str] = dict(os.environ)
+        self.env["CLAUDE_PLUGIN_DATA"] = str(root / "state")
         self.env.pop("CODEX_THREAD_ID", None)
 
     def git(self, *args: str) -> str:
@@ -195,8 +195,9 @@ class Repo:
 
     def codex_run(self, *args: str) -> subprocess.CompletedProcess[str]:
         """Run the wrapper CLI and require a successful exit."""
+        command: list[str] = [sys.executable, str(SCRIPT), *args, "--cd", str(self.path)]
         result = subprocess.run(
-            [sys.executable, str(SCRIPT), *args, "--cd", str(self.path)],
+            command,
             capture_output=True,
             text=True,
             env=self.env,
@@ -227,10 +228,25 @@ def argv(
     *,
     worktree: Path,
     job_dir: Path,
-    **kwargs: BuildArg,
+    effort: str,
+    model: str | None = None,
+    tier: str | None = None,
+    network: bool = False,
+    thread_id: str | None = None,
+    schema: Path | None = None,
 ) -> list[str]:
     """Build argv with concise defaults for unit tests."""
-    return build_argv(mode, worktree=worktree, job_dir=job_dir, **kwargs)
+    return build_argv(
+        mode,
+        worktree=worktree,
+        job_dir=job_dir,
+        effort=effort,
+        model=model,
+        tier=tier,
+        network=network,
+        thread_id=thread_id,
+        schema=schema,
+    )
 
 
 def jsonl(*events: JsonObject) -> str:
