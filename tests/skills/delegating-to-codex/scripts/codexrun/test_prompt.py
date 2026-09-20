@@ -1,0 +1,64 @@
+"""Tests for prompt assembly and review diff presentation."""
+
+from __future__ import annotations
+
+from codexrun.prompt import INLINE_MAX_BYTES, build_prompt, build_resume_prompt
+from codexrun.prompt import render_diff_section as render
+from support.codex import diff_info, headings
+
+IMPLEMENT_SECTIONS = ["TASK TEMPLATE", "RULES", "BRIEF", "CONTEXT", "NAMED RISKS"]
+REVIEW_SECTIONS = [
+    "TASK TEMPLATE",
+    "RULES",
+    "BRIEF",
+    "CONTEXT",
+    "IMPLEMENTER REPORT",
+    "NAMED RISKS",
+    "DIFF",
+]
+ALL_INPUTS = {"rules": "R", "context": "C", "report": "REP", "risks": "RISK", "diff": "D"}
+
+
+def test_implement_sections_in_order_without_review_ones():
+    prompt = build_prompt("implement", template="TEMPLATE", brief="BRIEF TEXT", **ALL_INPUTS)
+    assert headings(prompt) == IMPLEMENT_SECTIONS
+    assert "TEMPLATE" in prompt and "BRIEF TEXT" in prompt
+
+
+def test_review_sections_in_order():
+    prompt = build_prompt("review", template="T", brief="B", **ALL_INPUTS)
+    assert headings(prompt) == REVIEW_SECTIONS
+
+
+def test_missing_optional_sections_are_omitted():
+    prompt = build_prompt("implement", template="T", brief="B")
+    assert headings(prompt) == ["TASK TEMPLATE", "BRIEF"]
+
+
+def test_resume_prompt_is_just_the_brief():
+    prompt = build_resume_prompt("Fix finding 1.\n")
+    assert headings(prompt) == ["BRIEF"]
+    assert "Fix finding 1." in prompt
+
+
+def test_small_diff_is_inlined():
+    section = render(diff_info(["a.py", "b.py"], "diff --git a/a.py b/a.py\n+x\n"))
+    assert "diff --git a/a.py b/a.py" in section
+    assert "- a.py" in section and "- b.py" in section
+
+
+def test_diff_over_two_files_is_replaced_by_the_command():
+    section = render(diff_info(["a", "b", "c"], "diff --git SECRET-DIFF-BODY\n"))
+    assert "SECRET-DIFF-BODY" not in section
+    assert "git diff abc123" in section
+
+
+def test_diff_over_the_size_limit_is_replaced_by_the_command():
+    section = render(diff_info(["a"], "+" + "y" * INLINE_MAX_BYTES + "\n"))
+    assert len(section) < 10_000
+    assert "git diff abc123" in section
+
+
+def test_diff_exactly_at_the_size_limit_is_inlined():
+    body = "z" * INLINE_MAX_BYTES
+    assert body in render(diff_info(["a"], body))

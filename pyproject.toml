@@ -24,6 +24,8 @@ default-groups = ["dev"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+addopts = "-m 'not e2e'"
+markers = ["e2e: calls a real external service; opt in with `make test:e2e`"]
 
 [tool.ruff]
 line-length = 100

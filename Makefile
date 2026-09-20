@@ -1,4 +1,4 @@
-.PHONY: help install test lint format evals evals\:lint clean
+.PHONY: help install test test\:e2e lint format evals evals\:lint clean
 .DEFAULT_GOAL := help
 
 help:  ## Show this help
@@ -7,8 +7,11 @@ help:  ## Show this help
 install:  ## Create the venv and install dev dependencies (uv sync)
 	uv sync
 
-test:  ## Run the unit test suite (skill scripts). Plugin autoload is off so benchspec stays out of unit runs
+test:  ## Run the test suite: skill scripts plus the real-Codex contract test (needs `codex` installed). Autoload off so benchspec stays out
 	PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 uv run pytest
+
+test\:e2e:  ## Run e2e tests against real external CLIs (codex must be signed in; ~2 min)
+	PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 uv run pytest -m e2e
 
 lint:  ## Lint Python with ruff
 	uv run ruff check .
