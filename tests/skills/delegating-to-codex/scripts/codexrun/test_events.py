@@ -4,9 +4,10 @@ from __future__ import annotations
 
 import pytest
 from codexrun.events import format_usage, parse_events
-from support.codex import jsonl
+from codexrun.state import Usage
+from support.codex import JsonObject, jsonl
 
-USAGE = {
+USAGE: Usage = {
     "input_tokens": 10,
     "cached_input_tokens": 4,
     "output_tokens": 2,
@@ -15,10 +16,19 @@ USAGE = {
 
 
 def test_thread_id_and_last_turn_usage():
+    completed_turn: JsonObject = {
+        "type": "turn.completed",
+        "usage": {
+            "input_tokens": 10,
+            "cached_input_tokens": 4,
+            "output_tokens": 2,
+            "reasoning_output_tokens": 1,
+        },
+    }
     stream = jsonl(
         {"type": "thread.started", "thread_id": "T9"},
         {"type": "turn.completed", "usage": {"input_tokens": 1}},
-        {"type": "turn.completed", "usage": USAGE},
+        completed_turn,
     )
 
     assert parse_events(stream) == ("T9", USAGE)
