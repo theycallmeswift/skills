@@ -13,14 +13,17 @@ How to work on the plugin: environment, `make` targets, loading it into Claude C
 | Command | Does |
 |---|---|
 | `make install` | `uv sync` — creates `.venv` with the `dev` group (pytest, ruff). |
-| `make test` | Unit tests under `tests/`: plugin manifest checks plus each skill's script tests. Runs with pytest plugin autoload off so the benchspec plugin never leaks into unit runs. |
+| `make test` | Tests under `tests/`: plugin manifest checks, each skill's script tests, and the Codex contract test (needs `codex` installed; it runs the real binary against a fake API server on localhost — no credentials, no internet). Autoload is off so the benchspec plugin never leaks in. |
+| `make test:e2e` | Opt-in end-to-end tests against real external CLIs (today: `codex`, signed in). Skipped by `make test`. |
 | `make lint` | `ruff check .` |
 | `make format` | `ruff format .` |
 | `make evals` | Skill evals, baseline vs trial, in microVMs. `SKILL=to-spec` scopes to `evals/to-spec`; `EVAL_ARGS="-n 6"` adds pytest args. |
 | `make evals:lint` | Static lint of eval assertions. No credentials, no sandbox. |
 | `make clean` | Remove `.venv` and caches. |
 
-CI (`.github/workflows/ci.yml`) runs `make lint`, `claude plugin validate .`, and `make test` on every PR and on pushes to `main` and `dev`. Evals never run in CI.
+CI (`.github/workflows/ci.yml`) runs `make lint`, `claude plugin validate .`, and `make test` (with a pinned `codex` installed) on every PR and on pushes to `main` and `dev`. Evals never run in CI.
+
+Most tests and every eval use a fake `codex`, so they can't notice when the real CLI changes. The contract test in `make test` covers that, and a nightly workflow reruns it against the latest Codex release.
 
 ## Layout of a skill
 

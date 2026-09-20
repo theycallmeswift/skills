@@ -1,0 +1,73 @@
+name: Codex CLI drift
+
+on:
+  schedule:
+    - cron: "17 5 * * *"
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  codex-contract:
+    name: latest-codex-contract
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          python-version: "3.12"
+      - name: Install dependencies
+        run: make install
+      - name: Install latest Codex CLI
+        run: |
+          sudo apt-get update && sudo apt-get install -y bubblewrap
+          npm install -g @openai/codex@latest
+      - name: Test against the latest Codex CLI
+        run: make test
+      - name: Open or update drift issue
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+            const title = "Latest Codex CLI fails the contract test";
+            const runUrl = `${context.serverUrl}/${owner}/${repo}/actions/runs/${context.runId}`;
+            const bodyLines = [
+              "The nightly real-CLI contract test failed against the latest Codex release.",
+              "",
+              `Run: ${runUrl}`,
+            ];
+            const body = bodyLines.join("\n");
+
+            const queryParts = [
+              `repo:${owner}/${repo}`,
+              "is:issue",
+              "is:open",
+              "in:title",
+              `\"${title}\"`,
+            ];
+            const query = queryParts.join(" ");
+            const search = await github.rest.search.issuesAndPullRequests({
+              q: query,
+            });
+            const existingIssue = search.data.items[0];
+
+            if (existingIssue) {
+              const update = {
+                owner,
+                repo,
+                issue_number: existingIssue.number,
+                body,
+              };
+              await github.rest.issues.update(update);
+            } else {
+              const issue = {
+                owner,
+                repo,
+                title,
+                body,
+              };
+              await github.rest.issues.create(issue);
+            }
