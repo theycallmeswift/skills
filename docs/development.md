@@ -76,7 +76,7 @@ Hermes loads repo-local skills from `./.agents/skills` in a project you've marke
 ```bash
 cd /path/to/mechaswift
 hermes skills trust        # once per checkout
-hermes skills list         # the four skills show as project skills
+hermes skills list         # the skills show as project skills
 ```
 
 Edits to `skills/` are live in the next session. To try a skill against some other project instead, link the skill directories into `~/.hermes/skills/<name>`.
@@ -89,7 +89,7 @@ The runner is [benchspec](https://pypi.org/project/benchspec/), a pytest plugin 
 
 **Requirements for a graded run:** an Apple Silicon Mac or Linux with `/dev/kvm`, microsandbox (installed with benchspec), and credentials in `.env` (copy `.env.example`): `CLAUDE_CODE_OAUTH_TOKEN` or `ANTHROPIC_API_KEY` for the agent and judge, and `GEMINI_API_KEY` for benchspec's assertion binder. The first run builds a VM snapshot (a few minutes); later runs reuse it.
 
-**One eval set**, `default` in `pyproject.toml`: a `baseline` arm runs the agent bare and a `trial` arm runs it with the whole plugin loaded (`harness_args = ["--plugin-dir", "/project"]`, the staged copy of this repo), both on `claude-code` / `sonnet`. No `setup.sh` anywhere — loading the plugin is the install. Two kinds of eval run in it, and they differ only in what they assert:
+**One eval set**, `default` in `pyproject.toml`: a `baseline` arm runs the agent bare and a `trial` arm runs it with the whole plugin loaded (`harness_args = ["--plugin-dir", "/project"]`, the staged copy of this repo), both on `claude-code` / `sonnet`. Loading the plugin is the install; a `setup.sh` only provisions environment, identically on both arms. Skills that drive an external CLI fake it there (`evals/support/fake-codex/README.md`). Two kinds of eval run in it, and they differ only in what they assert:
 
 - **Output evals** (`evals/<skill>/<scenario>/eval.md`) grade the work: the files written and the final message. The delta is what the plugin taught.
 - **Routing evals** (`evals/<skill>/triggers/` and `not-triggers/`) are the same format with the verbatim user ask as the prompt and one `` Skill `X` invoked `` / `` not invoked `` line per skill that has a stake in it, graded deterministically from the agent's dispatches. Every query lives once, under the skill it should route to (`triggers/`) or, when no skill in the plugin owns it, under the first skill whose suite listed it as a near-miss (`not-triggers/`); a later skill that shares the vocabulary adds its own line to that file rather than duplicating the query, since benchspec keys evals on (folder, file stem) across the whole run. On the trial arm every description competes with its real peers. Every activation line carries `- if: {BENCHSPEC_ARM} != "baseline"`: an uninstalled skill can't fire, so grading it on baseline would inflate the Δ. Positives that presuppose a prior design discussion carry a short `history:` recap so the ask refers to something.

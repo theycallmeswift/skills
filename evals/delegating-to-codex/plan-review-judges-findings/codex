@@ -1,0 +1,54 @@
+#!/usr/bin/env bash
+# Codex reviews Task 3: one real finding (partial last page) and one bogus one
+# (division by zero, which page_count already guards). A resumed fix round applies the fix.
+source /opt/fake-codex/lib.sh
+
+case "$MODE" in
+  review)
+    reply <<'EOF'
+{"verdict":"needs-attention","summary":"Blocks: the partial last page is dropped, violating a named risk.","findings":[{"severity":"high","title":"page_count drops the partial last page","body":"total // size floors, so page_count(21, 10) returns 2 instead of 3. This violates the named risk, and no test covers a partial page.","file":"pager.py","line_start":11,"line_end":11,"confidence":0.95,"recommendation":"Use ceiling division, -(-total // size), and add a test for page_count(21, 10) == 3."},{"severity":"medium","title":"page_count divides by zero when size is 0","body":"Calling page_count(5, 0) evaluates total // size with size 0 and raises ZeroDivisionError.","file":"pager.py","line_start":11,"line_end":11,"confidence":0.6,"recommendation":"Guard size <= 0 before dividing."}],"next_steps":["Switch to ceiling division","Add a partial-page test"]}
+EOF
+    ;;
+  *)
+    edit pager.py <<'EOF'
+def page_slice(items: list, page: int, size: int) -> list:
+    """Return the 1-indexed page of items."""
+    start = (page - 1) * size
+    return items[start:start + size]
+
+
+def page_count(total: int, size: int) -> int:
+    """Number of pages needed to show `total` items, `size` per page."""
+    if size <= 0:
+        raise ValueError("size must be positive")
+    return -(-total // size)
+EOF
+    edit test_pager.py <<'EOF'
+import unittest
+
+from pager import page_count
+
+
+class PageCountTest(unittest.TestCase):
+    def test_exact_pages(self):
+        self.assertEqual(page_count(20, 10), 2)
+
+    def test_partial_last_page(self):
+        self.assertEqual(page_count(21, 10), 3)
+
+    def test_rejects_zero_size(self):
+        with self.assertRaises(ValueError):
+            page_count(5, 0)
+
+
+if __name__ == "__main__":
+    unittest.main()
+EOF
+    reply <<'EOF'
+STATUS: DONE
+Files changed: pager.py, test_pager.py
+Tests: python3 -m unittest -q -> 3 passed
+Concerns: none
+EOF
+    ;;
+esac

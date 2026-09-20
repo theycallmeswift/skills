@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+# Codex is installed but signed out: `login status` and every `exec` fail.
+LOGGED_OUT=1
+source /opt/fake-codex/lib.sh
