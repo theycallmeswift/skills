@@ -1,0 +1,10 @@
+review-output.schema.json is copied verbatim, and review-prompt.md is adapted, from
+openai/codex-plugin-cc at commit db52e28:
+
+  plugins/codex/schemas/review-output.schema.json
+  plugins/codex/prompts/adversarial-review.md
+
+Copyright OpenAI. Licensed under the Apache License, Version 2.0
+(https://www.apache.org/licenses/LICENSE-2.0). review-prompt.md was modified: template
+placeholders removed, inputs supplied as appended sections, and named-risk and
+test-strength checks added to the review method.
