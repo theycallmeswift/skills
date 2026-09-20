@@ -14,7 +14,7 @@ Paths are relative to the workspace root:
 - Interactive session: the current project directory.
 - Eval or scripted invocation: the root the prompt names; honor `PROJECT_ROOT` in the env for any script invocation.
 
-Every Codex call goes through `python3 skills/delegating-to-codex/scripts/codex_run.py`. Don't hand-roll `codex exec`: the script sets the sandbox, forces an explicit effort, rejects mistyped config, runs preflight checks, and records the job so it can be resumed.
+Every Codex call goes through `python3 skills/delegating-to-codex/scripts/codex_run.py`. Don't hand-roll `codex exec`: the script sets the sandbox, forces an explicit effort, rejects mistyped config, runs preflight checks, and records the job so it can be resumed. If `python3` is missing, run the script with whatever Python 3 the machine does have (`python`, `python3.13`); if there is none, say so and stop rather than hand-rolling `codex exec`.
 
 ## The job commands
 

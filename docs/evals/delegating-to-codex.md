@@ -14,6 +14,8 @@ The VM has no Codex, so each scenario ships a scripted fake `codex` (shared help
 | codex-logged-out | 6/9 (67%) | 9/9 (100%) | +33pp |
 | **All** | 56/87 (64%) | 85/87 (98%) | **+34pp** |
 
+A fifth scenario, `python3-missing`, hides `python3` behind a differently-named interpreter: the skill's run completed (5/5) by using the interpreter that exists, and a bare agent scored 3/4.
+
 Both trial misses are one-sample wording slips in the final message (asked "apply these?" rather than "which?"; explained the dismissed finding only earlier in the turn). Trial costs about 37s and 436k tokens per sample, against 23s and 198k for the baseline.
 
 ## Routing (trial, 3/3 each)

@@ -1,0 +1,48 @@
+#!/usr/bin/env bash
+# Codex implements Task 2: max_length with no trailing hyphen, plus tests.
+source /opt/fake-codex/lib.sh
+
+edit slugify.py <<'EOF'
+import re
+
+def slugify(text: str, max_length: int | None = None) -> str:
+"""Lowercase, replace runs of non-alphanumerics with one hyphen, trim hyphens.
+
+When max_length is set, truncate to at most that many characters without leaving a
+trailing hyphen.
+"""
+slug = re.sub(r"[^a-z0-9]+", "-", text.lower()).strip("-")
+if max_length is not None:
+    slug = slug[:max_length].rstrip("-")
+return slug
+EOF
+edit test_slugify.py <<'EOF'
+import unittest
+
+from slugify import slugify
+
+class SlugifyTest(unittest.TestCase):
+def test_basic(self):
+    self.assertEqual(slugify("Hello, World!"), "hello-world")
+
+def test_collapses_runs(self):
+    self.assertEqual(slugify("a  --  b"), "a-b")
+
+def test_max_length_truncates(self):
+    self.assertEqual(slugify("abcdef", max_length=4), "abcd")
+
+def test_max_length_no_trailing_hyphen(self):
+    self.assertEqual(slugify("ab cd", max_length=3), "ab")
+
+def test_max_length_none_is_unchanged(self):
+    self.assertEqual(slugify("Hello, World!", max_length=None), "hello-world")
+
+if __name__ == "__main__":
+unittest.main()
+EOF
+reply <<'EOF'
+STATUS: DONE
+Files changed: slugify.py, test_slugify.py
+Tests: python3 -m unittest -q -> 5 passed
+Concerns: none
+EOF
