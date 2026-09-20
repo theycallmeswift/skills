@@ -13,8 +13,9 @@ test:  ## Run the test suite: skill scripts plus the real-Codex contract test (n
 test\:e2e:  ## Run e2e tests against real external CLIs (codex must be signed in; ~2 min)
 	PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 uv run pytest -m e2e
 
-lint:  ## Lint Python with ruff
+lint:  ## Lint and type-check Python (ruff + ty)
 	uv run ruff check .
+	uv run ty check
 
 format:  ## Format Python with ruff
 	uv run ruff format .

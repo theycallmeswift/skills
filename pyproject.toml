@@ -10,6 +10,7 @@ dev = [
     "pytest>=8",
     "pytest-xdist>=3",
     "ruff>=0.6",
+    "ty>=0.0.82",
 ]
 # Opt-in: the eval runner lives in its own group so `make install` stays pytest + ruff.
 # `uv run --group evals …` syncs it on demand; see docs/development.md.
@@ -26,6 +27,16 @@ default-groups = ["dev"]
 testpaths = ["tests"]
 addopts = "-m 'not e2e'"
 markers = ["e2e: calls a real external service; opt in with `make test:e2e`"]
+
+# Tests import each skill's scripts/ as top-level modules; tests/skills/conftest.py puts them on
+# sys.path at runtime, and ty needs the same search paths to resolve them.
+[tool.ty.environment]
+root = ["."]
+extra-paths = ["tests", "skills/delegating-to-codex/scripts", "skills/to-spec/scripts"]
+
+[tool.ty.src]
+# Eval workspaces are fixture code the agent edits during a run, not code we maintain.
+exclude = ["evals/*/*/workspace"]
 
 [tool.ruff]
 line-length = 100
