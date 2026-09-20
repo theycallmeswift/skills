@@ -4,7 +4,17 @@ Additional rules for prompts that ship as part of a Claude Code plugin or simila
 
 ## Frontmatter
 
-Two fields only: `name` and `description`. Skip `allowed-tools`, `model`, `tools` arrays, `license`. They're either subagent-specific or harness-specific and break portability.
+Two fields only: `name` and `description` — a deliberate portability trade, not a format limit. Claude Code supports many more; other harnesses ignore them.
+
+What the rule gives up:
+
+- `context: fork` + `agent` + `background: false` — runs the skill in a forked subagent and waits for its result in the calling turn. The only composition-with-return path; plain invocation just injects the body.
+- `allowed-tools` / `disallowed-tools` — pre-approve or withhold tools for the invoking turn.
+- `paths` — auto-activate only on matching files.
+- `user-invocable: false` / `disable-model-invocation: true` — restrict to one caller.
+- `model`, `effort`, `hooks`, `license` — per-skill overrides and spec metadata.
+
+Take the trade for skills that ship across harnesses. Break it when a skill needs a field and portability isn't the goal — and note why, so it doesn't read as an oversight.
 
 ```yaml
 ---
@@ -29,7 +39,7 @@ Effective descriptions:
 
 ## Body
 
-- **Under ~500 lines.** Past that, split detail into sibling `.md` files (one level deep — no `SKILL.md → A.md → B.md` chains). Reference files >100 lines start with a table of contents.
+- **~200 lines first cut, ~500 hard ceiling.** Past ~200, split detail into sibling `.md` files (one level deep — no `SKILL.md → A.md → B.md` chains). Reference files >100 lines start with a table of contents.
 - **Third person, present tense.** *"The skill drafts a plan."* Not *"I'll draft"* or *"you'll get."*
 - **Consistent terminology.** Pick one word per concept and keep it: `extract` not `pull`/`get`/`retrieve`; `field` not `box`/`element`. Inconsistency makes models hedge.
 - **One default, one escape hatch.** Don't enumerate five libraries that could do the job; pick one and mention the escape hatch when needed.
@@ -56,7 +66,7 @@ Never use `@skill-name/SKILL.md` syntax — `@` force-loads the file and burns c
 
 ## Anti-patterns
 
-- Frontmatter fields beyond `name` / `description`.
+- Harness-specific frontmatter in a portable skill (see [Frontmatter](#frontmatter)).
 - Description that summarizes the workflow.
 - ALL-CAPS MUSTs and NEVERs without a reason. Try the explanation first; reach for capitals only when reason alone doesn't take.
 - Multi-language example dilution (`example.js`, `example.py`, `example.go`). One excellent example beats five mediocre ones.

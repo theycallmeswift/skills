@@ -22,7 +22,7 @@ Self-contained — assumes no project-level conventions doc. Covers frontmatter,
 
 ## Frontmatter and naming
 
-Two fields only: `name` and `description`. Everything else is harness-specific — ignored at best, broken at worst. No `allowed-tools`, `model`, or `tools` array (those are subagent fields). Skip `license`; it's informational and not portable.
+Two fields only: `name` and `description`. Everything else is harness-specific — ignored at best, broken at worst. A deliberate trade, not a format limit: it gives up `context: fork` (the one composition-with-return path), `allowed-tools`, `paths`, `user-invocable`, and per-skill `model`/`effort`. [`writing-prompts/references/skills.md`](../../writing-prompts/references/skills.md#frontmatter) has the full list.
 
 - `name`: lowercase letters, numbers, hyphens, ≤64 chars, no consecutive hyphens. Prefer kebab-verb (`process-pdfs`, `analyze-spreadsheets`) or gerund (`processing-pdfs`) over noun (`pdf-utils`). No reserved words (`anthropic`, `claude`).
 - `description`: third person, ≤1024 chars. The highest-leverage field — Claude reads it to decide whether to load the body, then sees it every turn the skill stays active.
@@ -35,7 +35,7 @@ File name is `SKILL.md` (capital). The skill directory name must exactly match `
 
 ## Length and structure
 
-SKILL.md body stays under ~500 lines. Past that, split detail into sibling `.md` files and link from SKILL.md. The `pptx` and `pdf` skills are the reference shape — a short SKILL.md farming detail out to `editing.md`, `pptxgenjs.md`, `FORMS.md`, `REFERENCE.md`.
+~200 lines first cut, ~500 hard ceiling. Past ~200, split detail into sibling `.md` files and link from SKILL.md; past ~500 the body crowds out the conversation and partial reads miss content. The `pptx` and `pdf` skills are the reference shape — a short SKILL.md farming detail out to `editing.md`, `pptxgenjs.md`, `FORMS.md`, `REFERENCE.md`.
 
 Standard subdirectory layout when the skill needs more than SKILL.md:
 
