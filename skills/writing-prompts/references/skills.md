@@ -8,7 +8,7 @@ Two fields only: `name` and `description` — a deliberate portability trade, no
 
 What the rule gives up:
 
-- `context: fork` + `agent` + `background: false` — runs the skill in a forked subagent and waits for its result in the calling turn. The only composition-with-return path; plain invocation just injects the body.
+- `context: fork` + `agent` + `background: false` — runs the skill in a forked subagent and waits for its result in the calling turn. A composition-with-return path — requires v2.1.218+ and Claude Code; plain invocation just injects the body. A subagent dispatch also returns a result.
 - `allowed-tools` / `disallowed-tools` — pre-approve or withhold tools for the invoking turn.
 - `paths` — auto-activate only on matching files.
 - `user-invocable: false` / `disable-model-invocation: true` — restrict to one caller.

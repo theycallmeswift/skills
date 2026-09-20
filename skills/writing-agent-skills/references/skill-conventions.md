@@ -22,7 +22,7 @@ Self-contained — assumes no project-level conventions doc. Covers frontmatter,
 
 ## Frontmatter and naming
 
-Two fields only: `name` and `description`. Everything else is harness-specific — ignored at best, broken at worst. A deliberate trade, not a format limit: it gives up `context: fork` (the one composition-with-return path), `allowed-tools`, `paths`, `user-invocable`, and per-skill `model`/`effort`. [`writing-prompts/references/skills.md`](../../writing-prompts/references/skills.md#frontmatter) has the full list.
+Two fields only: `name` and `description`. Everything else is harness-specific — ignored at best, broken at worst. A deliberate trade, not a format limit: it gives up `context: fork` (a composition-with-return path, Claude Code only), `allowed-tools`, `paths`, `user-invocable`, and per-skill `model`/`effort`. [`writing-prompts/references/skills.md`](../../writing-prompts/references/skills.md#frontmatter) has the full list. In this repo the trade is not optional: `tests/test_plugin.py` asserts exactly these two fields, so adding one fails CI.
 
 - `name`: lowercase letters, numbers, hyphens, ≤64 chars, no consecutive hyphens. Prefer kebab-verb (`process-pdfs`, `analyze-spreadsheets`) or gerund (`processing-pdfs`) over noun (`pdf-utils`). No reserved words (`anthropic`, `claude`).
 - `description`: third person, ≤1024 chars. The highest-leverage field — Claude reads it to decide whether to load the body, then sees it every turn the skill stays active.
