@@ -13,14 +13,17 @@ How to work on the plugin: environment, `make` targets, loading it into Claude C
 | Command | Does |
 |---|---|
 | `make install` | `uv sync` — creates `.venv` with the `dev` group (pytest, ruff). |
-| `make test` | Unit tests under `tests/`: plugin manifest checks plus each skill's script tests. Runs with pytest plugin autoload off so the benchspec plugin never leaks into unit runs. |
+| `make test` | Tests under `tests/`: plugin manifest checks, each skill's script tests, and the Codex contract test (needs `codex` installed; it runs the real binary against a fake API server on localhost — no credentials, no internet). Autoload is off so the benchspec plugin never leaks in. |
+| `make test:e2e` | Opt-in end-to-end tests against real external CLIs (today: `codex`, signed in). Skipped by `make test`. |
 | `make lint` | `ruff check .` |
 | `make format` | `ruff format .` |
 | `make evals` | Skill evals, baseline vs trial, in microVMs. `SKILL=to-spec` scopes to `evals/to-spec`; `EVAL_ARGS="-n 6"` adds pytest args. |
 | `make evals:lint` | Static lint of eval assertions. No credentials, no sandbox. |
 | `make clean` | Remove `.venv` and caches. |
 
-CI (`.github/workflows/ci.yml`) runs `make lint`, `claude plugin validate .`, and `make test` on every PR and on pushes to `main` and `dev`. Evals never run in CI.
+CI (`.github/workflows/ci.yml`) runs `make lint`, `claude plugin validate .`, and `make test` (with a pinned `codex` installed) on every PR and on pushes to `main` and `dev`. Evals never run in CI.
+
+Most tests and every eval use a fake `codex`, so they can't notice when the real CLI changes. The contract test in `make test` covers that, and a nightly workflow reruns it against the latest Codex release.
 
 ## Layout of a skill
 
@@ -73,7 +76,7 @@ Hermes loads repo-local skills from `./.agents/skills` in a project you've marke
 ```bash
 cd /path/to/mechaswift
 hermes skills trust        # once per checkout
-hermes skills list         # the four skills show as project skills
+hermes skills list         # the skills show as project skills
 ```
 
 Edits to `skills/` are live in the next session. To try a skill against some other project instead, link the skill directories into `~/.hermes/skills/<name>`.
@@ -86,7 +89,7 @@ The runner is [benchspec](https://pypi.org/project/benchspec/), a pytest plugin 
 
 **Requirements for a graded run:** an Apple Silicon Mac or Linux with `/dev/kvm`, microsandbox (installed with benchspec), and credentials in `.env` (copy `.env.example`): `CLAUDE_CODE_OAUTH_TOKEN` or `ANTHROPIC_API_KEY` for the agent and judge, and `GEMINI_API_KEY` for benchspec's assertion binder. The first run builds a VM snapshot (a few minutes); later runs reuse it.
 
-**One eval set**, `default` in `pyproject.toml`: a `baseline` arm runs the agent bare and a `trial` arm runs it with the whole plugin loaded (`harness_args = ["--plugin-dir", "/project"]`, the staged copy of this repo), both on `claude-code` / `sonnet`. No `setup.sh` anywhere — loading the plugin is the install. Two kinds of eval run in it, and they differ only in what they assert:
+**One eval set**, `default` in `pyproject.toml`: a `baseline` arm runs the agent bare and a `trial` arm runs it with the whole plugin loaded (`harness_args = ["--plugin-dir", "/project"]`, the staged copy of this repo), both on `claude-code` / `sonnet`. Loading the plugin is the install; a `setup.sh` only provisions environment, identically on both arms. Skills that drive an external CLI fake it there (`evals/support/fake-codex/README.md`). Two kinds of eval run in it, and they differ only in what they assert:
 
 - **Output evals** (`evals/<skill>/<scenario>/eval.md`) grade the work: the files written and the final message. The delta is what the plugin taught.
 - **Routing evals** (`evals/<skill>/triggers/` and `not-triggers/`) are the same format with the verbatim user ask as the prompt and one `` Skill `X` invoked `` / `` not invoked `` line per skill that has a stake in it, graded deterministically from the agent's dispatches. Every query lives once, under the skill it should route to (`triggers/`) or, when no skill in the plugin owns it, under the first skill whose suite listed it as a near-miss (`not-triggers/`); a later skill that shares the vocabulary adds its own line to that file rather than duplicating the query, since benchspec keys evals on (folder, file stem) across the whole run. On the trial arm every description competes with its real peers. Every activation line carries `- if: {BENCHSPEC_ARM} != "baseline"`: an uninstalled skill can't fire, so grading it on baseline would inflate the Δ. Positives that presuppose a prior design discussion carry a short `history:` recap so the ask refers to something.

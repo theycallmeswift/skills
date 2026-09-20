@@ -1,5 +1,8 @@
 name: CI
 
+env:
+  CODEX_VERSION: "0.144.1"
+
 on:
   pull_request: {}
   push:
@@ -35,5 +38,10 @@ jobs:
           python-version: "3.12"
       - name: Install dependencies
         run: make install
+      - name: Install Codex CLI
+        run: |
+          sudo apt-get update && sudo apt-get install -y bubblewrap
+          npm install -g "@openai/codex@${CODEX_VERSION}"
       - name: Test
         run: make test
+
