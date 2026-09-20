@@ -51,6 +51,7 @@ Claude Code plugin layout. The manifest lives in `.claude-plugin/`; everything e
 Load on demand, not at session start.
 
 - `docs/development.md` — Dev workflow: install, `make` targets, loading the plugin into Claude Code and Hermes, eval status. Load when building or testing a skill.
+- `docs/style/development.md` — Code style: self-documenting code, docstrings, naming, errors, tests, commits and landing. Read before writing or reviewing code.
 - `skills/writing-agent-skills/references/skill-conventions.md` — Frontmatter, layout, and portability rules. Read before editing any `SKILL.md`.
 - `skills/writing-prompts/references/agent-md.md` — Read before editing `AGENTS.md`.
 - `docs/specs/` — Design specs. Load when touching an area a spec covers.
