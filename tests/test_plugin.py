@@ -2,14 +2,16 @@
 skill's frontmatter carries a well-formed name matching its directory plus a description.
 
 Fields beyond those two are allowed but warn: they are harness-specific, so a skill that uses one
-owes evals covering both the harness that honors it and a harness that ignores it. The warning is
-the reminder, not a gate — see PORTABLE_FIELDS."""
+owes evals covering both the harness that honors it and a harness that drops it. The warning is the
+reminder, not a gate. Once a skill has those evals, list it under
+`[tool.mechaswift] cross_harness_verified` in pyproject.toml to silence it."""
 
 from __future__ import annotations
 
 import json
 import os
 import re
+import tomllib
 import warnings
 from pathlib import Path
 
@@ -24,6 +26,34 @@ PORTABLE_FIELDS = {"name", "description"}
 
 class HarnessSpecificFieldWarning(UserWarning):
     """A skill declares frontmatter that only some harnesses honor."""
+
+
+def _cross_harness_verified() -> frozenset[str]:
+    """Read the skills whose harness-specific frontmatter is covered by cross-harness evals.
+
+    Returns:
+        Skill names listed under `[tool.mechaswift] cross_harness_verified` in pyproject.toml.
+    """
+    config = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))
+    return frozenset(config.get("tool", {}).get("mechaswift", {}).get("cross_harness_verified", ()))
+
+
+def _unverified_harness_fields(
+    fields: dict[str, str], skill_name: str, verified: frozenset[str]
+) -> list[str]:
+    """Return harness-specific frontmatter fields that still owe cross-harness evals.
+
+    Args:
+        fields: Top-level frontmatter fields of the skill.
+        skill_name: Directory name of the skill.
+        verified: Skill names whose harness-specific fields are already eval-covered.
+
+    Returns:
+        Sorted field names to warn about; empty when the skill is portable or verified.
+    """
+    if skill_name in verified:
+        return []
+    return sorted(set(fields) - PORTABLE_FIELDS)
 
 
 def _load(rel: str) -> dict:
@@ -96,12 +126,32 @@ def test_skill_frontmatter_names_and_describes_the_skill(skill: Path):
 def test_skill_frontmatter_beyond_name_and_description_warns(skill: Path):
     """Warn, don't fail: extra fields are a deliberate choice that owes cross-harness evals."""
     fields = _frontmatter((skill / "SKILL.md").read_text(encoding="utf-8"))
-    extra = sorted(set(fields) - PORTABLE_FIELDS)
+    extra = _unverified_harness_fields(fields, skill.name, _cross_harness_verified())
     if extra:
         warnings.warn(
             f"{skill.name}: harness-specific frontmatter {extra}. Only some harnesses honor "
             "these, so this skill owes evals covering one that honors them and one that drops "
-            "them.",
+            "them. Once it has both, add it to [tool.mechaswift] cross_harness_verified.",
             HarnessSpecificFieldWarning,
             stacklevel=2,
         )
+
+
+def test_cross_harness_verified_warns_for_an_unlisted_skill():
+    fields = {"name": "x", "description": "d", "context": "fork", "agent": "Explore"}
+    assert _unverified_harness_fields(fields, "x", frozenset()) == ["agent", "context"]
+
+
+def test_cross_harness_verified_suppresses_a_listed_skill():
+    fields = {"name": "x", "description": "d", "context": "fork", "agent": "Explore"}
+    assert _unverified_harness_fields(fields, "x", frozenset({"x"})) == []
+
+
+def test_cross_harness_verified_is_silent_for_portable_frontmatter():
+    assert _unverified_harness_fields({"name": "x", "description": "d"}, "x", frozenset()) == []
+
+
+def test_cross_harness_verified_names_real_skills():
+    """A stale entry silences a skill that no longer exists, so keep the list honest."""
+    unknown = _cross_harness_verified() - {p.name for p in SKILLS}
+    assert not unknown, f"cross_harness_verified names unknown skills: {sorted(unknown)}"
