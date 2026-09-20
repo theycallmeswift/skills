@@ -4,17 +4,17 @@ Additional rules for prompts that ship as part of a Claude Code plugin or simila
 
 ## Frontmatter
 
-Two fields only: `name` and `description` — a deliberate portability trade, not a format limit. Claude Code supports many more; other harnesses ignore them.
+`name` and `description` are the portable pair — every harness reads them. Default to those two.
 
-What the rule gives up:
+Beyond them, reach for a harness-specific field when the skill needs it. The cost isn't the field, it's unverified behavior: **a skill using one owes evals in both directions — a harness that honors the field, and a harness that drops it.** Without both, nobody knows whether the skill degrades gracefully or breaks where the field is a no-op. `tests/test_plugin.py` warns on extras; the evals are the gate.
+
+Fields worth that work, and what dropping each one costs:
 
 - `context: fork` + `agent` + `background: false` — runs the skill in a forked subagent and waits for its result in the calling turn. A composition-with-return path — requires v2.1.218+ and Claude Code; plain invocation just injects the body. A subagent dispatch also returns a result.
-- `allowed-tools` / `disallowed-tools` — pre-approve or withhold tools for the invoking turn.
-- `paths` — auto-activate only on matching files.
-- `user-invocable: false` / `disable-model-invocation: true` — restrict to one caller.
+- `allowed-tools` / `disallowed-tools` — pre-approve or withhold tools for the invoking turn. Dropped, the skill meets permission prompts it assumed away.
+- `paths` — auto-activate only on matching files. Dropped, the description is the only trigger.
+- `user-invocable: false` / `disable-model-invocation: true` — restrict to one caller. Dropped, both callers reach it.
 - `model`, `effort`, `hooks`, `license` — per-skill overrides and spec metadata.
-
-Take the trade for skills that ship across harnesses. Break it when a skill needs a field and portability isn't the goal — and note why, so it doesn't read as an oversight.
 
 ```yaml
 ---
@@ -66,7 +66,7 @@ Never use `@skill-name/SKILL.md` syntax — `@` force-loads the file and burns c
 
 ## Anti-patterns
 
-- Harness-specific frontmatter in a portable skill (see [Frontmatter](#frontmatter)).
+- Harness-specific frontmatter with no eval covering a harness that drops it (see [Frontmatter](#frontmatter)).
 - Description that summarizes the workflow.
 - ALL-CAPS MUSTs and NEVERs without a reason. Try the explanation first; reach for capitals only when reason alone doesn't take.
 - Multi-language example dilution (`example.js`, `example.py`, `example.go`). One excellent example beats five mediocre ones.
