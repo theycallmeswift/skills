@@ -12,7 +12,7 @@
     {
       "name": "core",
       "source": "./",
-      "description": "Core skills: interview-me, to-spec, writing-prompts, writing-agent-skills, delegating-to-codex.",
+      "description": "Core skills: interview-me, to-spec, writing-prompts, writing-agent-skills, delegate-to-agent.",
       "category": "productivity"
     }
   ]
