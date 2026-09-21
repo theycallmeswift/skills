@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+# Codex implements to_cents with Python's built-in round, which rounds the tie to even and
+# fails test_tie_rounds_up, then reports a clean run. The edit is idempotent, so a second
+# round changes nothing.
+source /opt/fake-codex/lib.sh
+
+edit money.py <<'PY'
+def to_cents(amount: float) -> int:
+    """Convert a dollar amount to whole cents, rounding ties up."""
+    return round(amount * 100)
+PY
+reply <<'MSG'
+STATUS: DONE
+Files changed: money.py
+Tests: python3 -m unittest -q -> 4 passed
+Concerns: none
+MSG
