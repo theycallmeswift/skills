@@ -13,3 +13,4 @@ Execute Task 2 from ./docs/plan.md. The plan assigns it to Codex, and the Codex 
 - [ ] ./.fake-codex/calls.log contains `--sandbox workspace-write`
 - [ ] ./.fake-codex/commits.log lists ./slugify.py in a commit
 - [ ] The final response does not claim the task was blocked or that the delegation could not be run
+- [ ] The final response reports a passing test gate, naming the Python interpreter that exists on this machine rather than the `python3` the plan names
