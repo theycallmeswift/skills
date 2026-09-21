@@ -41,3 +41,5 @@ catch me up on where we left off
 - [ ] The recap states the working tree has uncommitted changes
 - [ ] The recap does not claim the working tree is clean
 - [ ] The recap names the branch it is on
+- [ ] The recap states that the pull request's checks are failing
+- [ ] The recap does not claim the pull request is ready for review
