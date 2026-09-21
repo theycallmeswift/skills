@@ -51,6 +51,7 @@ def _resolve_allowed_params(config: dict, skill_name: str) -> frozenset[str]:
     """
     key = "allowed_skill_frontmatter_params"
     allowed = frozenset(config.get(key, REQUIRED_FIELDS))
+
     per_skill = config.get("skills", {}).get(skill_name, {})
     return allowed | frozenset(per_skill.get(key, ()))
 

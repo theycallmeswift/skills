@@ -8,13 +8,7 @@ Additional rules for prompts that ship as part of a Claude Code plugin or simila
 
 Beyond them, reach for a harness-specific field when the skill needs it. The cost isn't the field, it's unverified behavior: **a skill using one owes evals in both directions — a harness that honors the field, and a harness that drops it.** Without both, nobody knows whether the skill degrades gracefully or breaks where the field is a no-op. `tests/test_plugin.py` warns on extras; the evals are the gate.
 
-Fields worth that work, and what dropping each one costs:
-
-- `context: fork` + `agent` + `background: false` — runs the skill in a forked subagent and waits for its result in the calling turn. A composition-with-return path — requires v2.1.218+ and Claude Code; plain invocation just injects the body. A subagent dispatch also returns a result.
-- `allowed-tools` / `disallowed-tools` — pre-approve or withhold tools for the invoking turn. Dropped, the skill meets permission prompts it assumed away.
-- `paths` — auto-activate only on matching files. Dropped, the description is the only trigger.
-- `user-invocable: false` / `disable-model-invocation: true` — restrict to one caller. Dropped, both callers reach it.
-- `model`, `effort`, `hooks`, `license` — per-skill overrides and spec metadata.
+The harness docs are the field list. Whichever you reach for, look up what it falls back to when dropped — that fallback is what the second eval has to catch.
 
 ```yaml
 ---
