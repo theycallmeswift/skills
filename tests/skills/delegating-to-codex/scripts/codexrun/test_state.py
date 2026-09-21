@@ -52,7 +52,7 @@ def test_jobs_dir_is_keyed_by_worktree_path(tmp_path):
     assert jobs_dir(env, same_name_elsewhere) != jobs_dir(env, worktree)
 
 
-def test_job_id_is_timestamp_mode_and_random_suffix():
+def test_job_id_is_timestamp_slug_and_random_suffix():
     assert re.fullmatch(r"\d{8}-\d{6}-review-[0-9a-f]{4}", new_job_id("review"))
 
 

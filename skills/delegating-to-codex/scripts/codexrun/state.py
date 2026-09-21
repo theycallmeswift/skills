@@ -33,7 +33,7 @@ class JobMeta(TypedDict):
     """Persistent metadata for one delegated Codex job."""
 
     id: str
-    mode: str
+    template: str
     worktree: str
     argv: list[str]
     pid: int | None
@@ -85,9 +85,9 @@ def jobs_dir(env: Mapping[str, str], worktree: Path) -> Path:
     return state_root(env) / "codex-jobs" / f"{os.path.basename(real)}-{digest}"
 
 
-def new_job_id(mode: str) -> str:
+def new_job_id(slug: str) -> str:
     """Create a timestamped, collision-resistant job identifier."""
-    return f"{datetime.now():%Y%m%d-%H%M%S}-{mode}-{secrets.token_hex(2)}"
+    return f"{datetime.now():%Y%m%d-%H%M%S}-{slug}-{secrets.token_hex(2)}"
 
 
 def now() -> str:

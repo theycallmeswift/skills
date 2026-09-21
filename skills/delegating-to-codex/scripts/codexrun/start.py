@@ -27,6 +27,7 @@ from codexrun.state import (
 from codexrun.worker import spawn_worker
 
 INPUTS = ("brief", "context", "risks", "rules", "report")
+BUNDLED_TEMPLATES = ("implement", "review")
 
 
 class InputValues(TypedDict):
@@ -42,8 +43,8 @@ class InputValues(TypedDict):
 class StartArgs(Protocol):
     """Arguments consumed while starting a Codex job."""
 
-    mode: str
     effort: str
+    template: str | None
     model: str | None
     tier: str | None
     network: bool
@@ -52,6 +53,9 @@ class StartArgs(Protocol):
     risks: str | None
     rules: str | None
     report: str | None
+    sandbox: str
+    schema: str | None
+    diff: bool
     base: str | None
     resume: str | None
     cd: str | None
@@ -77,25 +81,16 @@ def start_job(args: StartArgs) -> tuple[Path, subprocess.Popen[bytes]]:
 
 
 def _check_flags(args: StartArgs) -> None:
-    """Reject invalid mode-specific start options."""
-    if args.mode == "review" and args.network:
-        raise UsageError("--network is only valid for implement")
-
-    if args.mode == "review" and args.resume:
-        raise UsageError("--resume is only valid for implement")
-
+    """Reject a start request that cannot produce a prompt."""
     if not args.brief:
-        raise UsageError(f"--brief is required for {args.mode}")
-
-    if args.mode == "implement" and args.report:
-        print("note: --report is only used by review; ignoring it", file=sys.stderr)
+        raise UsageError("--brief is required")
 
 
 def _read_inputs(args: StartArgs) -> InputValues:
     """Read all orchestrator-provided input files."""
     brief = _read_input("brief", args.brief)
     if brief is None:
-        raise UsageError(f"--brief is required for {args.mode}")
+        raise UsageError("--brief is required")
 
     return {
         "brief": brief,
@@ -132,23 +127,33 @@ def _build_prompt(
     inputs: InputValues,
     excluded_inputs: frozenset[str],
 ) -> str:
-    """Build a fresh or resumed prompt after mode-specific Git checks."""
+    """Build a fresh or resumed prompt after the Git checks the sandbox calls for."""
     if args.resume:
         return _resume_prompt(inputs)
 
-    if args.mode == "implement":
+    if args.sandbox == "workspace-write":
         _require_clean(worktree, excluded_inputs)
-        return build_prompt("implement", template=_template("implement"), **inputs)
 
-    diff_info = collect_diff(worktree, args.base, excluded_inputs)
-    diff = render_diff_section(diff_info)
-    return build_prompt("review", template=_template("review"), diff=diff, **inputs)
+    diff = _diff_section(args, worktree, excluded_inputs)
+    return build_prompt(template=_template(args.template), diff=diff, **inputs)
+
+
+def _diff_section(
+    args: StartArgs,
+    worktree: Path,
+    excluded_inputs: frozenset[str],
+) -> str | None:
+    """Render the diff the job should read, when one was asked for."""
+    if not (args.diff or args.base):
+        return None
+
+    return render_diff_section(collect_diff(worktree, args.base, excluded_inputs))
 
 
 def _resume_prompt(inputs: InputValues) -> str:
     """Build a resumed prompt and report inputs that no longer apply."""
     ignored_flags = [
-        f"--{name}" for name in ("context", "risks", "rules") if inputs[name] is not None
+        f"--{name}" for name in ("context", "risks", "rules", "report") if inputs[name] is not None
     ]
     if ignored_flags:
         names = ", ".join(ignored_flags)
@@ -158,7 +163,7 @@ def _resume_prompt(inputs: InputValues) -> str:
 
 
 def _require_clean(worktree: Path, exclude: frozenset[str]) -> None:
-    """Codex's edits must be reviewable on their own, so implement starts from a clean tree."""
+    """Codex's edits must be reviewable on their own, so a writing job starts from a clean tree."""
     pending = pending_changes(worktree, exclude)
     if not pending:
         return
@@ -170,9 +175,33 @@ def _require_clean(worktree: Path, exclude: frozenset[str]) -> None:
     )
 
 
-def _template(mode: str) -> str:
-    """Read the bundled task template for a mode."""
-    return (ASSETS / f"{mode}-prompt.md").read_text(encoding="utf-8")
+def _template(name: str | None) -> str | None:
+    """Read the requested task template.
+
+    Args:
+        name: A bundled template name, a path to a template file, or None.
+
+    Returns:
+        The template text, or None when the job runs without one.
+
+    Raises:
+        UsageError: If the template path is not a file.
+    """
+    if name is None:
+        return None
+
+    if name in BUNDLED_TEMPLATES:
+        return (ASSETS / f"{name}-prompt.md").read_text(encoding="utf-8")
+
+    if not Path(name).is_file():
+        raise UsageError(f"--template file not found: {name}")
+
+    return Path(name).read_text(encoding="utf-8")
+
+
+def template_slug(template: str | None) -> str:
+    """Name a job after the template it runs; an untemplated job is just a job."""
+    return template or "job"
 
 
 def _create_job(
@@ -186,19 +215,21 @@ def _create_job(
     jobs.mkdir(parents=True, exist_ok=True)
     prune_jobs(jobs, keep=MAX_JOBS - 1)
 
-    job_id = new_job_id(args.mode)
+    # A template may be a path, so the job id carries only its stem.
+    job_id = new_job_id(Path(template_slug(args.template)).stem)
     job_dir = jobs / job_id
     job_dir.mkdir()
 
     argv = build_argv(
-        args.mode,
         worktree=worktree,
         job_dir=job_dir,
         effort=args.effort,
+        sandbox=args.sandbox,
         model=args.model,
         tier=args.tier,
         network=args.network,
         thread_id=thread_id,
+        schema=Path(args.schema) if args.schema else None,
     )
     (job_dir / "prompt.md").write_text(prompt, encoding="utf-8")
 
@@ -217,7 +248,7 @@ def _initial_meta(
     """Build the initial metadata for a running job."""
     return {
         "id": job_id,
-        "mode": args.mode,
+        "template": template_slug(args.template),
         "worktree": str(worktree),
         "argv": argv,
         "pid": None,

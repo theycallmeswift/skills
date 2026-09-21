@@ -120,7 +120,6 @@ class Workspace:
 
     def start(
         self,
-        mode: str,
         *extra: str,
         effort: str = "low",
         brief: str | None = None,
@@ -128,7 +127,6 @@ class Workspace:
         """Invoke the start command with the common brief and effort defaults."""
         return self.run(
             "start",
-            mode,
             "--effort",
             effort,
             "--brief",
@@ -206,11 +204,10 @@ class Repo:
         assert result.returncode == 0, result.stdout + result.stderr
         return result
 
-    def start(self, mode: str, brief: str, *extra: str) -> str:
+    def start(self, brief: str, *extra: str) -> str:
         """Run a foreground job and return its identifier."""
         result = self.codex_run(
             "start",
-            mode,
             "--effort",
             "low",
             "--brief",
@@ -224,11 +221,11 @@ class Repo:
 
 
 def argv(
-    mode: str,
     *,
     worktree: Path,
     job_dir: Path,
     effort: str,
+    sandbox: str = "workspace-write",
     model: str | None = None,
     tier: str | None = None,
     network: bool = False,
@@ -237,10 +234,10 @@ def argv(
 ) -> list[str]:
     """Build argv with concise defaults for unit tests."""
     return build_argv(
-        mode,
         worktree=worktree,
         job_dir=job_dir,
         effort=effort,
+        sandbox=sandbox,
         model=model,
         tier=tier,
         network=network,

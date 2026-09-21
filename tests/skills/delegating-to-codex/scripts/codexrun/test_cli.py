@@ -1,4 +1,4 @@
-"""Tests for the implement job lifecycle: start, status, result, cancel, and resume."""
+"""Tests for the job lifecycle: start, status, result, cancel, and resume."""
 
 from __future__ import annotations
 
@@ -23,7 +23,7 @@ Delegate tasks to codex exec as jobs.
 positional arguments:
   {preflight,start,status,result,cancel,_worker}
     preflight           check codex is installed and logged in
-    start               start an implement or review job
+    start               start a codex job
     status              list jobs for this worktree
     result              show a job's final message and usage
     cancel              stop a running job
@@ -33,28 +33,31 @@ options:
 """
 
 START_HELP = """usage: codex_run.py start [-h] --effort {none,minimal,low,medium,high,xhigh}
-                          [--model MODEL] [--tier TIER] [--network]
+                          [--template TEMPLATE] [--model MODEL] [--tier TIER]
                           [--brief FILE] [--context FILE] [--risks FILE]
-                          [--rules FILE] [--report FILE] [--base BASE]
+                          [--rules FILE] [--report FILE]
+                          [--sandbox {read-only,workspace-write}]
+                          [--schema [FILE]] [--diff] [--base REF] [--network]
                           [--resume JOB_ID] [--wait] [--cd DIR]
-                          {implement,review}
-
-positional arguments:
-  {implement,review}
 
 options:
   -h, --help            show this help message and exit
   --effort {none,minimal,low,medium,high,xhigh}
+  --template TEMPLATE   implement, review, or a task template file
   --model MODEL
   --tier TIER           service_tier
-  --network             allow network (implement)
   --brief FILE
   --context FILE
   --risks FILE
   --rules FILE
   --report FILE
-  --base BASE           review: diff against merge-base with REF
-  --resume JOB_ID       implement: continue that job's thread
+  --sandbox {read-only,workspace-write}
+                        sandbox Codex runs in (default: workspace-write)
+  --schema [FILE]       require JSON output (default: the review schema)
+  --diff                attach the worktree diff to the prompt
+  --base REF            diff against merge-base with REF (implies --diff)
+  --network             allow network access
+  --resume JOB_ID       continue that job's thread
   --wait                run in the foreground
   --cd DIR              worktree (default: $PROJECT_ROOT or cwd)
 """
@@ -68,17 +71,17 @@ def test_help_text_is_unchanged():
     assert (start.returncode, start.stdout, start.stderr) == (0, START_HELP, "")
 
 
-def test_implement_wait_runs_codex_and_records_the_job(ws, monkeypatch):
+def test_wait_runs_codex_and_records_the_job(ws, monkeypatch):
     monkeypatch.setenv("CLAUDE_CODE_SESSION_ID", "sess-1")
 
-    result = ws.start("implement", "--risks", ws.risks, "--wait", effort="high")
+    result = ws.start("--template", "implement", "--risks", ws.risks, "--wait", effort="high")
 
     assert result.return_code == 0
     assert "STATUS: DONE" in result.stdout
     assert "tokens: in 100 (cached 40), out 7, reasoning 3" in result.stdout
     meta = ws.meta(result.job_id)
     assert meta["status"] == "completed" and meta["exit_code"] == 0
-    assert meta["mode"] == "implement"
+    assert meta["template"] == "implement"
     assert meta["thread_id"] == "thread-abc"
     assert meta["session_id"] == "sess-1"
     assert meta["usage"]["output_tokens"] == 7
@@ -97,9 +100,19 @@ def test_implement_wait_runs_codex_and_records_the_job(ws, monkeypatch):
     assert not job_dir.is_relative_to(ws.repo)
 
 
+def test_start_and_status_name_the_template(ws):
+    started = ws.start("--template", "review", "--sandbox", "read-only", "--wait")
+
+    status = ws.run("status")
+
+    assert "started (review)" in started.stdout
+    assert "TEMPLATE" in status.stdout
+    assert "review" in status.stdout.splitlines()[-1]
+
+
 def test_background_status_reports_running_job(ws, monkeypatch):
     monkeypatch.setenv("FAKE_CODEX_SLEEP", "1.5")
-    started = ws.start("implement")
+    started = ws.start()
     ws.wait_until(lambda: ws.calls())
 
     status = ws.run("status")
@@ -114,7 +127,7 @@ def test_background_status_reports_running_job(ws, monkeypatch):
 
 def test_running_result_uses_running_exit_code(ws, monkeypatch):
     monkeypatch.setenv("FAKE_CODEX_SLEEP", "1.5")
-    started = ws.start("implement")
+    started = ws.start()
     ws.wait_until(lambda: ws.calls())
 
     result = ws.run("result", started.job_id)
@@ -127,7 +140,7 @@ def test_running_result_uses_running_exit_code(ws, monkeypatch):
 
 def test_completed_result_prints_message_and_usage(ws, monkeypatch):
     monkeypatch.setenv("FAKE_CODEX_SLEEP", "0.1")
-    started = ws.start("implement")
+    started = ws.start()
     ws.wait_done(started.job_id)
 
     result = ws.run("result", "last")
@@ -139,7 +152,7 @@ def test_completed_result_prints_message_and_usage(ws, monkeypatch):
 
 
 def test_result_json(ws):
-    job_id = ws.start("implement", "--wait").job_id
+    job_id = ws.start("--wait").job_id
     result = ws.run("result", job_id, "--json")
 
     assert result.return_code == 0
@@ -152,7 +165,7 @@ def test_result_json(ws):
 def test_failed_job(ws, monkeypatch):
     monkeypatch.setenv("FAKE_CODEX_RC", "7")
 
-    result = ws.start("implement", "--wait")
+    result = ws.start("--wait")
 
     assert result.return_code == 1
     meta = ws.meta(result.job_id)
@@ -160,7 +173,7 @@ def test_failed_job(ws, monkeypatch):
 
 
 def test_result_without_usage(ws):
-    job_id = ws.start("implement", "--wait").job_id
+    job_id = ws.start("--wait").job_id
     ws.edit_meta(job_id, usage=None)
 
     result = ws.run("result", job_id)
@@ -174,7 +187,7 @@ def test_result_for_unknown_job(ws):
 
 def test_cancel_kills_codex_and_keeps_its_edits(ws, monkeypatch):
     monkeypatch.setenv("FAKE_CODEX_SLEEP", "30")
-    job_id = ws.start("implement").job_id
+    job_id = ws.start().job_id
     ws.wait_until(lambda: ws.calls() and ws.meta(job_id).get("pid"), timeout=10)
     edit = ws.write("new.txt", "partial edit\n")
     codex_pid = ws.calls()[0]["pid"]
@@ -194,7 +207,7 @@ def test_cancel_kills_codex_and_keeps_its_edits(ws, monkeypatch):
 
 
 def test_status_marks_a_job_with_a_dead_worker_failed(ws):
-    job_id = ws.start("implement", "--wait").job_id
+    job_id = ws.start("--wait").job_id
     exited = subprocess.Popen(["true"])
     exited.wait()
     ws.edit_meta(job_id, status="running", pid=exited.pid, finished_at=None)
@@ -206,9 +219,9 @@ def test_status_marks_a_job_with_a_dead_worker_failed(ws):
 
 def test_status_shows_only_the_current_sessions_jobs(ws, monkeypatch):
     monkeypatch.setenv("CLAUDE_CODE_SESSION_ID", "s1")
-    first = ws.start("implement", "--wait").job_id
+    first = ws.start("--wait").job_id
     monkeypatch.setenv("CLAUDE_CODE_SESSION_ID", "s2")
-    second = ws.start("implement", "--wait").job_id
+    second = ws.start("--wait").job_id
 
     result = ws.run("status")
 
@@ -218,9 +231,9 @@ def test_status_shows_only_the_current_sessions_jobs(ws, monkeypatch):
 
 def test_status_all_shows_other_sessions_jobs(ws, monkeypatch):
     monkeypatch.setenv("CLAUDE_CODE_SESSION_ID", "s1")
-    first = ws.start("implement", "--wait").job_id
+    first = ws.start("--wait").job_id
     monkeypatch.setenv("CLAUDE_CODE_SESSION_ID", "s2")
-    second = ws.start("implement", "--wait").job_id
+    second = ws.start("--wait").job_id
 
     result = ws.run("status", "--all")
 
@@ -230,9 +243,9 @@ def test_status_all_shows_other_sessions_jobs(ws, monkeypatch):
 
 def test_status_json_orders_jobs_newest_first(ws, monkeypatch):
     monkeypatch.setenv("CLAUDE_CODE_SESSION_ID", "s1")
-    first = ws.start("implement", "--wait").job_id
+    first = ws.start("--wait").job_id
     monkeypatch.setenv("CLAUDE_CODE_SESSION_ID", "s2")
-    second = ws.start("implement", "--wait").job_id
+    second = ws.start("--wait").job_id
 
     result = ws.run("status", "--all", "--json")
 
@@ -241,7 +254,7 @@ def test_status_json_orders_jobs_newest_first(ws, monkeypatch):
 
 
 def test_status_surfaces_corrupt_job_metadata_id(ws):
-    job_id = ws.start("implement", "--wait").job_id
+    job_id = ws.start("--wait").job_id
     (ws.jobs / job_id / "meta.json").write_text("not json")
 
     result = ws.run("status")
@@ -269,11 +282,11 @@ def test_stop_worker_surfaces_permission_errors(monkeypatch):
 
 def test_resume_continues_the_recorded_thread(ws, monkeypatch):
     monkeypatch.setenv("FAKE_THREAD_ID", "thread-first")
-    first = ws.start("implement", "--wait").job_id
+    first = ws.start("--wait").job_id
     ws.write("a.py", "x = 2\n")  # a dirty worktree is expected on a fix round
     fixes = ws.write_input("fixes.md", "Fix finding 1: add a test.\n")
 
-    result = ws.start("implement", "--resume", first, "--wait", effort="medium", brief=fixes)
+    result = ws.start("--resume", first, "--wait", effort="medium", brief=fixes)
 
     assert result.return_code == 0
     call = ws.calls()[-1]
@@ -286,11 +299,11 @@ def test_resume_continues_the_recorded_thread(ws, monkeypatch):
 
 
 def test_resume_needs_a_recorded_thread(ws):
-    first = ws.start("implement", "--wait").job_id
+    first = ws.start("--wait").job_id
     ws.edit_meta(first, thread_id=None)
     calls_before = len(ws.calls())
 
-    result = ws.start("implement", "--resume", first)
+    result = ws.start("--resume", first)
 
     assert result.return_code == 2 and "thread" in result.stderr
     assert len(ws.calls()) == calls_before
@@ -298,11 +311,11 @@ def test_resume_needs_a_recorded_thread(ws):
 
 def test_start_prunes_old_jobs(ws):
     for index in range(55):
-        old = ws.jobs / f"20000101-0000{index:02d}-implement-0000"
+        old = ws.jobs / f"20000101-0000{index:02d}-job-0000"
         old.mkdir(parents=True)
         (old / "meta.json").write_text(json.dumps({"created_at": f"2000-01-01T00:00:{index:02d}"}))
 
-    job_id = ws.start("implement", "--wait").job_id
+    job_id = ws.start("--wait").job_id
 
     remaining = {job_dir.name for job_dir in ws.jobs.iterdir()}
     assert len(remaining) == 50

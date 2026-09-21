@@ -10,16 +10,17 @@ import sys
 from pathlib import Path
 from typing import Protocol, cast
 
-from codexrun import PreflightError, UsageError
-from codexrun.argv import EFFORTS
+from codexrun import ASSETS, PreflightError, UsageError
+from codexrun.argv import EFFORTS, SANDBOXES
 from codexrun.events import format_usage
 from codexrun.git import resolve_worktree
 from codexrun.preflight import preflight
-from codexrun.start import INPUTS, StartArgs, start_job
+from codexrun.start import INPUTS, StartArgs, start_job, template_slug
 from codexrun.state import JobMeta, find_job, jobs_dir, list_jobs, now, refresh, write_meta
 from codexrun.worker import run_worker
 
 EXIT_BY_STATUS = {"running": 4, "completed": 0}
+REVIEW_SCHEMA = ASSETS / "review-output.schema.json"
 
 
 class ParsedArgs(Protocol):
@@ -70,7 +71,7 @@ def cmd_preflight(_args: ParsedArgs) -> int:
 def cmd_start(args: StartArgs) -> int:
     """Start a job and optionally wait for its result."""
     job_dir, worker = start_job(args)
-    print(f"job {job_dir.name} started ({args.mode})")
+    print(f"job {job_dir.name} started ({template_slug(args.template)})")
     print(f"dir {job_dir}")
 
     if not args.wait:
@@ -97,9 +98,9 @@ def cmd_status(args: StatusArgs) -> int:
 
 def _print_status_table(rows: list[JobMeta]) -> None:
     """Print job metadata as a compact terminal table."""
-    print(f"{'ID':<34} {'MODE':<10} {'STATUS':<10} CREATED")
+    print(f"{'ID':<34} {'TEMPLATE':<10} {'STATUS':<10} CREATED")
     for meta in rows:
-        print(f"{meta['id']:<34} {meta['mode']:<10} {meta['status']:<10} {meta['created_at']}")
+        print(f"{meta['id']:<34} {meta['template']:<10} {meta['status']:<10} {meta['created_at']}")
 
 
 def cmd_result(args: ResultArgs) -> int:
@@ -231,18 +232,34 @@ def _add_start_parser(
     commands: argparse._SubParsersAction[argparse.ArgumentParser],
 ) -> argparse.ArgumentParser:
     """Add and return the start subcommand parser."""
-    start = commands.add_parser("start", help="start an implement or review job")
-    start.add_argument("mode", choices=("implement", "review"))
+    start = commands.add_parser("start", help="start a codex job")
     start.add_argument("--effort", required=True, choices=EFFORTS)
+    start.add_argument("--template", help="implement, review, or a task template file")
     start.add_argument("--model")
     start.add_argument("--tier", help="service_tier")
-    start.add_argument("--network", action="store_true", help="allow network (implement)")
 
     for name in INPUTS:
         start.add_argument(f"--{name}", metavar="FILE")
 
-    start.add_argument("--base", help="review: diff against merge-base with REF")
-    start.add_argument("--resume", metavar="JOB_ID", help="implement: continue that job's thread")
+    start.add_argument(
+        "--sandbox",
+        choices=SANDBOXES,
+        default="workspace-write",
+        help="sandbox Codex runs in (default: workspace-write)",
+    )
+    start.add_argument(
+        "--schema",
+        nargs="?",
+        const=str(REVIEW_SCHEMA),
+        metavar="FILE",
+        help="require JSON output (default: the review schema)",
+    )
+    start.add_argument("--diff", action="store_true", help="attach the worktree diff to the prompt")
+    start.add_argument(
+        "--base", metavar="REF", help="diff against merge-base with REF (implies --diff)"
+    )
+    start.add_argument("--network", action="store_true", help="allow network access")
+    start.add_argument("--resume", metavar="JOB_ID", help="continue that job's thread")
     start.add_argument("--wait", action="store_true", help="run in the foreground")
     return start
 

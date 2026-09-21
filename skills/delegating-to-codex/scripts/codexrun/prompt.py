@@ -14,9 +14,8 @@ RESUME_HEADER = (
 
 
 def build_prompt(
-    mode: str,
     *,
-    template: str,
+    template: str | None,
     brief: str,
     rules: str | None = None,
     context: str | None = None,
@@ -27,14 +26,13 @@ def build_prompt(
     """Build a complete delegation prompt.
 
     Args:
-        mode: Job mode controlling review-only sections.
-        template: Implementer or reviewer task template.
+        template: Optional task template the job follows.
         brief: Task-specific instructions.
         rules: Optional rules supplied by the orchestrator.
         context: Optional supporting context.
-        report: Optional implementer report for review jobs.
+        report: Optional implementer report to review.
         risks: Optional named risks.
-        diff: Optional diff description for review jobs.
+        diff: Optional diff description.
 
     Returns:
         Populated sections in their required reading order.
@@ -44,9 +42,9 @@ def build_prompt(
         ("RULES", rules),
         ("BRIEF", brief),
         ("CONTEXT", context),
-        ("IMPLEMENTER REPORT", report if mode == "review" else None),
+        ("IMPLEMENTER REPORT", report),
         ("NAMED RISKS", risks),
-        ("DIFF", diff if mode == "review" else None),
+        ("DIFF", diff),
     ]
     populated_sections = (_section(name, text) for name, text in sections if text is not None)
     return "\n".join(populated_sections)

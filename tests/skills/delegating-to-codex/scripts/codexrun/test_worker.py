@@ -14,7 +14,7 @@ def test_worker_records_a_process_launch_error(tmp_path, monkeypatch):
     (job_dir / "prompt.md").write_text("Do the task.\n")
     meta: JobMeta = {
         "id": "job",
-        "mode": "implement",
+        "template": "implement",
         "worktree": str(tmp_path),
         "argv": ["missing-codex"],
         "pid": None,
@@ -44,7 +44,7 @@ def test_result_prints_a_recorded_worker_error(ws):
     job_dir.mkdir(parents=True)
     meta: JobMeta = {
         "id": "launch-error",
-        "mode": "implement",
+        "template": "implement",
         "worktree": str(ws.repo),
         "argv": ["missing-codex"],
         "pid": None,
