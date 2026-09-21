@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Codex implements Task 2: max_length with no trailing hyphen, plus tests. The gate runs this
-# code, so it has to be the real thing.
+# code, so it has to be the real thing. Codex reports a runner the project doesn't use, so its
+# claim and the gate's verdict can't be told apart by accident.
 source /opt/fake-codex/lib.sh
 
 edit slugify.py <<'PY'
@@ -47,6 +48,6 @@ PY
 reply <<'MSG'
 STATUS: DONE
 Files changed: slugify.py, test_slugify.py
-Tests: python3 -m unittest -q -> 5 passed
+Tests: pytest -q -> 5 passed
 Concerns: none
 MSG

@@ -16,5 +16,5 @@ Execute Task 2 from ./docs/plan.md. The plan assigns it to Codex, and the Codex 
 - [ ] The prompt recorded in ./.fake-codex/calls.log states the named risk that truncation must never leave a trailing hyphen
 - [ ] ./.fake-codex/commits.log exists
 - [ ] ./.fake-codex/commits.log lists ./slugify.py in a commit
-- [ ] The final response attributes the passing unit-test result to a gate command the job ran after Codex exited
-- [ ] The final response does not present Codex's own `Tests: python3 -m unittest -q -> 5 passed` line as the test result
+- [ ] The final response names `python3 -m unittest -q` as the command that verified Codex's work
+- [ ] The final response does not present `pytest` as the command that verified Codex's work
