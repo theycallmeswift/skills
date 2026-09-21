@@ -1,44 +1,42 @@
-# delegating-to-codex — eval record
+# delegate-to-agent — eval record
 
-Recorded 2026-09-18 from `iteration_13` (benchspec 0.0.4, Claude Code 2.1.277, sonnet, `--count 3`; baseline bare, trial with the plugin via `--plugin-dir`). The shared `writing-prompts` query comes from `iteration_09`. Re-run with `make evals SKILL=delegating-to-codex EVAL_ARGS="--count 3"`.
+Recorded 2026-09-21 from `iteration_05` (benchspec 0.0.4, Claude Code 2.1.278, sonnet, `--count 3`; baseline bare, trial with the plugin via `--plugin-dir`). Re-run with `make evals SKILL=delegate-to-agent EVAL_ARGS="--count 3"` and replace this file.
 
 The VM has no Codex, so each scenario ships a scripted fake `codex` (shared helpers in `evals/support/fake-codex/`). Assertions grade what the fake logged: the flags passed, the prompt sent, and the commits made. Real-CLI drift is covered by `make test:e2e`.
 
+**baseline 67% → trial 99% (+33pp)** across 84 cells, noise band ±1pp.
+
 ## Output evals (activation lines excluded)
 
-| Eval | baseline | trial | Δ |
-|---|---|---|---|
-| plan-implement-task | 16/24 (67%) | 24/24 (100%) | +33pp |
-| user-review-presents | 16/27 (59%) | 26/27 (96%) | +37pp |
-| plan-review-judges-findings | 18/27 (67%) | 26/27 (96%) | +29pp |
-| codex-logged-out | 6/9 (67%) | 9/9 (100%) | +33pp |
-| **All** | 56/87 (64%) | 85/87 (98%) | **+34pp** |
+| Eval | baseline | trial |
+|---|---|---|
+| codex-logged-out | 67% | 100% |
+| gate-catches-false-green | 86% | 100% |
+| plan-implement-task | 67% | 100% |
+| plan-review-judges-findings | 67% | 96% |
+| python3-missing | 60% | 100% |
+| user-review-presents | 56% | 100% |
+| **All** | **67%** | **99%** |
 
-A fifth scenario, `python3-missing`, hides `python3` behind a differently-named interpreter: the skill's run completed (5/5) by using the interpreter that exists, and a bare agent scored 3/4.
-
-Both trial misses are one-sample wording slips in the final message (asked "apply these?" rather than "which?"; explained the dismissed finding only earlier in the turn). Trial costs about 37s and 436k tokens per sample, against 23s and 198k for the baseline.
+`plan-review-judges-findings`'s 96% is one judged assertion in one sample, where the agent decided the plan's only task was already complete and did no work. Task comprehension, not delegation behaviour.
 
 ## Routing (trial, 3/3 each)
 
-| Query | Boundary | Expected |
-|---|---|---|
-| have-codex-review | user names Codex | invoked |
-| continue-plan-codex-task | plan assigns Codex; the ask doesn't name it | invoked |
-| send-findings-back | follow-up into an existing Codex job | invoked |
-| codex-job-status | checking a running job | invoked |
-| review-my-branch | same ask, Codex not named | not invoked |
-| review-codex-pr | Codex wrote it; review it yourself | not invoked |
-| codex-eperm-debug | debugging Codex itself | not invoked |
-| gemini-review | a different model | not invoked |
-| writing-prompts/agents-md-for-codex | editing context Codex reads | writing-prompts invoked, this skill not |
+All fourteen activation lines pass: four `triggers/`, four `not-triggers/`, and the six output evals' own invocation lines. `not-triggers/review-codex-pr` ("codex wrote this PR, can you review it yourself?") is the one to watch — the description's negative clause names Codex verbatim for it, and generalizing that clause to "the delegate" broke it in an earlier draft.
 
 ## What the baseline misses
 
 A bare agent gets the outcome mostly right: it calls Codex, passes the named risks, fixes real findings, and commits. What it skips is what makes delegation safe and cheap:
-- It uses deprecated `--full-auto` instead of `--sandbox` (6 of 12 baseline runs).
+
+- It uses deprecated `--full-auto` instead of `--sandbox`.
 - It sets no reasoning effort, so the user's default decides.
 - It runs reviews writable and without `--output-schema`.
-- It repeats Codex's test claim without re-running the tests.
+- It repeats the delegate's test claim rather than reporting an independent check.
 - When logged out, it calls `codex exec` anyway.
 
 No baseline run found or used the skill's script from the read-only `/project` mount.
+
+## Two limits worth knowing
+
+- **`gate-catches-false-green` grades the outcome, not the mechanism.** Its 86% baseline is high because a bare agent runs the tests itself, finds the failure, and also declines to commit. Discriminating on the mechanism would need the gate to leave a trace inside the workspace, which is a `scripts/` change.
+- **Every `The final response …` assertion is judge-backed by construction.** benchspec's checkers (`file_exists`, `regex` over file content, `skill_invoked`, …) are all file- or skill-scoped; none can see the agent's final message. `plan-implement-task` works around this by having the fake claim `pytest` while the project runs `python3 -m unittest -q`, so reporting the gate and parroting the delegate are textually separable.
