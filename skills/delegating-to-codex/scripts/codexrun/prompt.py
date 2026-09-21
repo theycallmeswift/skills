@@ -6,10 +6,12 @@ from codexrun.git import DiffInfo
 
 INLINE_MAX_FILES = 2
 INLINE_MAX_BYTES = 256 * 1024
+# Implement and review threads both resume, so the header cannot restate either one's rules:
+# it points back at the task the thread already carries.
 RESUME_HEADER = (
-    "Follow-up from the orchestrator on the task above. Apply the fixes below under the "
-    "same rules: leave changes in the working tree (no git add/commit/stash/checkout), "
-    "and end with the same STATUS final message.\n"
+    "Follow-up from the orchestrator on the task above, in the same thread. The rules and "
+    "the final-message contract you were given there still hold, unchanged. Take up what "
+    "follows under them.\n"
 )
 
 

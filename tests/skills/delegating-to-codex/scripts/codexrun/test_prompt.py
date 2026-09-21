@@ -41,6 +41,16 @@ def test_resume_prompt_is_just_the_brief():
     assert "Fix finding 1." in prompt
 
 
+def test_resume_prompt_restates_no_implementer_rules():
+    # A resumed review inherits a read-only sandbox and a JSON schema, so a header that
+    # restated the implement rules would order edits it cannot make in a shape it cannot use.
+    prompt = build_resume_prompt("Finding 1 is wrong; look again.\n")
+
+    forbidden = ("STATUS", "working tree", "git add", "commit", "stash", "checkout")
+    assert [word for word in forbidden if word in prompt] == []
+    assert "rules" in prompt
+
+
 def test_small_diff_is_inlined():
     section = render(diff_info(["a.py", "b.py"], "diff --git a/a.py b/a.py\n+x\n"))
     assert "diff --git a/a.py b/a.py" in section
