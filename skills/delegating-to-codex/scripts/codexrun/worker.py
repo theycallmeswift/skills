@@ -18,6 +18,7 @@ from codexrun.state import (
     JobMeta,
     now,
     read_meta,
+    record_pid,
     write_meta,
 )
 
@@ -42,11 +43,16 @@ def run_worker(job_dir: Path) -> int:
         job_dir: Job directory containing metadata and the rendered prompt.
 
     Returns:
-        The Codex exit code, or 127 when the process could not be launched.
+        The Codex exit code, 127 when the process could not be launched, or 0 when the job
+        was cancelled before Codex started.
     """
+    record_pid(job_dir, os.getpid())
+
+    # A cancel this early may have signalled a process group this worker had not joined yet,
+    # so the status is the only word on it. Read it as late as possible before launching.
     meta = read_meta(job_dir)
-    meta["pid"] = os.getpid()
-    write_meta(job_dir, meta)
+    if meta.get("status") == "cancelled":
+        return 0
 
     return_code, launch_error = _run_codex(job_dir, meta)
     thread_id, usage = parse_events((job_dir / EVENTS).read_text(errors="replace"))

@@ -11,7 +11,7 @@ from pathlib import Path
 from unittest.mock import Mock
 
 import pytest
-from codexrun import cli
+from codexrun import cli, start
 from codexrun.result import RESULT_MAX_BYTES
 from codexrun.start import INPUTS
 from support.codex import pid_alive, run_cli
@@ -321,6 +321,16 @@ def test_result_without_usage(ws):
 
 def test_result_for_unknown_job(ws):
     assert ws.run("result", "nope").return_code == 2
+
+
+def test_start_records_the_workers_pid_itself(ws, monkeypatch):
+    # The spawned worker never runs, so only start can have recorded the process group that
+    # cancel kills — a cancel arriving first must not find a job it cannot stop.
+    monkeypatch.setattr(start, "spawn_worker", Mock(return_value=Mock(pid=424242)))
+
+    started = ws.start()
+
+    assert ws.meta(started.job_id)["pid"] == 424242
 
 
 def test_cancel_kills_codex_and_keeps_its_edits(ws, monkeypatch):

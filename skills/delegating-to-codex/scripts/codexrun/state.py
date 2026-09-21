@@ -143,6 +143,29 @@ def write_meta(job_dir: Path, meta: JobMeta) -> None:
     os.replace(temporary_path, job_dir / META)
 
 
+def record_pid(job_dir: Path, pid: int) -> JobMeta:
+    """Attach a worker's process group to a job that is still waiting for one.
+
+    Both the process that spawned the worker and the worker itself offer the pid, and a
+    cancel may land between them. Only a job still running and still without a pid takes
+    one, so neither writer can put a finished or cancelled job back to running.
+
+    Args:
+        job_dir: The job's directory.
+        pid: Process-group leader of the job's worker.
+
+    Returns:
+        The metadata on disk after the attempt.
+    """
+    meta = read_meta(job_dir)
+    if meta.get("status") != "running" or meta.get("pid") is not None:
+        return meta
+
+    meta["pid"] = pid
+    write_meta(job_dir, meta)
+    return meta
+
+
 def list_jobs(jobs: Path) -> list[Path]:
     """Return job directories ordered newest first."""
     if not jobs.is_dir():

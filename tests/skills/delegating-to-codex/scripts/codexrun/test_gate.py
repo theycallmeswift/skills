@@ -58,24 +58,28 @@ def test_a_failed_delegate_skips_the_gate_without_running_the_command(ws, monkey
     assert "gate: skipped (job failed) - touch gate-ran.txt" in result.stdout
 
 
-def test_a_worker_that_finds_its_job_cancelled_runs_no_gate(tmp_path, monkeypatch):
+def test_a_worker_that_finds_its_job_cancelled_runs_neither_the_delegate_nor_the_gate(
+    tmp_path, monkeypatch
+):
     job_dir = tmp_path / "job"
     job_dir.mkdir()
     (job_dir / "prompt.md").write_text("Do the task.\n")
-    # Cancel reaches a worker that has not recorded a pid yet, so nothing kills it:
-    # the worker has to notice the status itself.
+    # Cancel won the race to the worker's own startup, so its signal may have arrived before
+    # this process existed: the worker has to notice the status itself.
     write_meta(
         job_dir,
         job_meta(worktree=str(tmp_path), status="cancelled", gate_command="touch gate-ran.txt"),
     )
-    codex_exits_clean = Mock(return_value=0)
-    monkeypatch.setattr(worker.subprocess, "call", codex_exits_clean)
+    never_launched = Mock(return_value=0)
+    monkeypatch.setattr(worker.subprocess, "call", never_launched)
+    monkeypatch.setattr(worker.subprocess, "Popen", never_launched)
 
     worker.run_worker(job_dir)
 
-    assert codex_exits_clean.call_count == 1  # codex ran; the gate never did
+    assert never_launched.call_count == 0
     recorded = read_meta(job_dir)
     assert recorded["status"] == "cancelled"
+    assert recorded["pid"] is None
     assert "gate" not in recorded
     assert not (tmp_path / "gate-ran.txt").exists()
 

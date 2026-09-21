@@ -23,6 +23,7 @@ from codexrun.state import (
     now,
     prune_jobs,
     read_meta,
+    record_pid,
     write_meta,
 )
 from codexrun.worker import spawn_worker
@@ -93,7 +94,12 @@ def start_job(args: StartArgs) -> tuple[Path, subprocess.Popen[bytes]]:
     prompt = _build_prompt(args, run, worktree, inputs, excluded_inputs)
     job_dir = _create_job(jobs, args, run, worktree, prompt)
 
-    return job_dir, spawn_worker(job_dir)
+    worker = spawn_worker(job_dir)
+    # The worker leads its own process group, so cancel can kill it from here on. Waiting for
+    # the worker to record its own pid would leave a cancel in between with nothing to signal.
+    record_pid(job_dir, worker.pid)
+
+    return job_dir, worker
 
 
 def _read_inputs(args: StartArgs) -> InputValues:
