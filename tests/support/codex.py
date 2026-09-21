@@ -13,10 +13,10 @@ from pathlib import Path
 from typing import TypeAlias, TypedDict, cast
 
 import pytest
-from codexrun import SCRIPT
-from codexrun.cli import main
-from codexrun.git import DiffInfo, resolve_worktree
-from codexrun.state import GateResult, JobMeta, Usage, jobs_dir, now
+from agentrun import SCRIPT
+from agentrun.cli import main
+from agentrun.git import DiffInfo, resolve_worktree
+from agentrun.state import GateResult, JobMeta, Usage, jobs_dir, now
 
 GIT = [
     "git",

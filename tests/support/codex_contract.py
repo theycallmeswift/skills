@@ -12,7 +12,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from typing import Any, TypeAlias, TypedDict, cast
 
-from codexrun.state import JobMeta, Usage
+from agentrun.state import JobMeta, Usage
 
 JsonValue: TypeAlias = None | bool | int | float | str | list["JsonValue"] | dict[str, "JsonValue"]
 JsonObject: TypeAlias = dict[str, JsonValue]
@@ -182,8 +182,8 @@ def serve_stub(worktree: Path) -> Iterator[tuple[Stub, int]]:
 
 
 ROOT = Path(__file__).parents[2]
-SCRIPT = ROOT / "skills/delegating-to-codex/scripts/codex_run.py"
-SCHEMA = ROOT / "skills/delegating-to-codex/assets/review-output.schema.json"
+SCRIPT = ROOT / "skills/delegate-to-agent/scripts/agent_run.py"
+SCHEMA = ROOT / "skills/delegate-to-agent/assets/review-output.schema.json"
 
 
 def git(repo: Path, *args: str) -> str:
