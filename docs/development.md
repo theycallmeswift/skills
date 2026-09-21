@@ -90,7 +90,7 @@ The published path is the tap in the README: `hermes skills tap add theycallmesw
 - **Claude Code** backgrounds a long Bash call and wakes the session when it exits, so `--wait` is the normal dispatch there.
 - **Where a harness runs every Bash call in the foreground**, `--wait` holds the turn for the whole job. Fire and poll instead: `start` without `--wait`, then `status` / `result` on a later turn. Not verified for Codex, OpenCode, or Hermes as hosts.
 
-`--gate CMD` runs after the delegate exits, in the worktree, and the verdict is recorded on the job and printed by `result`. `result` exits 0 when the job completed, 4 while it is still running, and 5 when the gate failed or could not run.
+`--gate CMD` runs after the delegate exits, in the worktree, and the verdict is recorded on the job and printed by `result`. `result` exits 0 when the job completed, 4 while it is still running, 1 when the delegate failed or the job was cancelled, and 5 when the gate failed, timed out, or could not run. `--gate-timeout SECONDS` caps the gate at 900 seconds by default and kills its whole process tree on expiry, so a hung test command can't hold a `--wait` turn open.
 
 ## Evals
 

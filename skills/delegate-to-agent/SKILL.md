@@ -30,9 +30,9 @@ python3 $S result [job-id]   # final message, usage, gate verdict; defaults to t
 python3 $S cancel <job-id>   # stops the job; any edits stay in the worktree
 ```
 
-Prose picks the template; every flag is independent of it. `--sandbox read-only|workspace-write` (defaults to writable, or to the resumed job's), `--schema [FILE]` (bare means the review schema), `--diff` or `--base REF`, `--network`, `--resume JOB_ID`, `--gate CMD`, `--wait`.
+Prose picks the template; every flag is independent of it. `--sandbox read-only|workspace-write` (defaults to writable, or to the resumed job's), `--schema [FILE]` (bare means the review schema), `--diff` or `--base REF`, `--network`, `--resume JOB_ID`, `--gate CMD` (`--gate-timeout SECONDS` caps it; 900 by default), `--wait`.
 
-`result` exits 0 when the job finished clean, 4 while it is still running, 1 when the delegate itself failed or the job was cancelled (the gate is skipped, not failed), and 5 when the gate failed or could not run.
+`result` exits 0 when the job finished clean, 4 while it is still running, 1 when the delegate itself failed or the job was cancelled (the gate is skipped, not failed), and 5 when the gate failed, timed out, or could not run.
 
 ## Collecting the result
 
@@ -54,7 +54,7 @@ If preflight fails (the CLI is missing, logged out, or this session is already r
 
 ## The gate
 
-`--gate 'make test'` runs after the delegate exits, in the worktree, and `result` prints one line: passed, failed with the log path, skipped because the job itself failed, or error. A delegate reporting that its tests pass is a claim; the gate is the check, run by something that is not the delegate. Gate every job that writes, with whatever command that project runs its tests by.
+`--gate 'make test'` runs after the delegate exits, in the worktree, and `result` prints one line: passed, failed with the log path, timed out, skipped because the job itself failed, or error. A delegate reporting that its tests pass is a claim; the gate is the check, run by something that is not the delegate. Gate every job that writes, with whatever command that project runs its tests by.
 
 ## Implement
 
