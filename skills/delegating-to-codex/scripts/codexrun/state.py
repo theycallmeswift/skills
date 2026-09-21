@@ -11,13 +11,20 @@ import time
 from collections.abc import Mapping
 from datetime import datetime
 from pathlib import Path
-from typing import NotRequired, TypedDict, cast
+from typing import Literal, NotRequired, TypedDict, cast
 
 from codexrun import UsageError
 
 MAX_JOBS = 50
 # A job whose worker never recorded a pid after this long is treated as dead.
 PID_GRACE_SECONDS = 60
+# The files that make up one job directory.
+META = "meta.json"
+PROMPT = "prompt.md"
+EVENTS = "events.jsonl"
+STDERR_LOG = "stderr.log"
+LAST_MESSAGE = "last.md"
+GATE_LOG = "gate.log"
 
 
 class Usage(TypedDict):
@@ -29,12 +36,23 @@ class Usage(TypedDict):
     reasoning_output_tokens: int
 
 
+GateStatus = Literal["passed", "failed", "skipped", "error"]
+
+
 class GateResult(TypedDict):
-    """Outcome of the post-run check the worker ran on the delegate's work."""
+    """Outcome of the post-run check the worker ran on the delegate's work.
+
+    Attributes:
+        command: The shell command the gate ran.
+        status: How the gate ended.
+        exit_code: The command's exit code, absent when it never ran.
+        reason: Why the gate could not start, present only on an error.
+    """
 
     command: str
-    status: str
+    status: GateStatus
     exit_code: NotRequired[int]
+    reason: NotRequired[str]
 
 
 class JobMeta(TypedDict):
@@ -107,7 +125,7 @@ def now() -> str:
 
 def read_meta(job_dir: Path) -> JobMeta:
     """Read a job's metadata from disk."""
-    decoded = json.loads((job_dir / "meta.json").read_text(encoding="utf-8"))
+    decoded = json.loads((job_dir / META).read_text(encoding="utf-8"))
     if not isinstance(decoded, dict):
         raise ValueError(f"job metadata is not an object: {job_dir.name}")
     return cast(JobMeta, decoded)
@@ -120,7 +138,7 @@ def write_meta(job_dir: Path, meta: JobMeta) -> None:
     # Write-then-rename so a concurrent reader never sees a half-written file.
     temporary_path = job_dir / f".meta.{os.getpid()}.tmp"
     temporary_path.write_text(json.dumps(meta, indent=2) + "\n", encoding="utf-8")
-    os.replace(temporary_path, job_dir / "meta.json")
+    os.replace(temporary_path, job_dir / META)
 
 
 def list_jobs(jobs: Path) -> list[Path]:
@@ -166,7 +184,7 @@ def find_job(jobs: Path, job_id: str) -> Path:
         return found[0]
 
     job_dir = jobs / job_id
-    if not (job_dir / "meta.json").is_file():
+    if not (job_dir / META).is_file():
         raise UsageError(f"no such job for this worktree: {job_id}")
 
     return job_dir

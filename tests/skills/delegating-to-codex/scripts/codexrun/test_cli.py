@@ -12,6 +12,7 @@ from unittest.mock import Mock
 
 import pytest
 from codexrun import cli
+from codexrun.result import RESULT_MAX_BYTES
 from codexrun.start import INPUTS
 from support.codex import pid_alive, run_cli
 
@@ -182,8 +183,8 @@ def test_result_truncates_a_long_message_and_points_at_the_file(ws):
     result = ws.run("result", job_id)
 
     body = result.stdout.splitlines()[1]
-    assert len(body.encode("utf-8")) <= cli.RESULT_MAX_BYTES
-    assert f"truncated (200 KB); full message: {message_path}" in result.stdout
+    assert len(body.encode("utf-8")) <= RESULT_MAX_BYTES
+    assert f"... truncated (200 KB); full message: {message_path}" in result.stdout
 
 
 def test_result_truncation_never_splits_a_multibyte_character(ws):
@@ -196,7 +197,7 @@ def test_result_truncation_never_splits_a_multibyte_character(ws):
     lines = result.stdout.splitlines()
     body, pointer = lines[1], lines[-2]
     assert result.return_code == 0
-    assert pointer.startswith("\u2026 truncated")
+    assert pointer.startswith("... truncated")
     assert body == "\u20ac" * len(body)
 
 
@@ -208,8 +209,37 @@ def test_result_truncation_ends_on_a_whole_line(ws):
 
     lines = result.stdout.splitlines()
     body, pointer = lines[1:-2], lines[-2]
-    assert pointer.startswith("… truncated")
-    assert len(body) < 500 and all(line == "a" * 79 for line in body)
+    assert pointer.startswith("... truncated")
+    assert body == ["a" * 79] * (RESULT_MAX_BYTES // 80)
+
+
+def test_result_truncation_keeps_the_head_when_no_line_break_is_near_the_cut(ws):
+    job_id = ws.start("--wait").job_id
+    (ws.jobs / job_id / "last.md").write_text("header line\n" + "x" * (200 * 1024))
+
+    result = ws.run("result", job_id)
+
+    body = result.stdout.splitlines()[1:-2]
+    assert body == ["header line", "x" * (RESULT_MAX_BYTES - len("header line\n"))]
+
+
+def test_result_truncation_keeps_a_decimal_when_the_cut_would_round_away(ws):
+    job_id = ws.start("--wait").job_id
+    (ws.jobs / job_id / "last.md").write_text("x" * (RESULT_MAX_BYTES + 1))
+
+    result = ws.run("result", job_id)
+
+    assert "... truncated (16.0 KB);" in result.stdout
+
+
+def test_result_points_at_no_spill_file_when_the_message_was_only_whitespace(ws):
+    job_id = ws.start("--wait").job_id
+    (ws.jobs / job_id / "last.md").write_text(" " * (200 * 1024))
+
+    result = ws.run("result", job_id)
+
+    assert "(no final message)" in result.stdout
+    assert "truncated" not in result.stdout
 
 
 def test_result_json_truncates_and_names_the_spill_file(ws):
@@ -220,7 +250,7 @@ def test_result_json_truncates_and_names_the_spill_file(ws):
     result = ws.run("result", job_id, "--json")
 
     data = json.loads(result.stdout)
-    assert len(data["last_message"].encode("utf-8")) <= cli.RESULT_MAX_BYTES
+    assert len(data["last_message"].encode("utf-8")) <= RESULT_MAX_BYTES
     assert data["last_message_truncated"] is True
     assert data["last_message_path"] == str(message_path)
 

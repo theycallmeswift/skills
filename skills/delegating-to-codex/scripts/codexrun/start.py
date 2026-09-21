@@ -15,6 +15,7 @@ from codexrun.preflight import preflight
 from codexrun.prompt import build_prompt, build_resume_prompt, render_diff_section
 from codexrun.state import (
     MAX_JOBS,
+    PROMPT,
     JobMeta,
     find_job,
     jobs_dir,
@@ -274,7 +275,7 @@ def _create_job(
         thread_id=thread_id,
         schema=schema,
     )
-    (job_dir / "prompt.md").write_text(prompt, encoding="utf-8")
+    (job_dir / PROMPT).write_text(prompt, encoding="utf-8")
 
     meta = _initial_meta(job_id, args, worktree, argv, thread_id)
     write_meta(job_dir, meta)

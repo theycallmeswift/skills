@@ -16,7 +16,7 @@ import pytest
 from codexrun import SCRIPT
 from codexrun.cli import main
 from codexrun.git import DiffInfo, resolve_worktree
-from codexrun.state import GateResult, JobMeta, Usage, jobs_dir
+from codexrun.state import GateResult, JobMeta, Usage, jobs_dir, now
 
 GIT = [
     "git",
@@ -217,6 +217,27 @@ class Repo:
         return next(
             line.split()[1] for line in result.stdout.splitlines() if line.startswith("job ")
         )
+
+
+def job_meta(**overrides: JobMetaValue) -> JobMeta:
+    """Build job metadata, leaving the call site only the fields its test turns on."""
+    defaults: JobMeta = {
+        "id": "job",
+        "template": "implement",
+        "worktree": ".",
+        "argv": ["codex"],
+        "pid": None,
+        "status": "running",
+        "exit_code": None,
+        "thread_id": None,
+        "usage": None,
+        "session_id": None,
+        "resumed_from": None,
+        "gate_command": None,
+        "created_at": now(),
+        "finished_at": None,
+    }
+    return cast(JobMeta, {**defaults, **overrides})
 
 
 def jsonl(*events: JsonObject) -> str:

@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from codexrun.state import LAST_MESSAGE
+
 EFFORTS = ("none", "minimal", "low", "medium", "high", "xhigh")
 READ_ONLY_SANDBOX = "read-only"
 WRITABLE_SANDBOX = "workspace-write"
@@ -60,7 +62,7 @@ def build_argv(
         *_network_settings(network),
         *_schema_settings(schema),
         "-o",
-        str(job_dir / "last.md"),
+        str(job_dir / LAST_MESSAGE),
         "-",
     ]
 

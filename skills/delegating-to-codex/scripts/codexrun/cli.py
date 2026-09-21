@@ -8,49 +8,19 @@ import os
 import signal
 import sys
 from pathlib import Path
-from typing import NamedTuple, Protocol, cast
+from typing import Protocol, cast
 
 from codexrun import ASSETS, PreflightError, UsageError
 from codexrun.argv import EFFORTS, SANDBOXES, WRITABLE_SANDBOX
-from codexrun.events import format_usage
 from codexrun.git import resolve_worktree
 from codexrun.preflight import preflight
+from codexrun.result import show_result
 from codexrun.start import BUNDLED_TEMPLATES, INPUTS, StartArgs, start_job, template_label
-from codexrun.state import (
-    GateResult,
-    JobMeta,
-    find_job,
-    jobs_dir,
-    list_jobs,
-    now,
-    refresh,
-    write_meta,
-)
+from codexrun.state import JobMeta, find_job, jobs_dir, list_jobs, now, refresh, write_meta
 from codexrun.worker import run_worker
 
-EXIT_BY_STATUS = {"running": 4, "completed": 0}
-# A gate that failed or could not run outranks the delegate's own clean exit.
-GATE_FAILURE_EXIT_CODE = 5
-GATE_FAILURE_STATUSES = ("failed", "error")
 REVIEW_SCHEMA = ASSETS / "review-output.schema.json"
 TEMPLATE_COLUMN = 10
-# What a final message may spend of the orchestrating agent's context. The terminal could
-# take far more; the context window the result lands in is the scarce resource.
-RESULT_MAX_BYTES = 16 * 1024
-# Back up to the last line break this close to the cut so the head ends on a whole line.
-NEWLINE_LOOKBACK_CHARS = 512
-
-
-class CappedMessage(NamedTuple):
-    """Codex's final message, trimmed to the byte cap when it ran past it.
-
-    Attributes:
-        text: The message, or its head when it exceeded the cap.
-        full_bytes: Size of the untrimmed message, or None when nothing was trimmed.
-    """
-
-    text: str
-    full_bytes: int | None
 
 
 class ParsedArgs(Protocol):
@@ -178,119 +148,6 @@ def _stop_worker(pid: int | None) -> None:
         os.killpg(pid, signal.SIGTERM)
     except ProcessLookupError:
         pass
-
-
-def show_result(job_dir: Path, *, as_json: bool) -> int:
-    """Print a job result and return its status-specific exit code."""
-    meta = refresh(job_dir)
-    message = _cap_message(_last_message(job_dir))
-
-    if as_json:
-        truncation = _truncation_fields(job_dir, message)
-        print(json.dumps({**meta, "last_message": message.text, **truncation}, indent=2))
-    else:
-        _print_result(job_dir, meta, message)
-
-    return _exit_code(meta)
-
-
-def _exit_code(meta: JobMeta) -> int:
-    """Map a job to its exit code, reporting a gate verdict ahead of the delegate's own."""
-    gate = meta.get("gate")
-    if gate and gate["status"] in GATE_FAILURE_STATUSES:
-        return GATE_FAILURE_EXIT_CODE
-
-    return EXIT_BY_STATUS.get(meta["status"], 1)
-
-
-def _message_path(job_dir: Path) -> Path:
-    """Locate the file Codex writes its final message to."""
-    return job_dir / "last.md"
-
-
-def _last_message(job_dir: Path) -> str:
-    """Read Codex's final message when one was written."""
-    message_path = _message_path(job_dir)
-    if not message_path.is_file():
-        return ""
-    return message_path.read_text(encoding="utf-8")
-
-
-def _cap_message(message: str) -> CappedMessage:
-    """Trim a final message to the byte cap, on a line boundary when one is near the cut."""
-    encoded = message.encode("utf-8")
-    if len(encoded) <= RESULT_MAX_BYTES:
-        return CappedMessage(message, full_bytes=None)
-
-    # Ignoring the errors drops a character the cut landed inside, rather than raising
-    # or leaving a replacement character behind.
-    head = encoded[:RESULT_MAX_BYTES].decode("utf-8", errors="ignore")
-
-    last_line_break = head.rfind("\n")
-    if last_line_break != -1 and last_line_break >= len(head) - NEWLINE_LOOKBACK_CHARS:
-        head = head[:last_line_break]
-
-    return CappedMessage(head, full_bytes=len(encoded))
-
-
-def _truncation_pointer(job_dir: Path, full_bytes: int) -> str:
-    """Point at the untrimmed message on disk, naming how big it was."""
-    kilobytes = round(full_bytes / 1024)
-    return f"… truncated ({kilobytes} KB); full message: {_message_path(job_dir)}"
-
-
-def _truncation_fields(job_dir: Path, message: CappedMessage) -> dict[str, str | bool]:
-    """Flag a trimmed message in --json output and name the file holding all of it."""
-    if message.full_bytes is None:
-        return {}
-
-    return {"last_message_truncated": True, "last_message_path": str(_message_path(job_dir))}
-
-
-def _print_result(job_dir: Path, meta: JobMeta, message: CappedMessage) -> None:
-    """Print a human-readable terminal result."""
-    if meta["status"] == "running":
-        print(f"job {meta['id']} still running")
-        return
-
-    exit_code = meta.get("exit_code")
-    exit_suffix = f" (exit {exit_code})" if exit_code is not None else ""
-    answer = message.text.rstrip() if message.text.strip() else meta.get("error")
-    if not answer:
-        answer = _no_message(job_dir)
-
-    print(f"job {meta['id']}: {meta['status']}{exit_suffix}")
-    print(answer)
-    if message.full_bytes is not None:
-        print(_truncation_pointer(job_dir, message.full_bytes))
-    print(format_usage(meta.get("usage")))
-
-    gate = meta.get("gate")
-    if gate:
-        print(_gate_line(job_dir, gate))
-
-
-def _gate_line(job_dir: Path, gate: GateResult) -> str:
-    """Summarize the gate in one line; its output stays in the log that line points at."""
-    command = gate["command"]
-    if gate["status"] == "passed":
-        return f"gate: passed ({command})"
-
-    if gate["status"] == "skipped":
-        return f"gate: skipped (job failed) — {command}"
-
-    exit_code = gate.get("exit_code")
-    exit_suffix = f" (exit {exit_code})" if exit_code is not None else ""
-    return f"gate: {gate['status']}{exit_suffix} — {command}; output: {job_dir / 'gate.log'}"
-
-
-def _no_message(job_dir: Path) -> str:
-    """Explain a missing final message by pointing at stderr; diagnostics are not an answer."""
-    stderr_path = job_dir / "stderr.log"
-    if not stderr_path.is_file():
-        return "(no final message)"
-
-    return f"(no final message); stderr: {stderr_path}"
 
 
 def _jobs(args: WorktreeArgs) -> Path:

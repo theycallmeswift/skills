@@ -1,4 +1,4 @@
-"""The detached worker: runs one job's `codex` process and records how it ended."""
+"""The detached worker: runs one job's `codex` process, gates its work, and records both."""
 
 from __future__ import annotations
 
@@ -9,7 +9,17 @@ from pathlib import Path
 
 from codexrun import SCRIPT
 from codexrun.events import parse_events
-from codexrun.state import GateResult, JobMeta, now, read_meta, write_meta
+from codexrun.state import (
+    EVENTS,
+    GATE_LOG,
+    PROMPT,
+    STDERR_LOG,
+    GateResult,
+    JobMeta,
+    now,
+    read_meta,
+    write_meta,
+)
 
 CODEX_LAUNCH_ERROR_EXIT_CODE = 127
 
@@ -39,7 +49,7 @@ def run_worker(job_dir: Path) -> int:
     write_meta(job_dir, meta)
 
     return_code, launch_error = _run_codex(job_dir, meta)
-    thread_id, usage = parse_events((job_dir / "events.jsonl").read_text(errors="replace"))
+    thread_id, usage = parse_events((job_dir / EVENTS).read_text(errors="replace"))
 
     meta = read_meta(job_dir)
     if meta.get("status") == "cancelled":
@@ -82,7 +92,7 @@ def _run_gate(job_dir: Path, meta: JobMeta, codex_return_code: int) -> GateResul
     if codex_return_code != 0:
         return {"command": command, "status": "skipped"}
 
-    with open(job_dir / "gate.log", "wb") as gate_log:
+    with open(job_dir / GATE_LOG, "wb") as gate_log:
         try:
             exit_code = subprocess.call(
                 command,
@@ -93,7 +103,7 @@ def _run_gate(job_dir: Path, meta: JobMeta, codex_return_code: int) -> GateResul
             )
         except OSError as error:
             gate_log.write(f"failed to run gate: {error}\n".encode())
-            return {"command": command, "status": "error"}
+            return {"command": command, "status": "error", "reason": str(error)}
 
     return {
         "command": command,
@@ -105,9 +115,9 @@ def _run_gate(job_dir: Path, meta: JobMeta, codex_return_code: int) -> GateResul
 def _run_codex(job_dir: Path, meta: JobMeta) -> tuple[int, str | None]:
     """Run the recorded Codex argv while capturing its three process streams."""
     with (
-        open(job_dir / "prompt.md", "rb") as stdin,
-        open(job_dir / "events.jsonl", "wb") as stdout,
-        open(job_dir / "stderr.log", "wb") as stderr,
+        open(job_dir / PROMPT, "rb") as stdin,
+        open(job_dir / EVENTS, "wb") as stdout,
+        open(job_dir / STDERR_LOG, "wb") as stderr,
     ):
         try:
             return (
