@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Codex reviews Task 3: one real finding (partial last page) and one bogus one
-# (division by zero, which page_count already guards). A resumed fix round applies the fix.
+# (division by zero, which page_count already guards). The fix round, resumed or fresh, applies it.
 source /opt/fake-codex/lib.sh
 
 case "$MODE" in

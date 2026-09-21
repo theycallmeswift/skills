@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Sourced by a scenario's fake `codex` script. See README.md.
 set -euo pipefail
-LOG_DIR=/workspace/.fake-codex
+LOG_DIR="${FAKE_CODEX_LOG_DIR:-/workspace/.fake-codex}"
 THREAD=0199a1b2-c3d4-7e5f-8a9b-0c1d2e3f4a5b
 LOGGED_OUT="${LOGGED_OUT:-0}"
 
@@ -14,7 +14,7 @@ case "${1:-}" in
   *) echo "fake codex: unsupported command: $*" >&2; exit 2 ;;
 esac
 
-MODE=implement; OUT=""; CD_DIR="$PWD"; PROMPT=""; DASH=0; ARGS=("$@")
+MODE=implement; SANDBOX=workspace-write; OUT=""; CD_DIR="$PWD"; PROMPT=""; DASH=0; ARGS=("$@")
 if [ "${1:-}" = resume ]; then MODE=resume; fi
 index=0
 while [ $index -lt ${#ARGS[@]} ]; do
@@ -22,18 +22,23 @@ while [ $index -lt ${#ARGS[@]} ]; do
   case "$argument" in
     -o|--output-last-message) index=$((index+1)); OUT="${ARGS[$index]}" ;;
     -C|--cd) index=$((index+1)); CD_DIR="${ARGS[$index]}" ;;
-    -s|--sandbox)
+    -s|--sandbox) index=$((index+1)); SANDBOX="${ARGS[$index]}" ;;
+    # A resumed thread takes no --sandbox flag, so its sandbox arrives as config.
+    -c|--config)
       index=$((index+1))
-      if [ "${ARGS[$index]}" = read-only ] && [ "$MODE" != resume ]; then MODE=review; fi
+      case "${ARGS[$index]}" in
+        sandbox_mode=*) SANDBOX="$(printf '%s' "${ARGS[$index]#sandbox_mode=}" | tr -d '"')" ;;
+      esac
       ;;
-    --output-schema|-m|--model|-p|--profile|-i|--image|--color|-c|--config|--add-dir|--enable|--disable)
+    --output-schema|-m|--model|-p|--profile|-i|--image|--color|--add-dir|--enable|--disable)
       index=$((index+1)) ;;
     -) DASH=1 ;;
     -*|resume) ;;
-    *) PROMPT="$a" ;;
+    *) PROMPT="$argument" ;;
   esac
   index=$((index+1))
 done
+if [ "$MODE" != resume ] && [ "$SANDBOX" = read-only ]; then MODE=review; fi
 # Like the real CLI: the prompt comes from stdin for `-`, or when no prompt argument is given.
 if [ $DASH = 1 ] || [ -z "$PROMPT" ]; then PROMPT="$(cat)"; fi
 
@@ -52,8 +57,15 @@ if [ "$LOGGED_OUT" = 1 ]; then
   exit 1
 fi
 
-# edit <path>: write stdin to <path> in the worktree, as Codex's edit.
-edit() { mkdir -p "$(dirname "$CD_DIR/$1")"; cat > "$CD_DIR/$1"; }
+# edit <path>: write stdin to <path> in the worktree, as Codex's edit. A read-only sandbox
+# refuses, so a job dispatched read-only can't write however the scenario is scripted.
+edit() {
+  if [ "$SANDBOX" = read-only ]; then
+    echo "fake codex: read-only sandbox: refusing to write $1" >&2
+    exit 1
+  fi
+  mkdir -p "$(dirname "$CD_DIR/$1")"; cat > "$CD_DIR/$1"
+}
 
 # reply: stdin is Codex's final message. Emits the JSONL stream and exits.
 reply() {
