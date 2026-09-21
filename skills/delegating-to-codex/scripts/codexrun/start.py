@@ -137,11 +137,15 @@ def _read_input(name: str, path: str | None) -> str | None:
 
 
 def _schema_file(schema: str | None) -> Path | None:
-    """Resolve the optional output schema path."""
+    """Resolve the optional output schema path.
+
+    A resume replays the recorded path from whatever directory the orchestrator is in by
+    then, so it is made absolute here rather than at the point it is read back.
+    """
     if schema is None:
         return None
 
-    return _input_file("schema", schema)
+    return _input_file("schema", schema).absolute()
 
 
 def _input_file(name: str, path: str) -> Path:
@@ -195,7 +199,7 @@ def _resumed_settings(args: StartArgs, parent: JobMeta) -> RunSettings:
 
     return RunSettings(
         sandbox=sandbox,
-        schema=_schema_file(args.schema) if args.schema else _recorded_schema(parent),
+        schema=_schema_file(args.schema) if args.schema else _inherited_schema(parent),
         thread_id=thread_id,
         escalated=writes_to_disk(sandbox) and not writes_to_disk(inherited_sandbox),
     )
@@ -206,10 +210,30 @@ def _inherited_sandbox(parent: JobMeta) -> str:
     return parent.get("sandbox") or WRITABLE_SANDBOX
 
 
-def _recorded_schema(parent: JobMeta) -> Path | None:
-    """Return the output schema a resumed job inherits, when its parent ran with one."""
+def _inherited_schema(parent: JobMeta) -> Path | None:
+    """Return the output schema a resumed job inherits, when its parent ran with one.
+
+    Args:
+        parent: Metadata of the job being resumed.
+
+    Returns:
+        The recorded schema, or None when the parent ran without one.
+
+    Raises:
+        UsageError: If the recorded schema is gone. Review inputs live in scratch space,
+            which gets cleaned up, and the caller passed no flag to blame for it.
+    """
     recorded = parent.get("schema")
-    return Path(recorded) if recorded else None
+    if not recorded:
+        return None
+
+    schema = Path(recorded)
+    if not schema.is_file():
+        raise UsageError(
+            f"inherited schema file is missing: {recorded}; pass --schema to name another"
+        )
+
+    return schema
 
 
 def _build_prompt(

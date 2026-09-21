@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import re
+from pathlib import Path
 from textwrap import dedent
 
 import pytest
@@ -281,6 +282,49 @@ def test_resuming_a_writable_job_stays_writable_and_schemaless(ws):
     argv = ws.calls()[-1]["argv"]
     assert 'sandbox_mode="workspace-write"' in argv
     assert "--output-schema" not in argv
+
+
+def test_a_relative_schema_is_recorded_as_an_absolute_path(ws, monkeypatch):
+    ws.write_input("schema.json", '{"type": "object"}\n')
+    monkeypatch.chdir(ws.inputs)
+
+    started = ws.start(
+        "--cd", str(ws.repo), "--sandbox", "read-only", "--schema", "schema.json", "--wait"
+    )
+
+    assert started.return_code == 0, started.stderr
+    recorded = ws.meta(started.job_id)["schema"]
+    assert Path(recorded).is_absolute()
+    assert Path(recorded).resolve() == (ws.inputs / "schema.json").resolve()
+
+
+def test_an_inherited_relative_schema_survives_a_resume_from_another_directory(ws, monkeypatch):
+    ws.write_input("schema.json", '{"type": "object"}\n')
+    monkeypatch.chdir(ws.inputs)
+    reviewed = ws.start(
+        "--cd", str(ws.repo), "--sandbox", "read-only", "--schema", "schema.json", "--wait"
+    ).job_id
+    monkeypatch.chdir(ws.root)
+
+    result = ws.start("--cd", str(ws.repo), "--resume", reviewed, "--wait")
+
+    assert result.return_code == 0, result.stderr
+    argv = ws.calls()[-1]["argv"]
+    inherited = argv[argv.index("--output-schema") + 1]
+    assert Path(inherited).resolve() == (ws.inputs / "schema.json").resolve()
+
+
+def test_an_inherited_schema_that_has_been_cleaned_up_is_named_as_missing(ws):
+    schema = ws.write_input("scratch.json", '{"type": "object"}\n')
+    reviewed = ws.start("--sandbox", "read-only", "--schema", schema, "--wait").job_id
+    Path(schema).unlink()  # review inputs live in scratch space, which gets cleaned up
+    calls_before = len(ws.calls())
+
+    result = ws.start("--resume", reviewed)
+
+    assert result.return_code == 2
+    assert "inherited schema" in result.stderr and "scratch.json" in result.stderr
+    assert len(ws.calls()) == calls_before
 
 
 def test_resuming_a_job_that_recorded_no_sandbox_falls_back_to_the_default(ws):
