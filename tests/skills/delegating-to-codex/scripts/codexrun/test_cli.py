@@ -163,6 +163,113 @@ def test_result_json(ws):
     assert data["usage"]["input_tokens"] == 100
 
 
+def test_result_prints_a_short_message_unchanged(ws):
+    job_id = ws.start("--wait").job_id
+
+    result = ws.run("result", job_id)
+
+    header, message, usage = result.stdout.splitlines()
+    assert header.endswith("completed (exit 0)")
+    assert message == "STATUS: DONE"
+    assert usage.startswith("tokens:")
+
+
+def test_result_truncates_a_long_message_and_points_at_the_file(ws):
+    job_id = ws.start("--wait").job_id
+    message_path = ws.jobs / job_id / "last.md"
+    message_path.write_text("x" * (200 * 1024))
+
+    result = ws.run("result", job_id)
+
+    body = result.stdout.splitlines()[1]
+    assert len(body.encode("utf-8")) <= cli.RESULT_MAX_BYTES
+    assert f"truncated (200 KB); full message: {message_path}" in result.stdout
+
+
+def test_result_truncation_never_splits_a_multibyte_character(ws):
+    job_id = ws.start("--wait").job_id
+    # Three bytes per character, so the cap lands inside one.
+    (ws.jobs / job_id / "last.md").write_text("\u20ac" * 20_000)
+
+    result = ws.run("result", job_id)
+
+    lines = result.stdout.splitlines()
+    body, pointer = lines[1], lines[-2]
+    assert result.return_code == 0
+    assert pointer.startswith("\u2026 truncated")
+    assert body == "\u20ac" * len(body)
+
+
+def test_result_truncation_ends_on_a_whole_line(ws):
+    job_id = ws.start("--wait").job_id
+    (ws.jobs / job_id / "last.md").write_text(("a" * 79 + "\n") * 500)
+
+    result = ws.run("result", job_id)
+
+    lines = result.stdout.splitlines()
+    body, pointer = lines[1:-2], lines[-2]
+    assert pointer.startswith("… truncated")
+    assert len(body) < 500 and all(line == "a" * 79 for line in body)
+
+
+def test_result_json_truncates_and_names_the_spill_file(ws):
+    job_id = ws.start("--wait").job_id
+    message_path = ws.jobs / job_id / "last.md"
+    message_path.write_text("x" * (200 * 1024))
+
+    result = ws.run("result", job_id, "--json")
+
+    data = json.loads(result.stdout)
+    assert len(data["last_message"].encode("utf-8")) <= cli.RESULT_MAX_BYTES
+    assert data["last_message_truncated"] is True
+    assert data["last_message_path"] == str(message_path)
+
+
+def test_result_json_omits_the_truncation_keys_for_a_short_message(ws):
+    job_id = ws.start("--wait").job_id
+
+    result = ws.run("result", job_id, "--json")
+
+    data = json.loads(result.stdout)
+    assert "last_message_truncated" not in data
+    assert "last_message_path" not in data
+
+
+def test_result_points_at_stderr_instead_of_quoting_it(ws):
+    job_id = ws.start("--wait").job_id
+    (ws.jobs / job_id / "last.md").write_text("")
+    stderr_path = ws.jobs / job_id / "stderr.log"
+    stderr_path.write_text("thread 'main' panicked: DISTINCTIVE-TRACE\n")
+
+    result = ws.run("result", job_id)
+
+    assert f"(no final message); stderr: {stderr_path}" in result.stdout
+    assert "DISTINCTIVE-TRACE" not in result.stdout
+
+
+def test_result_without_a_stderr_log_reports_only_the_missing_message(ws):
+    job_id = ws.start("--wait").job_id
+    (ws.jobs / job_id / "last.md").write_text("")
+    (ws.jobs / job_id / "stderr.log").unlink()
+
+    result = ws.run("result", job_id)
+
+    assert "(no final message)" in result.stdout
+    assert "stderr" not in result.stdout
+
+
+def test_result_prefers_a_recorded_launch_error_over_the_stderr_pointer(ws):
+    job_id = ws.start("--wait").job_id
+    (ws.jobs / job_id / "last.md").write_text("")
+    (ws.jobs / job_id / "stderr.log").write_text("noise\n")
+    ws.edit_meta(job_id, error="failed to run codex: [Errno 2] No such file or directory")
+
+    result = ws.run("result", job_id)
+
+    assert "failed to run codex" in result.stdout
+    assert "no final message" not in result.stdout
+
+
 def test_failed_job(ws, monkeypatch):
     monkeypatch.setenv("FAKE_CODEX_RC", "7")
 
