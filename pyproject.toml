@@ -23,6 +23,22 @@ evals = [
 package = false
 default-groups = ["dev"]
 
+# Frontmatter params a SKILL.md may declare without tests/test_plugin.py warning. Unset, as here,
+# the allowlist is ["name", "description"]: portable, read by every harness, and both required.
+# Every other param is honored by some harnesses and dropped by others, so allowing one asserts it
+# is deliberate and covered by evals in both directions — a harness that honors it, and one that
+# drops it. The check warns rather than fails; pytest's filterwarnings mutes the class outright.
+#
+# Uncomment to allow a param for every skill:
+#
+#   [tool.mechaswift]
+#   allowed_skill_frontmatter_params = ["name", "description", "context"]
+#
+# Or for one skill only, extending the repo-wide list (name and description need no restating):
+#
+#   [tool.mechaswift.skills.to-spec]
+#   allowed_skill_frontmatter_params = ["context", "agent"]
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "-m 'not e2e'"

@@ -4,7 +4,11 @@ Additional rules for prompts that ship as part of a Claude Code plugin or simila
 
 ## Frontmatter
 
-Two fields only: `name` and `description`. Skip `allowed-tools`, `model`, `tools` arrays, `license`. They're either subagent-specific or harness-specific and break portability.
+`name` and `description` are the portable pair — every harness reads them. Default to those two.
+
+Beyond them, reach for a harness-specific field when the skill needs it. The cost isn't the field, it's unverified behavior: **a skill using one owes evals in both directions — a harness that honors the field, and a harness that drops it.** Without both, nobody knows whether the skill degrades gracefully or breaks where the field is a no-op. `tests/test_plugin.py` warns on extras; the evals are the gate.
+
+The harness docs are the field list. Whichever you reach for, look up what it falls back to when dropped — that fallback is what the second eval has to catch.
 
 ```yaml
 ---
@@ -29,7 +33,7 @@ Effective descriptions:
 
 ## Body
 
-- **Under ~500 lines.** Past that, split detail into sibling `.md` files (one level deep — no `SKILL.md → A.md → B.md` chains). Reference files >100 lines start with a table of contents.
+- **~200 lines first cut, ~500 hard ceiling.** Past ~200, split detail into sibling `.md` files (one level deep — no `SKILL.md → A.md → B.md` chains). Reference files >100 lines start with a table of contents.
 - **Third person, present tense.** *"The skill drafts a plan."* Not *"I'll draft"* or *"you'll get."*
 - **Consistent terminology.** Pick one word per concept and keep it: `extract` not `pull`/`get`/`retrieve`; `field` not `box`/`element`. Inconsistency makes models hedge.
 - **One default, one escape hatch.** Don't enumerate five libraries that could do the job; pick one and mention the escape hatch when needed.
@@ -56,7 +60,7 @@ Never use `@skill-name/SKILL.md` syntax — `@` force-loads the file and burns c
 
 ## Anti-patterns
 
-- Frontmatter fields beyond `name` / `description`.
+- Harness-specific frontmatter with no eval covering a harness that drops it (see [Frontmatter](#frontmatter)).
 - Description that summarizes the workflow.
 - ALL-CAPS MUSTs and NEVERs without a reason. Try the explanation first; reach for capitals only when reason alone doesn't take.
 - Multi-language example dilution (`example.js`, `example.py`, `example.go`). One excellent example beats five mediocre ones.
