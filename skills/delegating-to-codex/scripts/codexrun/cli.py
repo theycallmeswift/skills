@@ -17,7 +17,7 @@ from codexrun.preflight import preflight
 from codexrun.result import show_result
 from codexrun.start import BUNDLED_TEMPLATES, INPUTS, StartArgs, start_job, template_label
 from codexrun.state import JobMeta, find_job, jobs_dir, list_jobs, now, refresh, write_meta
-from codexrun.worker import run_worker
+from codexrun.worker import GATE_TIMEOUT_SECONDS, run_worker
 
 REVIEW_SCHEMA = ASSETS / "review-output.schema.json"
 TEMPLATE_COLUMN = 10
@@ -226,6 +226,13 @@ def _add_start_parser(
     start.add_argument("--resume", metavar="JOB_ID", help="continue that job's thread")
     start.add_argument(
         "--gate", metavar="CMD", help="shell command run after the job, in the worktree"
+    )
+    start.add_argument(
+        "--gate-timeout",
+        type=float,
+        default=GATE_TIMEOUT_SECONDS,
+        metavar="SECONDS",
+        help=f"kill the gate and its children after this long (default: {GATE_TIMEOUT_SECONDS:g})",
     )
     start.add_argument("--wait", action="store_true", help="run in the foreground")
     return start

@@ -36,7 +36,7 @@ class Usage(TypedDict):
     reasoning_output_tokens: int
 
 
-GateStatus = Literal["passed", "failed", "skipped", "error"]
+GateStatus = Literal["passed", "failed", "skipped", "error", "timeout"]
 
 
 class GateResult(TypedDict):
@@ -47,12 +47,14 @@ class GateResult(TypedDict):
         status: How the gate ended.
         exit_code: The command's exit code, absent when it never ran.
         reason: Why the gate could not start, present only on an error.
+        timeout_seconds: The limit the gate outran, present only on a timeout.
     """
 
     command: str
     status: GateStatus
     exit_code: NotRequired[int]
     reason: NotRequired[str]
+    timeout_seconds: NotRequired[float]
 
 
 class JobMeta(TypedDict):
@@ -72,6 +74,7 @@ class JobMeta(TypedDict):
     session_id: str | None
     resumed_from: str | None
     gate_command: str | None
+    gate_timeout: float
     created_at: str
     finished_at: str | None
     gate: NotRequired[GateResult]

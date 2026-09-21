@@ -242,6 +242,7 @@ def job_meta(**overrides: JobMetaValue) -> JobMeta:
         "session_id": None,
         "resumed_from": None,
         "gate_command": None,
+        "gate_timeout": 60.0,
         "created_at": now(),
         "finished_at": None,
     }

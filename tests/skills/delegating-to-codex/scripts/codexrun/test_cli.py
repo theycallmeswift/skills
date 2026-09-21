@@ -32,6 +32,7 @@ START_FLAGS = (
     "--network",
     "--resume",
     "--gate",
+    "--gate-timeout",
     "--wait",
     "--cd",
 )

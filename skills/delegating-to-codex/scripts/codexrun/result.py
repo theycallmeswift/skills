@@ -20,7 +20,7 @@ from codexrun.state import (
 EXIT_BY_STATUS = {"running": 4, "completed": 0}
 # A gate that failed or could not run outranks the delegate's own clean exit.
 GATE_FAILURE_EXIT_CODE = 5
-GATE_FAILURE_STATUSES: tuple[GateStatus, ...] = ("failed", "error")
+GATE_FAILURE_STATUSES: tuple[GateStatus, ...] = ("failed", "error", "timeout")
 # What a final message may spend of the orchestrating agent's context. The terminal could
 # take far more; the context window the result lands in is the scarce resource.
 RESULT_MAX_BYTES = 16 * 1024
@@ -166,6 +166,11 @@ def _gate_line(job_dir: Path, gate: GateResult) -> str:
 
     if status == "error":
         return f"gate: error ({gate.get('reason', 'could not run')}) - {command}"
+
+    if status == "timeout":
+        limit = gate.get("timeout_seconds")
+        limit_suffix = f" after {limit:g}s" if limit is not None else ""
+        return f"gate: timed out{limit_suffix} - {command}; output: {job_dir / GATE_LOG}"
 
     exit_code = gate.get("exit_code")
     exit_suffix = f" (exit {exit_code})" if exit_code is not None else ""
