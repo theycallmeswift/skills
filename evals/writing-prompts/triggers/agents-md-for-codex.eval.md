@@ -9,5 +9,5 @@ tighten AGENTS.md so codex stops ignoring our test conventions
 
 - [ ] Skill `writing-prompts` invoked
   - if: {BENCHSPEC_ARM} != "baseline"
-- [ ] Skill `delegating-to-codex` not invoked
+- [ ] Skill `delegate-to-agent` not invoked
   - if: {BENCHSPEC_ARM} != "baseline"
