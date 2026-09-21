@@ -54,13 +54,13 @@ If preflight fails (the CLI is missing, logged out, or this session is already r
 
 ## The gate
 
-`--gate 'make test'` runs after the delegate exits, in the worktree, and `result` prints one line: passed, failed with the log path, skipped because the job itself failed, or error. A delegate reporting that its tests pass is a claim; the gate is the check, run by something that is not the delegate. Gate every job that writes, and report its verdict as the test result instead of re-running the suite yourself.
+`--gate 'make test'` runs after the delegate exits, in the worktree, and `result` prints one line: passed, failed with the log path, skipped because the job itself failed, or error. A delegate reporting that its tests pass is a claim; the gate is the check, run by something that is not the delegate. Gate every job that writes, with whatever command that project runs its tests by.
 
 ## Implement
 
 1. **Write the brief to a file.** The task, acceptance criteria, how to run the tests, and the **named risks**: the specific ways this change could go wrong. Name risks at dispatch, because fixing them at review time costs far more. If a risk depends on code the delegate won't edit, paste that function's full text into the risks file. Write it, and every other input file, to a scratch directory outside the repo (or a git-ignored one) so they never land in a commit.
 2. **Start the job** with `--gate` set to the project's test command.
-3. **Read the result**: the delegate's `STATUS` summary plus the gate line. Open the diff only for a decision you have to make, not to re-derive what the gate proved.
+3. **Read the result**: the delegate's `STATUS` summary plus the gate line. Open the diff only for a decision you have to make, not to re-derive what the gate proved. When you report the tests, report the gate's verdict and name the command it ran — never the delegate's own `Tests:` line. They are different claims and only one is evidence; a reader who can't tell which one you mean has gained nothing from the gate.
 4. **Commit it yourself.** The delegate only edits files and never runs `git add`/`commit`. Check `git status` before you stage — a delegate that wandered outside the brief is the one thing a green gate can't catch.
 5. **Fix rounds resume the thread.** A new brief naming the fixes, `--resume <job-id>`, the same gate.
 
