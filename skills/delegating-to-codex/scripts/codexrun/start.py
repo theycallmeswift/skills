@@ -9,7 +9,7 @@ from pathlib import Path
 from typing import Protocol, TypedDict
 
 from codexrun import ASSETS, UsageError
-from codexrun.argv import build_argv
+from codexrun.argv import build_argv, writes_to_disk
 from codexrun.git import collect_diff, pending_changes, relative_inputs, resolve_worktree
 from codexrun.preflight import preflight
 from codexrun.prompt import build_prompt, build_resume_prompt, render_diff_section
@@ -28,6 +28,8 @@ from codexrun.worker import spawn_worker
 
 INPUTS = ("brief", "context", "risks", "rules", "report")
 BUNDLED_TEMPLATES = ("implement", "review")
+RESUME_SLUG = "resume"
+UNTEMPLATED_SLUG = "job"
 
 
 class InputValues(TypedDict):
@@ -64,10 +66,9 @@ class StartArgs(Protocol):
 
 def start_job(args: StartArgs) -> tuple[Path, subprocess.Popen[bytes]]:
     """Validate, record, and spawn a Codex job."""
-    _check_flags(args)
-
     worktree = resolve_worktree(args.cd)
     inputs = _read_inputs(args)
+    schema = _schema_file(args.schema)
     preflight()
 
     input_paths = (getattr(args, name) for name in INPUTS)
@@ -75,25 +76,28 @@ def start_job(args: StartArgs) -> tuple[Path, subprocess.Popen[bytes]]:
     jobs = jobs_dir(os.environ, worktree)
     thread_id = _resume_thread(jobs, args.resume) if args.resume else None
     prompt = _build_prompt(args, worktree, inputs, excluded_inputs)
-    job_dir = _create_job(jobs, args, worktree, thread_id, prompt)
+    job_dir = _create_job(jobs, args, worktree, thread_id, prompt, schema)
 
     return job_dir, spawn_worker(job_dir)
 
 
-def _check_flags(args: StartArgs) -> None:
-    """Reject a start request that cannot produce a prompt."""
+def _read_inputs(args: StartArgs) -> InputValues:
+    """Read all orchestrator-provided input files.
+
+    Args:
+        args: Parsed start options naming the input files.
+
+    Returns:
+        The contents of every supplied input file.
+
+    Raises:
+        UsageError: If no brief was given, or a named file does not exist.
+    """
     if not args.brief:
         raise UsageError("--brief is required")
 
-
-def _read_inputs(args: StartArgs) -> InputValues:
-    """Read all orchestrator-provided input files."""
-    brief = _read_input("brief", args.brief)
-    if brief is None:
-        raise UsageError("--brief is required")
-
     return {
-        "brief": brief,
+        "brief": _input_file("brief", args.brief).read_text(encoding="utf-8"),
         "context": _read_input("context", args.context),
         "risks": _read_input("risks", args.risks),
         "rules": _read_input("rules", args.rules),
@@ -102,14 +106,28 @@ def _read_inputs(args: StartArgs) -> InputValues:
 
 
 def _read_input(name: str, path: str | None) -> str | None:
-    """Read one optional input file or raise a user-facing error."""
+    """Read one optional input file."""
     if path is None:
         return None
 
-    if not Path(path).is_file():
+    return _input_file(name, path).read_text(encoding="utf-8")
+
+
+def _schema_file(schema: str | None) -> Path | None:
+    """Resolve the optional output schema path."""
+    if schema is None:
+        return None
+
+    return _input_file("schema", schema)
+
+
+def _input_file(name: str, path: str) -> Path:
+    """Resolve a file the caller named on the command line, or raise a user-facing error."""
+    resolved = Path(path)
+    if not resolved.is_file():
         raise UsageError(f"--{name} file not found: {path}")
 
-    return Path(path).read_text(encoding="utf-8")
+    return resolved
 
 
 def _resume_thread(jobs: Path, job_id: str) -> str:
@@ -129,9 +147,9 @@ def _build_prompt(
 ) -> str:
     """Build a fresh or resumed prompt after the Git checks the sandbox calls for."""
     if args.resume:
-        return _resume_prompt(inputs)
+        return _resume_prompt(args, inputs)
 
-    if args.sandbox == "workspace-write":
+    if writes_to_disk(args.sandbox):
         _require_clean(worktree, excluded_inputs)
 
     diff = _diff_section(args, worktree, excluded_inputs)
@@ -150,14 +168,29 @@ def _diff_section(
     return render_diff_section(collect_diff(worktree, args.base, excluded_inputs))
 
 
-def _resume_prompt(inputs: InputValues) -> str:
-    """Build a resumed prompt and report inputs that no longer apply."""
-    ignored_flags = [
+def _resume_prompt(args: StartArgs, inputs: InputValues) -> str:
+    """Build a resumed prompt and report the flags that no longer apply.
+
+    Args:
+        args: Parsed start options, read for the flags a resume cannot honour.
+        inputs: Contents of the orchestrator's input files.
+
+    Returns:
+        The compact follow-up prompt for the resumed thread.
+    """
+    ignored_inputs = [
         f"--{name}" for name in ("context", "risks", "rules", "report") if inputs[name] is not None
     ]
-    if ignored_flags:
-        names = ", ".join(ignored_flags)
-        print(f"note: {names} ignored on --resume (the thread has them)", file=sys.stderr)
+    ignored_flags = [
+        flag for flag, given in (("--template", args.template), ("--diff", args.diff)) if given
+    ]
+
+    if ignored_inputs or ignored_flags:
+        names = ", ".join(ignored_inputs + ignored_flags)
+        print(
+            f"note: {names} ignored on --resume; the thread continues where it left off",
+            file=sys.stderr,
+        )
 
     return build_resume_prompt(inputs["brief"])
 
@@ -194,14 +227,23 @@ def _template(name: str | None) -> str | None:
         return (ASSETS / f"{name}-prompt.md").read_text(encoding="utf-8")
 
     if not Path(name).is_file():
-        raise UsageError(f"--template file not found: {name}")
+        bundled = ", ".join(BUNDLED_TEMPLATES)
+        raise UsageError(f"--template is neither a file nor one of {bundled}: {name}")
 
     return Path(name).read_text(encoding="utf-8")
 
 
-def template_slug(template: str | None) -> str:
-    """Name a job after the template it runs; an untemplated job is just a job."""
-    return template or "job"
+def template_label(args: StartArgs) -> str:
+    """Name a job by what it runs: a resumed thread, its template, or a plain job."""
+    if args.resume:
+        return RESUME_SLUG
+
+    return args.template or UNTEMPLATED_SLUG
+
+
+def template_slug(args: StartArgs) -> str:
+    """Reduce a job's label to a filename-safe slug for its identifier."""
+    return Path(template_label(args)).stem
 
 
 def _create_job(
@@ -210,13 +252,13 @@ def _create_job(
     worktree: Path,
     thread_id: str | None,
     prompt: str,
+    schema: Path | None,
 ) -> Path:
     """Create the job directory, prompt, argv, and initial metadata."""
     jobs.mkdir(parents=True, exist_ok=True)
     prune_jobs(jobs, keep=MAX_JOBS - 1)
 
-    # A template may be a path, so the job id carries only its stem.
-    job_id = new_job_id(Path(template_slug(args.template)).stem)
+    job_id = new_job_id(template_slug(args))
     job_dir = jobs / job_id
     job_dir.mkdir()
 
@@ -229,7 +271,7 @@ def _create_job(
         tier=args.tier,
         network=args.network,
         thread_id=thread_id,
-        schema=Path(args.schema) if args.schema else None,
+        schema=schema,
     )
     (job_dir / "prompt.md").write_text(prompt, encoding="utf-8")
 
@@ -248,7 +290,7 @@ def _initial_meta(
     """Build the initial metadata for a running job."""
     return {
         "id": job_id,
-        "template": template_slug(args.template),
+        "template": template_label(args),
         "worktree": str(worktree),
         "argv": argv,
         "pid": None,

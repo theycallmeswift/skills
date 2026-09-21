@@ -5,8 +5,15 @@ from __future__ import annotations
 from pathlib import Path
 
 EFFORTS = ("none", "minimal", "low", "medium", "high", "xhigh")
-SANDBOXES = ("read-only", "workspace-write")
+READ_ONLY_SANDBOX = "read-only"
+WRITABLE_SANDBOX = "workspace-write"
+SANDBOXES = (READ_ONLY_SANDBOX, WRITABLE_SANDBOX)
 EXEC_FLAGS = ["--json", "--strict-config"]
+
+
+def writes_to_disk(sandbox: str) -> bool:
+    """Whether Codex may change the worktree under this sandbox."""
+    return sandbox == WRITABLE_SANDBOX
 
 
 def build_argv(
@@ -14,7 +21,7 @@ def build_argv(
     worktree: Path,
     job_dir: Path,
     effort: str,
-    sandbox: str = "workspace-write",
+    sandbox: str = WRITABLE_SANDBOX,
     model: str | None = None,
     tier: str | None = None,
     network: bool = False,
@@ -43,10 +50,12 @@ def build_argv(
     if sandbox not in SANDBOXES:
         raise ValueError(f"unknown sandbox: {sandbox}")
 
-    head = _resume_head(thread_id, sandbox) if thread_id else _fresh_head(worktree, sandbox)
+    command = (
+        _resume_command(thread_id, sandbox) if thread_id else _fresh_command(worktree, sandbox)
+    )
 
     return [
-        *head,
+        *command,
         *_task_settings(effort, model=model, tier=tier),
         *_network_settings(network),
         *_schema_settings(schema),
@@ -56,12 +65,12 @@ def build_argv(
     ]
 
 
-def _fresh_head(worktree: Path, sandbox: str) -> list[str]:
+def _fresh_command(worktree: Path, sandbox: str) -> list[str]:
     """Build the command and sandbox flags for a fresh job."""
     return ["codex", "exec", "--sandbox", sandbox, "--cd", str(worktree), *EXEC_FLAGS]
 
 
-def _resume_head(thread_id: str, sandbox: str) -> list[str]:
+def _resume_command(thread_id: str, sandbox: str) -> list[str]:
     """Build the command and sandbox settings for a resumed thread."""
     # Resume accepts sandbox config but not the --sandbox or --cd flags.
     return [

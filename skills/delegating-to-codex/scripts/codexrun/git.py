@@ -1,4 +1,4 @@
-"""Read-only git queries: the worktree, its pending changes, and the diff to review."""
+"""Read-only git queries: the worktree, its pending changes, and the diff to hand over."""
 
 from __future__ import annotations
 
@@ -70,7 +70,7 @@ def pending_changes(worktree: Path, exclude: frozenset[str] = frozenset()) -> li
 def collect_diff(
     worktree: Path, base: str | None, exclude: frozenset[str] = frozenset()
 ) -> DiffInfo:
-    """Collect the diff a review job should inspect.
+    """Collect the diff a job should inspect.
 
     Args:
         worktree: Repository worktree to inspect.
@@ -89,7 +89,7 @@ def collect_diff(
     files = git(worktree, "diff", revision, "--name-only").stdout.split()
 
     if not files and not untracked:
-        raise UsageError(f"nothing to review: no changes ({label})")
+        raise UsageError(f"nothing to diff: no changes ({label})")
 
     text = git(worktree, "diff", revision).stdout
     return DiffInfo(label=label, files=files, text=text, commands=commands, untracked=untracked)

@@ -52,6 +52,25 @@ def test_read_only_runs_on_a_dirty_worktree(ws):
     assert len(ws.calls()) == 1
 
 
+def test_start_ignores_its_own_input_files_in_the_worktree(ws):
+    brief = ws.write("notes/brief.md", "Make x equal 2.\n")
+
+    result = ws.start("--wait", brief=str(brief))
+
+    assert result.return_code == 0, result.stderr
+    assert len(ws.calls()) == 1
+
+
+def test_start_still_refuses_other_untracked_files(ws):
+    ws.write("brief.md", "Make x equal 2.\n")
+    ws.write("stray.py", "junk\n")
+
+    result = ws.start(brief="brief.md")
+
+    assert result.return_code == 2 and "stray.py" in result.stderr
+    assert ws.calls() == []
+
+
 @pytest.mark.parametrize("sandbox", ["workspace-write", "read-only"])
 def test_resume_skips_the_clean_tree_check(ws, sandbox):
     first = ws.start("--wait").job_id
@@ -87,10 +106,12 @@ def test_template_path_is_read_from_disk(ws):
     assert "You are a documentation editor." in ws.calls()[-1]["stdin"]
 
 
-def test_unknown_template_path_is_reported(ws):
-    result = ws.start("--template", "nope.md")
+def test_unknown_template_names_the_bundled_options(ws):
+    result = ws.start("--template", "implmenet")
 
-    assert result.return_code == 2 and "nope.md" in result.stderr
+    assert result.return_code == 2
+    assert "implmenet" in result.stderr
+    assert "implement, review" in result.stderr
     assert ws.calls() == []
 
 
@@ -117,6 +138,13 @@ def test_schema_file_is_passed_through(ws):
     assert result.return_code == 0, result.stderr
     argv = ws.calls()[-1]["argv"]
     assert argv[argv.index("--output-schema") + 1] == schema
+
+
+def test_missing_schema_file_is_named(ws):
+    result = ws.start("--schema", "nope.json")
+
+    assert result.return_code == 2 and "nope.json" in result.stderr
+    assert ws.calls() == []
 
 
 def test_without_a_schema_no_output_schema_flag(ws):
@@ -153,6 +181,17 @@ def test_without_a_diff_flag_the_prompt_has_no_diff_section(ws):
 
     assert result.return_code == 0, result.stderr
     assert "=== DIFF ===" not in ws.calls()[-1]["stdin"]
+
+
+def test_a_resumed_job_is_recorded_as_a_resume(ws):
+    first = ws.start("--template", "implement", "--wait").job_id
+
+    resumed = ws.start("--template", "review", "--diff", "--resume", first, "--wait")
+
+    assert resumed.return_code == 0, resumed.stderr
+    assert ws.meta(resumed.job_id)["template"] == "resume"
+    assert re.fullmatch(r"\d{8}-\d{6}-resume-[0-9a-f]{4}", resumed.job_id)
+    assert "--template, --diff ignored on --resume" in resumed.stderr
 
 
 @pytest.mark.parametrize(

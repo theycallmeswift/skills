@@ -60,10 +60,10 @@ def test_explicit_base(ws):
     assert "+x = 3" in ws.calls()[-1]["stdin"]
 
 
-def test_nothing_to_review(ws):
+def test_nothing_to_diff(ws):
     result = ws.start("--diff")
 
-    assert result.return_code == 2 and "nothing to review" in result.stderr
+    assert result.return_code == 2 and "nothing to diff" in result.stderr
     assert ws.calls() == []
 
 

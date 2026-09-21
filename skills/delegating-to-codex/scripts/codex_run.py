@@ -8,9 +8,10 @@ The logic lives in the codexrun package beside this file.
 
 Usage:
     codex_run.py preflight
-    codex_run.py start {implement|review} --effort EFFORT [--model M] [--tier T] [--network]
-        [--brief F] [--context F] [--risks F] [--rules F] [--report F] [--base REF]
-        [--resume JOB_ID] [--cd DIR] [--wait]
+    codex_run.py start --effort EFFORT [--template implement|review|FILE] [--model M] [--tier T]
+        [--brief F] [--context F] [--risks F] [--rules F] [--report F]
+        [--sandbox read-only|workspace-write] [--schema [FILE]] [--diff] [--base REF]
+        [--network] [--resume JOB_ID] [--cd DIR] [--wait]
     codex_run.py status [--all] [--json]
     codex_run.py result [JOB_ID|last] [--json]
     codex_run.py cancel JOB_ID

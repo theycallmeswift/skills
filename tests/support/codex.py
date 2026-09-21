@@ -14,7 +14,6 @@ from typing import TypeAlias, TypedDict, cast
 
 import pytest
 from codexrun import SCRIPT
-from codexrun.argv import build_argv
 from codexrun.cli import main
 from codexrun.git import DiffInfo, resolve_worktree
 from codexrun.state import JobMeta, Usage, jobs_dir
@@ -218,32 +217,6 @@ class Repo:
         return next(
             line.split()[1] for line in result.stdout.splitlines() if line.startswith("job ")
         )
-
-
-def argv(
-    *,
-    worktree: Path,
-    job_dir: Path,
-    effort: str,
-    sandbox: str = "workspace-write",
-    model: str | None = None,
-    tier: str | None = None,
-    network: bool = False,
-    thread_id: str | None = None,
-    schema: Path | None = None,
-) -> list[str]:
-    """Build argv with concise defaults for unit tests."""
-    return build_argv(
-        worktree=worktree,
-        job_dir=job_dir,
-        effort=effort,
-        sandbox=sandbox,
-        model=model,
-        tier=tier,
-        network=network,
-        thread_id=thread_id,
-        schema=schema,
-    )
 
 
 def jsonl(*events: JsonObject) -> str:

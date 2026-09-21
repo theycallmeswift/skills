@@ -42,25 +42,6 @@ def test_not_a_git_repo(ws):
     assert result.return_code == 2 and "git" in result.stderr.lower()
 
 
-def test_start_ignores_its_own_input_files_in_the_worktree(ws):
-    brief = ws.write("notes/brief.md", "Make x equal 2.\n")
-
-    result = ws.start("--wait", brief=str(brief))
-
-    assert result.return_code == 0, result.stderr
-    assert len(ws.calls()) == 1
-
-
-def test_start_still_refuses_other_untracked_files(ws):
-    ws.write("brief.md", "Make x equal 2.\n")
-    ws.write("stray.py", "junk\n")
-
-    result = ws.start(brief="brief.md")
-
-    assert result.return_code == 2 and "stray.py" in result.stderr
-    assert ws.calls() == []
-
-
 def test_preflight_ok(ws):
     assert ws.run("preflight").return_code == 0
 

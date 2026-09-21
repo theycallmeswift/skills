@@ -11,16 +11,17 @@ from pathlib import Path
 from typing import Protocol, cast
 
 from codexrun import ASSETS, PreflightError, UsageError
-from codexrun.argv import EFFORTS, SANDBOXES
+from codexrun.argv import EFFORTS, SANDBOXES, WRITABLE_SANDBOX
 from codexrun.events import format_usage
 from codexrun.git import resolve_worktree
 from codexrun.preflight import preflight
-from codexrun.start import INPUTS, StartArgs, start_job, template_slug
+from codexrun.start import BUNDLED_TEMPLATES, INPUTS, StartArgs, start_job, template_label
 from codexrun.state import JobMeta, find_job, jobs_dir, list_jobs, now, refresh, write_meta
 from codexrun.worker import run_worker
 
 EXIT_BY_STATUS = {"running": 4, "completed": 0}
 REVIEW_SCHEMA = ASSETS / "review-output.schema.json"
+TEMPLATE_COLUMN = 10
 
 
 class ParsedArgs(Protocol):
@@ -71,7 +72,7 @@ def cmd_preflight(_args: ParsedArgs) -> int:
 def cmd_start(args: StartArgs) -> int:
     """Start a job and optionally wait for its result."""
     job_dir, worker = start_job(args)
-    print(f"job {job_dir.name} started ({template_slug(args.template)})")
+    print(f"job {job_dir.name} started ({template_label(args)})")
     print(f"dir {job_dir}")
 
     if not args.wait:
@@ -98,9 +99,22 @@ def cmd_status(args: StatusArgs) -> int:
 
 def _print_status_table(rows: list[JobMeta]) -> None:
     """Print job metadata as a compact terminal table."""
-    print(f"{'ID':<34} {'TEMPLATE':<10} {'STATUS':<10} CREATED")
+    print(f"{'ID':<34} {'TEMPLATE':<{TEMPLATE_COLUMN}} {'STATUS':<10} CREATED")
     for meta in rows:
-        print(f"{meta['id']:<34} {meta['template']:<10} {meta['status']:<10} {meta['created_at']}")
+        template = _template_cell(meta["template"])
+        print(
+            f"{meta['id']:<34} {template:<{TEMPLATE_COLUMN}} "
+            f"{meta['status']:<10} {meta['created_at']}"
+        )
+
+
+def _template_cell(template: str) -> str:
+    """Fit a template name into its column so a file path cannot break the table."""
+    name = Path(template).stem
+    if len(name) <= TEMPLATE_COLUMN:
+        return name
+
+    return name[: TEMPLATE_COLUMN - 1] + "~"
 
 
 def cmd_result(args: ResultArgs) -> int:
@@ -234,7 +248,9 @@ def _add_start_parser(
     """Add and return the start subcommand parser."""
     start = commands.add_parser("start", help="start a codex job")
     start.add_argument("--effort", required=True, choices=EFFORTS)
-    start.add_argument("--template", help="implement, review, or a task template file")
+    start.add_argument(
+        "--template", help=f"{', '.join(BUNDLED_TEMPLATES)}, or a task template file"
+    )
     start.add_argument("--model")
     start.add_argument("--tier", help="service_tier")
 
@@ -244,8 +260,8 @@ def _add_start_parser(
     start.add_argument(
         "--sandbox",
         choices=SANDBOXES,
-        default="workspace-write",
-        help="sandbox Codex runs in (default: workspace-write)",
+        default=WRITABLE_SANDBOX,
+        help=f"sandbox Codex runs in (default: {WRITABLE_SANDBOX})",
     )
     start.add_argument(
         "--schema",

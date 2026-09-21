@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pytest
 from codexrun import ASSETS
-from support.codex import argv as build_test_argv
+from codexrun.argv import build_argv
 
 WORKTREE = Path("/wt")
 JOB_DIR = Path("/state/job")
@@ -52,7 +52,7 @@ REVIEW_SCHEMA = ASSETS / "review-output.schema.json"
     ],
 )
 def test_argv(kwargs, expected):
-    built = build_test_argv(worktree=WORKTREE, job_dir=JOB_DIR, **kwargs)
+    built = build_argv(worktree=WORKTREE, job_dir=JOB_DIR, **kwargs)
 
     assert built == [*expected.split(), *OUTPUT]
 
@@ -63,7 +63,7 @@ def test_argv(kwargs, expected):
     ids=["fresh", "read-only", "resume"],
 )
 def test_schema_is_emitted_when_requested(kwargs):
-    built = build_test_argv(
+    built = build_argv(
         worktree=WORKTREE,
         job_dir=JOB_DIR,
         effort="low",
@@ -80,13 +80,13 @@ def test_schema_is_emitted_when_requested(kwargs):
     ids=["fresh", "read-only", "resume"],
 )
 def test_no_schema_means_no_output_schema_flag(kwargs):
-    built = build_test_argv(worktree=WORKTREE, job_dir=JOB_DIR, effort="low", **kwargs)
+    built = build_argv(worktree=WORKTREE, job_dir=JOB_DIR, effort="low", **kwargs)
 
     assert "--output-schema" not in built
 
 
 def test_resume_leaves_sandbox_and_cd_to_config_and_cwd():
-    resumed = build_test_argv(
+    resumed = build_argv(
         worktree=WORKTREE,
         job_dir=JOB_DIR,
         effort="low",
@@ -108,7 +108,7 @@ def test_resume_leaves_sandbox_and_cd_to_config_and_cwd():
     ids=["fresh", "read-only", "read-only-schema", "resume"],
 )
 def test_no_job_is_ephemeral(kwargs):
-    built = build_test_argv(worktree=WORKTREE, job_dir=JOB_DIR, effort="low", **kwargs)
+    built = build_argv(worktree=WORKTREE, job_dir=JOB_DIR, effort="low", **kwargs)
 
     assert "--ephemeral" not in built
 
@@ -119,7 +119,7 @@ def test_no_job_is_ephemeral(kwargs):
     ids=["fresh", "resume", "read-only"],
 )
 def test_never_escalates(kwargs):
-    built = build_test_argv(
+    built = build_argv(
         worktree=WORKTREE,
         job_dir=JOB_DIR,
         effort="high",
@@ -133,7 +133,7 @@ def test_never_escalates(kwargs):
 
 def test_unknown_sandbox_is_rejected():
     with pytest.raises(ValueError, match="sandbox"):
-        build_test_argv(
+        build_argv(
             worktree=WORKTREE,
             job_dir=JOB_DIR,
             effort="low",

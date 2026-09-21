@@ -12,63 +12,52 @@ from unittest.mock import Mock
 
 import pytest
 from codexrun import cli
+from codexrun.start import INPUTS
 from support.codex import pid_alive, run_cli
 
 JOB_FILES = ("prompt.md", "events.jsonl", "stderr.log", "last.md", "meta.json")
 
-TOP_LEVEL_HELP = """usage: codex_run.py [-h] {preflight,start,status,result,cancel,_worker} ...
-
-Delegate tasks to codex exec as jobs.
-
-positional arguments:
-  {preflight,start,status,result,cancel,_worker}
-    preflight           check codex is installed and logged in
-    start               start a codex job
-    status              list jobs for this worktree
-    result              show a job's final message and usage
-    cancel              stop a running job
-
-options:
-  -h, --help            show this help message and exit
-"""
-
-START_HELP = """usage: codex_run.py start [-h] --effort {none,minimal,low,medium,high,xhigh}
-                          [--template TEMPLATE] [--model MODEL] [--tier TIER]
-                          [--brief FILE] [--context FILE] [--risks FILE]
-                          [--rules FILE] [--report FILE]
-                          [--sandbox {read-only,workspace-write}]
-                          [--schema [FILE]] [--diff] [--base REF] [--network]
-                          [--resume JOB_ID] [--wait] [--cd DIR]
-
-options:
-  -h, --help            show this help message and exit
-  --effort {none,minimal,low,medium,high,xhigh}
-  --template TEMPLATE   implement, review, or a task template file
-  --model MODEL
-  --tier TIER           service_tier
-  --brief FILE
-  --context FILE
-  --risks FILE
-  --rules FILE
-  --report FILE
-  --sandbox {read-only,workspace-write}
-                        sandbox Codex runs in (default: workspace-write)
-  --schema [FILE]       require JSON output (default: the review schema)
-  --diff                attach the worktree diff to the prompt
-  --base REF            diff against merge-base with REF (implies --diff)
-  --network             allow network access
-  --resume JOB_ID       continue that job's thread
-  --wait                run in the foreground
-  --cd DIR              worktree (default: $PROJECT_ROOT or cwd)
-"""
+COMMANDS = ("preflight", "start", "status", "result", "cancel")
+START_FLAGS = (
+    "--effort",
+    "--template",
+    "--model",
+    "--tier",
+    *(f"--{name}" for name in INPUTS),
+    "--sandbox",
+    "--schema",
+    "--diff",
+    "--base",
+    "--network",
+    "--resume",
+    "--wait",
+    "--cd",
+)
 
 
-def test_help_text_is_unchanged():
-    top_level = run_cli("--help")
-    start = run_cli("start", "--help")
+def unwrapped(text: str) -> str:
+    """Collapse argparse's terminal-width wrapping so assertions read one flag at a time."""
+    return " ".join(text.split())
 
-    assert (top_level.returncode, top_level.stdout, top_level.stderr) == (0, TOP_LEVEL_HELP, "")
-    assert (start.returncode, start.stdout, start.stderr) == (0, START_HELP, "")
+
+def test_top_level_help_lists_every_command():
+    result = run_cli("--help")
+
+    assert (result.returncode, result.stderr) == (0, "")
+    help_text = unwrapped(result.stdout)
+    assert all(command in help_text for command in COMMANDS)
+
+
+def test_start_help_lists_every_flag_and_its_defaults():
+    result = run_cli("start", "--help")
+
+    assert (result.returncode, result.stderr) == (0, "")
+    help_text = unwrapped(result.stdout)
+    assert all(flag in help_text for flag in START_FLAGS)
+    assert "--sandbox {read-only,workspace-write}" in help_text
+    assert "default: workspace-write" in help_text
+    assert "default: the review schema" in help_text
+    assert "implement, review, or a task template file" in help_text
 
 
 def test_wait_runs_codex_and_records_the_job(ws, monkeypatch):
@@ -108,6 +97,17 @@ def test_start_and_status_name_the_template(ws):
     assert "started (review)" in started.stdout
     assert "TEMPLATE" in status.stdout
     assert "review" in status.stdout.splitlines()[-1]
+
+
+def test_status_keeps_a_long_template_path_inside_its_column(ws):
+    template = ws.write_input("a-very-long-house-style-template.md", "House style.\n")
+    ws.start("--template", template, "--wait")
+
+    status = ws.run("status")
+
+    _job_id, template_cell, job_status, _created = status.stdout.splitlines()[-1].split()
+    assert len(template_cell) <= cli.TEMPLATE_COLUMN
+    assert job_status == "completed"
 
 
 def test_background_status_reports_running_job(ws, monkeypatch):
