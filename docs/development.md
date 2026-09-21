@@ -83,6 +83,15 @@ Edits to `skills/` are live in the next session. To try a skill against some oth
 
 The published path is the tap in the README: `hermes skills tap add theycallmeswift/mechaswift`, then `hermes skills install theycallmeswift/mechaswift/<name>`. Hermes downloads `SKILL.md` and every subdirectory beside it, so `references/`, `assets/`, and `scripts/` arrive intact. Skills installed from a tap go through Hermes's security scan and show its third-party notice on first install.
 
+## Delegating to an agent CLI
+
+`skills/delegate-to-agent` stays harness-neutral, so the dispatch mechanics live here. `agent_run.py start --wait` blocks until the worker exits; whether that call can be backgrounded is the harness's business.
+
+- **Claude Code** backgrounds a long Bash call and wakes the session when it exits, so `--wait` is the normal dispatch there.
+- **Where a harness runs every Bash call in the foreground**, `--wait` holds the turn for the whole job. Fire and poll instead: `start` without `--wait`, then `status` / `result` on a later turn. Not verified for Codex, OpenCode, or Hermes as hosts.
+
+`--gate CMD` runs after the delegate exits, in the worktree, and the verdict is recorded on the job and printed by `result`. `result` exits 0 when the job completed, 4 while it is still running, 1 when the delegate failed or the job was cancelled, and 5 when the gate failed, timed out, or could not run. `--gate-timeout SECONDS` caps the gate at 900 seconds by default and kills its whole process tree on expiry, so a hung test command can't hold a `--wait` turn open.
+
 ## Evals
 
 The runner is [benchspec](https://pypi.org/project/benchspec/), a pytest plugin that boots each `(eval × arm)` cell in a microVM and grades the result with deterministic checkers plus an LLM judge. It lives in the opt-in `evals` dependency group so a plain `make install` stays pytest + ruff; the `make evals*` targets sync it on demand with `uv run --group evals`.

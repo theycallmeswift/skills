@@ -10,7 +10,7 @@ Model-invoked. The agent picks them up when the request matches; you can also ca
 - **to-spec** — Synthesize the design just reached in the session into a skim-first spec at `docs/specs/YYYY-MM-DD-<slug>.md`. No interview; it works from what's already in context and refuses politely when that's too thin. Say "spec this out", "write this up as a design spec", or "turn this into a PRD".
 - **writing-prompts** — Draft or tighten anything an LLM will read: system prompts, subagent briefs, slash-command bodies, `SKILL.md` text, `AGENTS.md` / `CLAUDE.md`. Ends with an editorial pass that cuts filler without changing meaning.
 - **writing-agent-skills** — Build, debug, and evaluate skills end to end: eval-first (RED → GREEN → REFACTOR), trigger-description tuning, and the conventions that keep a skill portable across harnesses. Calls `writing-prompts` for the wording.
-- **delegate-to-agent** — Hand implementation or review work to the Codex CLI as background jobs: explicit effort per task, Codex edits but never commits, reviews come back as schema JSON, and fix rounds resume the same Codex thread. Say "have codex review my branch" or "let codex implement task 3", or assign a plan step to Codex. Needs the Codex CLI, signed in.
+- **delegate-to-agent** — Hand implementation or review work to a delegate CLI as background jobs: explicit effort per task, a post-run gate run by something that isn't the delegate, reviews back as schema JSON, and fix rounds that resume the same thread. The delegate edits but never commits. Codex is the only delegate today. Say "have codex review my branch" or "let codex implement task 3", or assign a plan step to Codex. Needs the Codex CLI, signed in.
 
 ## Install
 

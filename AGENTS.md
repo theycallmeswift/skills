@@ -1,6 +1,6 @@
 # MechaSwift
 
-Swift's agent brain: an installable plugin of skills for Claude Code and Hermes. This file is for agents working **on the plugin itself**. `CLAUDE.md` symlinks here.
+Swift's agent brain: an installable plugin of skills for Claude Code, Codex, OpenCode, and Hermes. This file is for agents working **on the plugin itself**. `CLAUDE.md` symlinks here.
 
 ## Working With Me
 
@@ -45,13 +45,13 @@ Claude Code plugin layout. The manifest lives in `.claude-plugin/`; everything e
 - **to-spec** — synthesize the current conversation and codebase into a skim-first design spec under `docs/specs/`. No interview.
 - **writing-prompts** — draft and tighten anything an LLM will read: system prompts, subagent briefs, `SKILL.md` text, `AGENTS.md`.
 - **writing-agent-skills** — author, debug, and eval skills end to end. Calls `writing-prompts` for wording.
-- **delegate-to-agent** — hand implementation or review to the Codex CLI through a job-manager script. Codex edits; the orchestrator verifies and commits.
+- **delegate-to-agent** — hand implementation or review to a delegate CLI through a job-manager script: orthogonal flags per job, a post-run gate the delegate never ran, a bounded result. Codex is the only delegate today. The delegate edits; the orchestrator gates and commits.
 
 ## References
 
 Load on demand, not at session start.
 
-- `docs/development.md` — Dev workflow: install, `make` targets, loading the plugin into Claude Code and Hermes, eval status. Load when building or testing a skill.
+- `docs/development.md` — Dev workflow: install, `make` targets, loading the plugin into a host harness, delegate dispatch per harness, eval status. Load when building or testing a skill.
 - `docs/style/development.md` — Code style: self-documenting code, docstrings, naming, errors, tests, commits and landing. Read before writing or reviewing code.
 - `skills/writing-agent-skills/references/skill-conventions.md` — Frontmatter, layout, and portability rules. Read before editing any `SKILL.md`.
 - `skills/writing-prompts/references/agent-md.md` — Read before editing `AGENTS.md`.
