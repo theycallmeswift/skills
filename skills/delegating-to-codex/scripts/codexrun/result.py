@@ -34,10 +34,12 @@ class CappedMessage(NamedTuple):
     Attributes:
         text: The message, or its head when it exceeded the cap.
         full_bytes: Size of the untrimmed message, or None when nothing was trimmed.
+        blank: Whether the whole message, and not merely the head, holds nothing to read.
     """
 
     text: str
     full_bytes: int | None
+    blank: bool
 
 
 def show_result(job_dir: Path, *, as_json: bool) -> int:
@@ -73,9 +75,11 @@ def _last_message(job_dir: Path) -> str:
 
 def _cap_message(message: str) -> CappedMessage:
     """Trim a final message to the byte cap, on a line boundary when one is near the cut."""
+    blank = not message.strip()
+
     encoded = message.encode("utf-8")
     if len(encoded) <= RESULT_MAX_BYTES:
-        return CappedMessage(message, full_bytes=None)
+        return CappedMessage(message, full_bytes=None, blank=blank)
 
     # Ignoring the errors drops a character the cut landed inside, rather than raising
     # or leaving a replacement character behind.
@@ -85,7 +89,7 @@ def _cap_message(message: str) -> CappedMessage:
     if last_line_break != -1 and last_line_break >= len(head) - NEWLINE_LOOKBACK_CHARS:
         head = head[:last_line_break]
 
-    return CappedMessage(head, full_bytes=len(encoded))
+    return CappedMessage(head, full_bytes=len(encoded), blank=blank)
 
 
 def _truncation_pointer(job_dir: Path, message: CappedMessage) -> str:
@@ -133,12 +137,16 @@ def _print_result(job_dir: Path, meta: JobMeta, message: CappedMessage) -> None:
 
 
 def _print_answer(job_dir: Path, meta: JobMeta, message: CappedMessage) -> None:
-    """Print the delegate's final message, or what stands in for it when there is none."""
-    if not message.text.strip():
-        print(meta.get("error") or _no_message(job_dir))
-        return
+    """Print the delegate's final message, or what stands in for it when there is none.
 
-    print(message.text.rstrip())
+    Whether an answer exists is the whole message's business; whether there is anything to
+    print is the head's. A message that opens with a screen of whitespace has both, so the
+    pointer to the spill file is the only thing standing between the reader and the answer.
+    """
+    if message.blank:
+        print(meta.get("error") or _no_message(job_dir))
+    elif message.text.strip():
+        print(message.text.rstrip())
 
     pointer = _truncation_pointer(job_dir, message)
     if pointer:

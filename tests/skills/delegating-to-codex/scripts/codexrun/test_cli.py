@@ -232,14 +232,15 @@ def test_result_truncation_keeps_a_decimal_when_the_cut_would_round_away(ws):
     assert "... truncated (16.0 KB);" in result.stdout
 
 
-def test_result_points_at_no_spill_file_when_the_message_was_only_whitespace(ws):
+def test_result_points_at_the_spill_file_when_only_its_head_is_whitespace(ws):
     job_id = ws.start("--wait").job_id
-    (ws.jobs / job_id / "last.md").write_text(" " * (200 * 1024))
+    message_path = ws.jobs / job_id / "last.md"
+    message_path.write_text(" " * (200 * 1024) + "VERDICT: ship it\n")
 
     result = ws.run("result", job_id)
 
-    assert "(no final message)" in result.stdout
-    assert "truncated" not in result.stdout
+    assert "(no final message)" not in result.stdout
+    assert f"... truncated (200 KB); full message: {message_path}" in result.stdout
 
 
 def test_result_json_truncates_and_names_the_spill_file(ws):
