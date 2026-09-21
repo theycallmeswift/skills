@@ -74,11 +74,13 @@ class RunSettings(NamedTuple):
         sandbox: Codex sandbox the job runs in.
         schema: JSON schema the final message must satisfy, when one applies.
         thread_id: Existing Codex thread the job continues, when it resumes one.
+        escalated: Whether a resume raised a parent that could not write into one that can.
     """
 
     sandbox: str
     schema: Path | None
     thread_id: str | None
+    escalated: bool = False
 
 
 def start_job(args: StartArgs) -> tuple[Path, subprocess.Popen[bytes]]:
@@ -188,12 +190,20 @@ def _resumed_settings(args: StartArgs, parent: JobMeta) -> RunSettings:
     if not thread_id:
         raise UsageError(f"job {parent['id']} has no recorded thread_id; cannot resume")
 
-    # Metadata written before a job recorded its sandbox inherits nothing, so it falls back.
+    inherited_sandbox = _inherited_sandbox(parent)
+    sandbox = args.sandbox or inherited_sandbox
+
     return RunSettings(
-        sandbox=args.sandbox or parent.get("sandbox") or WRITABLE_SANDBOX,
+        sandbox=sandbox,
         schema=_schema_file(args.schema) if args.schema else _recorded_schema(parent),
         thread_id=thread_id,
+        escalated=writes_to_disk(sandbox) and not writes_to_disk(inherited_sandbox),
     )
+
+
+def _inherited_sandbox(parent: JobMeta) -> str:
+    """The sandbox a resume continues under; metadata that recorded none falls back."""
+    return parent.get("sandbox") or WRITABLE_SANDBOX
 
 
 def _recorded_schema(parent: JobMeta) -> Path | None:
@@ -211,6 +221,12 @@ def _build_prompt(
 ) -> str:
     """Build a fresh or resumed prompt after the Git checks the sandbox calls for."""
     if args.resume:
+        # A fix round is exempt because it runs against the delegate's own uncommitted edits.
+        # A parent that could not write produced none, so whatever is pending belongs to the
+        # user and an escalation to a writable sandbox has to answer for it.
+        if run.escalated:
+            _require_clean(worktree, excluded_inputs)
+
         return _resume_prompt(args, inputs)
 
     if writes_to_disk(run.sandbox):

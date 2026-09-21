@@ -82,6 +82,27 @@ def test_resume_skips_the_clean_tree_check(ws, sandbox):
     assert ws.calls()[-1]["argv"][:2] == ["exec", "resume"]
 
 
+def test_a_resume_that_escalates_to_a_writable_sandbox_refuses_a_dirty_worktree(ws):
+    reviewed = ws.start("--sandbox", "read-only", "--wait").job_id
+    ws.write("a.py", "x = 5\n")  # the user's own work: a read-only parent wrote nothing
+    calls_before = len(ws.calls())
+
+    result = ws.start("--sandbox", "workspace-write", "--resume", reviewed)
+
+    assert result.return_code == 2 and "uncommitted" in result.stderr
+    assert len(ws.calls()) == calls_before
+
+
+def test_a_fix_round_on_a_writable_parent_keeps_the_dirty_tree_exemption(ws):
+    first = ws.start("--sandbox", "workspace-write", "--wait").job_id
+    ws.write("a.py", "x = 2\n")  # the delegate's own edits, which the fix round must see
+
+    result = ws.start("--sandbox", "workspace-write", "--resume", first, "--wait")
+
+    assert result.return_code == 0, result.stderr
+    assert ws.calls()[-1]["argv"][:2] == ["exec", "resume"]
+
+
 def test_template_name_resolves_to_the_bundled_asset(ws):
     result = ws.start("--template", "implement", "--wait")
 
