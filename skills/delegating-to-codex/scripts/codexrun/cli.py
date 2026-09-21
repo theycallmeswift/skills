@@ -16,10 +16,22 @@ from codexrun.events import format_usage
 from codexrun.git import resolve_worktree
 from codexrun.preflight import preflight
 from codexrun.start import BUNDLED_TEMPLATES, INPUTS, StartArgs, start_job, template_label
-from codexrun.state import JobMeta, find_job, jobs_dir, list_jobs, now, refresh, write_meta
+from codexrun.state import (
+    GateResult,
+    JobMeta,
+    find_job,
+    jobs_dir,
+    list_jobs,
+    now,
+    refresh,
+    write_meta,
+)
 from codexrun.worker import run_worker
 
 EXIT_BY_STATUS = {"running": 4, "completed": 0}
+# A gate that failed or could not run outranks the delegate's own clean exit.
+GATE_FAILURE_EXIT_CODE = 5
+GATE_FAILURE_STATUSES = ("failed", "error")
 REVIEW_SCHEMA = ASSETS / "review-output.schema.json"
 TEMPLATE_COLUMN = 10
 
@@ -161,6 +173,15 @@ def show_result(job_dir: Path, *, as_json: bool) -> int:
     else:
         _print_result(job_dir, meta, last_message)
 
+    return _exit_code(meta)
+
+
+def _exit_code(meta: JobMeta) -> int:
+    """Map a job to its exit code, reporting a gate verdict ahead of the delegate's own."""
+    gate = meta.get("gate")
+    if gate and gate["status"] in GATE_FAILURE_STATUSES:
+        return GATE_FAILURE_EXIT_CODE
+
     return EXIT_BY_STATUS.get(meta["status"], 1)
 
 
@@ -187,6 +208,24 @@ def _print_result(job_dir: Path, meta: JobMeta, last_message: str) -> None:
     print(f"job {meta['id']}: {meta['status']}{exit_suffix}")
     print(message)
     print(format_usage(meta.get("usage")))
+
+    gate = meta.get("gate")
+    if gate:
+        print(_gate_line(job_dir, gate))
+
+
+def _gate_line(job_dir: Path, gate: GateResult) -> str:
+    """Summarize the gate in one line; its output stays in the log that line points at."""
+    command = gate["command"]
+    if gate["status"] == "passed":
+        return f"gate: passed ({command})"
+
+    if gate["status"] == "skipped":
+        return f"gate: skipped (job failed) — {command}"
+
+    exit_code = gate.get("exit_code")
+    exit_suffix = f" (exit {exit_code})" if exit_code is not None else ""
+    return f"gate: {gate['status']}{exit_suffix} — {command}; output: {job_dir / 'gate.log'}"
 
 
 def _no_message(job_dir: Path) -> str:
@@ -276,6 +315,9 @@ def _add_start_parser(
     )
     start.add_argument("--network", action="store_true", help="allow network access")
     start.add_argument("--resume", metavar="JOB_ID", help="continue that job's thread")
+    start.add_argument(
+        "--gate", metavar="CMD", help="shell command run after the job, in the worktree"
+    )
     start.add_argument("--wait", action="store_true", help="run in the foreground")
     return start
 

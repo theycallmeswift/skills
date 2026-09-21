@@ -60,6 +60,7 @@ class StartArgs(Protocol):
     diff: bool
     base: str | None
     resume: str | None
+    gate: str | None
     cd: str | None
     wait: bool
 
@@ -300,6 +301,7 @@ def _initial_meta(
         "usage": None,
         "session_id": os.environ.get("CLAUDE_CODE_SESSION_ID"),
         "resumed_from": args.resume,
+        "gate_command": args.gate,
         "created_at": now(),
         "finished_at": None,
     }

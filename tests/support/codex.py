@@ -16,7 +16,7 @@ import pytest
 from codexrun import SCRIPT
 from codexrun.cli import main
 from codexrun.git import DiffInfo, resolve_worktree
-from codexrun.state import JobMeta, Usage, jobs_dir
+from codexrun.state import GateResult, JobMeta, Usage, jobs_dir
 
 GIT = [
     "git",
@@ -36,7 +36,7 @@ HOST_ENV = (
 )
 JsonValue: TypeAlias = None | bool | int | float | str | list["JsonValue"] | dict[str, "JsonValue"]
 JsonObject: TypeAlias = dict[str, JsonValue]
-JobMetaValue: TypeAlias = str | int | list[str] | Usage | None
+JobMetaValue: TypeAlias = str | int | list[str] | Usage | GateResult | None
 
 
 class CodexCall(TypedDict):

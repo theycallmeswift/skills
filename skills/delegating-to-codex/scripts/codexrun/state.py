@@ -29,6 +29,14 @@ class Usage(TypedDict):
     reasoning_output_tokens: int
 
 
+class GateResult(TypedDict):
+    """Outcome of the post-run check the worker ran on the delegate's work."""
+
+    command: str
+    status: str
+    exit_code: NotRequired[int]
+
+
 class JobMeta(TypedDict):
     """Persistent metadata for one delegated Codex job."""
 
@@ -43,8 +51,10 @@ class JobMeta(TypedDict):
     usage: Usage | None
     session_id: str | None
     resumed_from: str | None
+    gate_command: str | None
     created_at: str
     finished_at: str | None
+    gate: NotRequired[GateResult]
     error: NotRequired[str]
 
 

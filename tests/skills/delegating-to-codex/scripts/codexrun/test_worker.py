@@ -24,6 +24,7 @@ def test_worker_records_a_process_launch_error(tmp_path, monkeypatch):
         "usage": None,
         "session_id": None,
         "resumed_from": None,
+        "gate_command": None,
         "created_at": now(),
         "finished_at": None,
     }
@@ -54,6 +55,7 @@ def test_result_prints_a_recorded_worker_error(ws):
         "usage": None,
         "session_id": None,
         "resumed_from": None,
+        "gate_command": None,
         "created_at": now(),
         "finished_at": now(),
         "error": "failed to run codex: binary vanished",

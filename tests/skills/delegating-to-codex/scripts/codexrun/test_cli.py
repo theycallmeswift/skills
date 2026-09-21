@@ -30,6 +30,7 @@ START_FLAGS = (
     "--base",
     "--network",
     "--resume",
+    "--gate",
     "--wait",
     "--cd",
 )
