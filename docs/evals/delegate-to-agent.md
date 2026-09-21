@@ -1,6 +1,8 @@
-# delegating-to-codex — eval record
+# delegate-to-agent — eval record
 
-Recorded 2026-09-18 from `iteration_13` (benchspec 0.0.4, Claude Code 2.1.277, sonnet, `--count 3`; baseline bare, trial with the plugin via `--plugin-dir`). The shared `writing-prompts` query comes from `iteration_09`. Re-run with `make evals SKILL=delegating-to-codex EVAL_ARGS="--count 3"`.
+**Stale — recorded before the current surface.** These numbers are from the skill's old name, `delegating-to-codex`, before `mode` gave way to orthogonal flags, the `--gate` post-run check landed, and the suite gained `gate-catches-false-green`. Treat the deltas as history and the baseline notes as still-true observations. Re-run with `make evals SKILL=delegate-to-agent EVAL_ARGS="--count 3"` and replace this file.
+
+Recorded 2026-09-18 from `iteration_13` (benchspec 0.0.4, Claude Code 2.1.277, sonnet, `--count 3`; baseline bare, trial with the plugin via `--plugin-dir`). The shared `writing-prompts` query comes from `iteration_09`.
 
 The VM has no Codex, so each scenario ships a scripted fake `codex` (shared helpers in `evals/support/fake-codex/`). Assertions grade what the fake logged: the flags passed, the prompt sent, and the commits made. Real-CLI drift is covered by `make test:e2e`.
 
