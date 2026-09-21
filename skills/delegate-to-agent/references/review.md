@@ -15,7 +15,7 @@ Some findings don't hold up. Open the cited lines and decide whether each is rea
 - **The user asked for the review.** Present each finding with its file:line and your verdict, then stop and ask which to fix — some, all, or none. Change nothing yet.
 - **A plan step triggered it.** Fix the real findings yourself, or by resuming the implement job with a brief naming them; re-run the gate and commit. Don't block waiting for the user. Your final report names every finding, fixed or dismissed with the reason — a dismissed finding left out of the report looks like one you never checked.
 
-A review job resumes like any other, so adjudicated findings can go back to the same thread for a re-review: `--resume <job-id>` with a brief holding only what changed.
+Adjudicated findings can go back to the same thread for a re-review: `--resume <job-id>` with a brief holding only what changed. A resumed job inherits the sandbox and output schema of the job it resumes, so the re-review stays read-only and still returns JSON on its own. Don't re-pass the review flags.
 
 ## Mutation checks, where the blast radius is real
 
