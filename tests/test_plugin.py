@@ -1,10 +1,10 @@
 """Structural checks on the plugin: manifests parse and agree, the hook is wired, and every
 skill's frontmatter carries a well-formed name matching its directory plus a description.
 
-Fields beyond those two are allowed but warn: they are harness-specific, so a skill that uses one
-owes evals covering both the harness that honors it and a harness that drops it. The warning is the
-reminder, not a gate. Once a skill has those evals, list it under
-`[tool.mechaswift] cross_harness_verified` in pyproject.toml to silence it."""
+Params beyond those two are allowed but warn: they are harness-specific, so a skill using one owes
+evals covering both a harness that honors it and a harness that drops it. The warning is the
+reminder, not a gate. Add a param to `[tool.mechaswift] allowed_skill_frontmatter_params` in
+pyproject.toml once that is settled."""
 
 from __future__ import annotations
 
@@ -20,40 +20,37 @@ import pytest
 ROOT = Path(__file__).resolve().parents[1]
 SKILLS = sorted(p for p in (ROOT / "skills").glob("*/") if (p / "SKILL.md").exists())
 
-PORTABLE_FIELDS = {"name", "description"}
-"""Fields every harness reads. Anything else is honored by some harnesses and dropped by others."""
+REQUIRED_FIELDS = {"name", "description"}
+"""Frontmatter every skill must declare. Every harness reads both."""
 
 
 class HarnessSpecificFieldWarning(UserWarning):
     """A skill declares frontmatter that only some harnesses honor."""
 
 
-def _cross_harness_verified() -> frozenset[str]:
-    """Read the skills whose harness-specific frontmatter is covered by cross-harness evals.
+def _allowed_frontmatter_params() -> frozenset[str]:
+    """Read the frontmatter params a skill may declare without warning.
 
     Returns:
-        Skill names listed under `[tool.mechaswift] cross_harness_verified` in pyproject.toml.
+        Param names from `[tool.mechaswift] allowed_skill_frontmatter_params` in pyproject.toml,
+        falling back to the required pair when the key is absent.
     """
     config = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))
-    return frozenset(config.get("tool", {}).get("mechaswift", {}).get("cross_harness_verified", ()))
+    table = config.get("tool", {}).get("mechaswift", {})
+    return frozenset(table.get("allowed_skill_frontmatter_params", REQUIRED_FIELDS))
 
 
-def _unverified_harness_fields(
-    fields: dict[str, str], skill_name: str, verified: frozenset[str]
-) -> list[str]:
-    """Return harness-specific frontmatter fields that still owe cross-harness evals.
+def _unexpected_frontmatter(fields: dict[str, str], allowed: frozenset[str]) -> list[str]:
+    """Return declared frontmatter params that the allowlist does not cover.
 
     Args:
-        fields: Top-level frontmatter fields of the skill.
-        skill_name: Directory name of the skill.
-        verified: Skill names whose harness-specific fields are already eval-covered.
+        fields: Top-level frontmatter params of the skill.
+        allowed: Param names permitted without warning.
 
     Returns:
-        Sorted field names to warn about; empty when the skill is portable or verified.
+        Sorted param names to warn about; empty when every param is allowed.
     """
-    if skill_name in verified:
-        return []
-    return sorted(set(fields) - PORTABLE_FIELDS)
+    return sorted(set(fields) - allowed)
 
 
 def _load(rel: str) -> dict:
@@ -116,42 +113,46 @@ def test_skills_sh_groupings_name_real_skills():
 @pytest.mark.parametrize("skill", SKILLS, ids=lambda p: p.name)
 def test_skill_frontmatter_names_and_describes_the_skill(skill: Path):
     fields = _frontmatter((skill / "SKILL.md").read_text(encoding="utf-8"))
-    assert PORTABLE_FIELDS <= set(fields), f"missing {sorted(PORTABLE_FIELDS - set(fields))}"
+    assert REQUIRED_FIELDS <= set(fields), f"missing {sorted(REQUIRED_FIELDS - set(fields))}"
     assert fields["name"] == skill.name
     assert re.fullmatch(r"[a-z0-9]+(-[a-z0-9]+)*", fields["name"])
     assert fields["description"], "description must not be empty"
 
 
 @pytest.mark.parametrize("skill", SKILLS, ids=lambda p: p.name)
-def test_skill_frontmatter_beyond_name_and_description_warns(skill: Path):
-    """Warn, don't fail: extra fields are a deliberate choice that owes cross-harness evals."""
+def test_skill_frontmatter_beyond_the_allowlist_warns(skill: Path):
+    """Warn, don't fail: a harness-specific param is a deliberate choice that owes evals."""
     fields = _frontmatter((skill / "SKILL.md").read_text(encoding="utf-8"))
-    extra = _unverified_harness_fields(fields, skill.name, _cross_harness_verified())
-    if extra:
+    unexpected = _unexpected_frontmatter(fields, _allowed_frontmatter_params())
+
+    if unexpected:
         warnings.warn(
-            f"{skill.name}: harness-specific frontmatter {extra}. Only some harnesses honor "
+            f"{skill.name}: harness-specific frontmatter {unexpected}. Only some harnesses honor "
             "these, so this skill owes evals covering one that honors them and one that drops "
-            "them. Once it has both, add it to [tool.mechaswift] cross_harness_verified.",
+            "them. Once settled, add them to [tool.mechaswift] "
+            "allowed_skill_frontmatter_params.",
             HarnessSpecificFieldWarning,
             stacklevel=2,
         )
 
 
-def test_cross_harness_verified_warns_for_an_unlisted_skill():
+def test_frontmatter_outside_the_allowlist_is_reported():
     fields = {"name": "x", "description": "d", "context": "fork", "agent": "Explore"}
-    assert _unverified_harness_fields(fields, "x", frozenset()) == ["agent", "context"]
+    assert _unexpected_frontmatter(fields, frozenset(REQUIRED_FIELDS)) == ["agent", "context"]
 
 
-def test_cross_harness_verified_suppresses_a_listed_skill():
+def test_allowlisted_frontmatter_is_silent():
     fields = {"name": "x", "description": "d", "context": "fork", "agent": "Explore"}
-    assert _unverified_harness_fields(fields, "x", frozenset({"x"})) == []
+    allowed = frozenset(REQUIRED_FIELDS | {"context", "agent"})
+    assert _unexpected_frontmatter(fields, allowed) == []
 
 
-def test_cross_harness_verified_is_silent_for_portable_frontmatter():
-    assert _unverified_harness_fields({"name": "x", "description": "d"}, "x", frozenset()) == []
+def test_required_frontmatter_alone_is_silent():
+    fields = {"name": "x", "description": "d"}
+    assert _unexpected_frontmatter(fields, _allowed_frontmatter_params()) == []
 
 
-def test_cross_harness_verified_names_real_skills():
-    """A stale entry silences a skill that no longer exists, so keep the list honest."""
-    unknown = _cross_harness_verified() - {p.name for p in SKILLS}
-    assert not unknown, f"cross_harness_verified names unknown skills: {sorted(unknown)}"
+def test_allowlist_covers_the_required_fields():
+    """Dropping name or description from the allowlist would warn on every skill at once."""
+    missing = REQUIRED_FIELDS - _allowed_frontmatter_params()
+    assert not missing, f"allowed_skill_frontmatter_params omits {sorted(missing)}"

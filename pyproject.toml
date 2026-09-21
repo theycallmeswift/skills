@@ -23,12 +23,13 @@ evals = [
 package = false
 default-groups = ["dev"]
 
-# Skills whose harness-specific frontmatter is covered by evals in both directions: a harness that
-# honors the field and one that drops it. Listing a skill silences tests/test_plugin.py's
-# HarnessSpecificFieldWarning for it. Empty means every skill is on the portable name + description
-# pair. To mute the warning class outright instead, use pytest's own filterwarnings.
+# Frontmatter params a SKILL.md may declare without tests/test_plugin.py warning. `name` and
+# `description` are portable — every harness reads them, and both are required. Every other param is
+# honored by some harnesses and dropped by others, so adding one here asserts it is deliberate and
+# covered by evals in both directions: a harness that honors it, and a harness that drops it.
+# The check warns rather than fails; pytest's own filterwarnings mutes the warning class outright.
 [tool.mechaswift]
-cross_harness_verified = []
+allowed_skill_frontmatter_params = ["name", "description"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
