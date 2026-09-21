@@ -4,6 +4,11 @@ set -euo pipefail
 source ../../support/fake-gh/setup.sh
 install_gh
 
+if ! command -v git >/dev/null; then
+  DEBIAN_FRONTEND=noninteractive apt-get update -qq >/dev/null
+  DEBIAN_FRONTEND=noninteractive apt-get install -y -qq git >/dev/null
+fi
+
 git config --global init.defaultBranch main
 git config --global user.name "Eval User"
 git config --global user.email "eval@example.com"
