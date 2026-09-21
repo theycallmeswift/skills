@@ -60,6 +60,8 @@ class JobMeta(TypedDict):
 
     id: str
     template: str
+    sandbox: str
+    schema: str | None
     worktree: str
     argv: list[str]
     pid: int | None

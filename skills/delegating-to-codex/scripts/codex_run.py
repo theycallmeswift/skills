@@ -11,13 +11,13 @@ Usage:
     codex_run.py start --effort EFFORT [--template implement|review|FILE] [--model M] [--tier T]
         [--brief F] [--context F] [--risks F] [--rules F] [--report F]
         [--sandbox read-only|workspace-write] [--schema [FILE]] [--diff] [--base REF]
-        [--network] [--resume JOB_ID] [--cd DIR] [--wait]
+        [--network] [--resume JOB_ID] [--gate CMD] [--cd DIR] [--wait]
     codex_run.py status [--all] [--json]
     codex_run.py result [JOB_ID|last] [--json]
     codex_run.py cancel JOB_ID
 
 Exit codes: 0 ok; 1 job failed or cancelled; 2 usage or input error; 3 preflight failed;
-4 job still running.
+4 job still running; 5 the gate failed or could not run.
 """
 
 from __future__ import annotations

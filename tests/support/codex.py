@@ -153,6 +153,12 @@ class Workspace:
         updated_meta = cast(JobMeta, {**self.meta(job_id), **changes})
         (self.jobs / job_id / "meta.json").write_text(json.dumps(updated_meta))
 
+    def forget_meta(self, job_id: str, *names: str) -> None:
+        """Drop metadata fields, so a test can read a job recorded before they existed."""
+        recorded = cast(dict[str, JobMetaValue], self.meta(job_id))
+        kept = {name: value for name, value in recorded.items() if name not in names}
+        (self.jobs / job_id / "meta.json").write_text(json.dumps(kept))
+
     def wait_until(self, condition: Callable[[], bool], timeout: float = 15) -> None:
         """Poll a condition until it succeeds or the timeout expires."""
         deadline = time.time() + timeout
@@ -224,6 +230,8 @@ def job_meta(**overrides: JobMetaValue) -> JobMeta:
     defaults: JobMeta = {
         "id": "job",
         "template": "implement",
+        "sandbox": "workspace-write",
+        "schema": None,
         "worktree": ".",
         "argv": ["codex"],
         "pid": None,

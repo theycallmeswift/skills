@@ -215,3 +215,85 @@ def test_a_template_path_stays_filename_safe_in_the_job_id(ws):
 
     assert ws.meta(started.job_id)["template"] == template
     assert re.fullmatch(r"\d{8}-\d{6}-house-style-[0-9a-f]{4}", started.job_id)
+
+
+def test_resume_inherits_the_read_only_sandbox_and_its_schema(ws):
+    reviewed = ws.start(
+        "--template", "review", "--sandbox", "read-only", "--schema", "--wait"
+    ).job_id
+    findings = ws.write_input("findings.md", "Finding 1 is wrong; look again.\n")
+
+    result = ws.start("--resume", reviewed, "--wait", brief=findings)
+
+    assert result.return_code == 0, result.stderr
+    argv = ws.calls()[-1]["argv"]
+    assert 'sandbox_mode="read-only"' in argv
+    assert argv[argv.index("--output-schema") + 1] == REVIEW_SCHEMA
+
+
+def test_an_explicit_sandbox_overrides_the_inherited_one(ws):
+    reviewed = ws.start("--sandbox", "read-only", "--wait").job_id
+
+    result = ws.start("--sandbox", "workspace-write", "--resume", reviewed, "--wait")
+
+    assert result.return_code == 0, result.stderr
+    assert 'sandbox_mode="workspace-write"' in ws.calls()[-1]["argv"]
+
+
+def test_an_explicit_schema_overrides_the_inherited_one(ws):
+    reviewed = ws.start("--sandbox", "read-only", "--schema", "--wait").job_id
+    other = ws.write_input("other.json", '{"type": "object"}\n')
+
+    result = ws.start("--schema", other, "--resume", reviewed, "--wait")
+
+    assert result.return_code == 0, result.stderr
+    argv = ws.calls()[-1]["argv"]
+    assert argv[argv.index("--output-schema") + 1] == other
+
+
+def test_resuming_a_writable_job_stays_writable_and_schemaless(ws):
+    first = ws.start("--wait").job_id
+
+    result = ws.start("--resume", first, "--wait")
+
+    assert result.return_code == 0, result.stderr
+    argv = ws.calls()[-1]["argv"]
+    assert 'sandbox_mode="workspace-write"' in argv
+    assert "--output-schema" not in argv
+
+
+def test_resuming_a_job_that_recorded_no_sandbox_falls_back_to_the_default(ws):
+    first = ws.start("--sandbox", "read-only", "--wait").job_id
+    ws.forget_meta(first, "sandbox", "schema")
+
+    result = ws.start("--resume", first, "--wait")
+
+    assert result.return_code == 0, result.stderr
+    argv = ws.calls()[-1]["argv"]
+    assert 'sandbox_mode="workspace-write"' in argv
+    assert "--output-schema" not in argv
+
+
+def test_base_is_named_among_the_flags_a_resume_ignores(ws):
+    first = ws.start("--wait").job_id
+
+    resumed = ws.start("--base", "main", "--resume", first, "--wait")
+
+    assert resumed.return_code == 0, resumed.stderr
+    assert "--base ignored on --resume" in resumed.stderr
+    assert "=== DIFF ===" not in ws.calls()[-1]["stdin"]
+
+
+@pytest.mark.parametrize(
+    "flags, sandbox, schema",
+    [
+        ((), "workspace-write", None),
+        (("--sandbox", "read-only", "--schema"), "read-only", REVIEW_SCHEMA),
+    ],
+    ids=["defaults", "read-only-schema"],
+)
+def test_metadata_records_the_sandbox_and_schema(ws, flags, sandbox, schema):
+    started = ws.start(*flags, "--wait")
+
+    meta = ws.meta(started.job_id)
+    assert (meta["sandbox"], meta["schema"]) == (sandbox, schema)

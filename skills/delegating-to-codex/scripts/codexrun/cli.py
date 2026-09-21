@@ -209,15 +209,14 @@ def _add_start_parser(
     start.add_argument(
         "--sandbox",
         choices=SANDBOXES,
-        default=WRITABLE_SANDBOX,
-        help=f"sandbox Codex runs in (default: {WRITABLE_SANDBOX})",
+        help=f"sandbox Codex runs in (default: the resumed job's, else {WRITABLE_SANDBOX})",
     )
     start.add_argument(
         "--schema",
         nargs="?",
         const=str(REVIEW_SCHEMA),
         metavar="FILE",
-        help="require JSON output (default: the review schema)",
+        help="require JSON output, inherited on --resume (default: the review schema)",
     )
     start.add_argument("--diff", action="store_true", help="attach the worktree diff to the prompt")
     start.add_argument(

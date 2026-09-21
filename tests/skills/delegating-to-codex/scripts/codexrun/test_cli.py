@@ -57,8 +57,8 @@ def test_start_help_lists_every_flag_and_its_defaults():
     help_text = unwrapped(result.stdout)
     assert all(flag in help_text for flag in START_FLAGS)
     assert "--sandbox {read-only,workspace-write}" in help_text
-    assert "default: workspace-write" in help_text
-    assert "default: the review schema" in help_text
+    assert "default: the resumed job's, else workspace-write" in help_text
+    assert "inherited on --resume (default: the review schema)" in help_text
     assert "implement, review, or a task template file" in help_text
 
 

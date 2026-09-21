@@ -6,10 +6,10 @@ import os
 import subprocess
 import sys
 from pathlib import Path
-from typing import Protocol, TypedDict
+from typing import NamedTuple, Protocol, TypedDict
 
 from codexrun import ASSETS, UsageError
-from codexrun.argv import build_argv, writes_to_disk
+from codexrun.argv import WRITABLE_SANDBOX, build_argv, writes_to_disk
 from codexrun.git import collect_diff, pending_changes, relative_inputs, resolve_worktree
 from codexrun.preflight import preflight
 from codexrun.prompt import build_prompt, build_resume_prompt, render_diff_section
@@ -56,7 +56,7 @@ class StartArgs(Protocol):
     risks: str | None
     rules: str | None
     report: str | None
-    sandbox: str
+    sandbox: str | None
     schema: str | None
     diff: bool
     base: str | None
@@ -66,19 +66,32 @@ class StartArgs(Protocol):
     wait: bool
 
 
+class RunSettings(NamedTuple):
+    """The conditions a job runs under, once a resumed thread's have been inherited.
+
+    Attributes:
+        sandbox: Codex sandbox the job runs in.
+        schema: JSON schema the final message must satisfy, when one applies.
+        thread_id: Existing Codex thread the job continues, when it resumes one.
+    """
+
+    sandbox: str
+    schema: Path | None
+    thread_id: str | None
+
+
 def start_job(args: StartArgs) -> tuple[Path, subprocess.Popen[bytes]]:
     """Validate, record, and spawn a Codex job."""
     worktree = resolve_worktree(args.cd)
     inputs = _read_inputs(args)
-    schema = _schema_file(args.schema)
+    jobs = jobs_dir(os.environ, worktree)
+    run = _run_settings(args, jobs)
     preflight()
 
     input_paths = (getattr(args, name) for name in INPUTS)
     excluded_inputs = relative_inputs(worktree, input_paths)
-    jobs = jobs_dir(os.environ, worktree)
-    thread_id = _resume_thread(jobs, args.resume) if args.resume else None
-    prompt = _build_prompt(args, worktree, inputs, excluded_inputs)
-    job_dir = _create_job(jobs, args, worktree, thread_id, prompt, schema)
+    prompt = _build_prompt(args, run, worktree, inputs, excluded_inputs)
+    job_dir = _create_job(jobs, args, run, worktree, prompt)
 
     return job_dir, spawn_worker(job_dir)
 
@@ -132,17 +145,60 @@ def _input_file(name: str, path: str) -> Path:
     return resolved
 
 
-def _resume_thread(jobs: Path, job_id: str) -> str:
-    """Return the recorded thread ID for a resumable job."""
-    thread_id = read_meta(find_job(jobs, job_id)).get("thread_id")
-    if not thread_id:
-        raise UsageError(f"job {job_id} has no recorded thread_id; cannot resume")
+def _run_settings(args: StartArgs, jobs: Path) -> RunSettings:
+    """Resolve the sandbox, schema, and thread the job runs with.
 
-    return thread_id
+    Args:
+        args: Parsed start options.
+        jobs: Directory holding this worktree's jobs.
+
+    Returns:
+        The conditions the job runs under.
+    """
+    if not args.resume:
+        return RunSettings(
+            sandbox=args.sandbox or WRITABLE_SANDBOX,
+            schema=_schema_file(args.schema),
+            thread_id=None,
+        )
+
+    return _resumed_settings(args, read_meta(find_job(jobs, args.resume)))
+
+
+def _resumed_settings(args: StartArgs, parent: JobMeta) -> RunSettings:
+    """Continue a thread under the conditions it started with, unless the caller overrode them.
+
+    Args:
+        args: Parsed start options; a flag the caller passed outranks the recorded value.
+        parent: Metadata of the job being resumed.
+
+    Returns:
+        The conditions the resumed job runs under.
+
+    Raises:
+        UsageError: If the resumed job recorded no thread to continue.
+    """
+    thread_id = parent.get("thread_id")
+    if not thread_id:
+        raise UsageError(f"job {parent['id']} has no recorded thread_id; cannot resume")
+
+    # Metadata written before a job recorded its sandbox inherits nothing, so it falls back.
+    return RunSettings(
+        sandbox=args.sandbox or parent.get("sandbox") or WRITABLE_SANDBOX,
+        schema=_schema_file(args.schema) if args.schema else _recorded_schema(parent),
+        thread_id=thread_id,
+    )
+
+
+def _recorded_schema(parent: JobMeta) -> Path | None:
+    """Return the output schema a resumed job inherits, when its parent ran with one."""
+    recorded = parent.get("schema")
+    return Path(recorded) if recorded else None
 
 
 def _build_prompt(
     args: StartArgs,
+    run: RunSettings,
     worktree: Path,
     inputs: InputValues,
     excluded_inputs: frozenset[str],
@@ -151,7 +207,7 @@ def _build_prompt(
     if args.resume:
         return _resume_prompt(args, inputs)
 
-    if writes_to_disk(args.sandbox):
+    if writes_to_disk(run.sandbox):
         _require_clean(worktree, excluded_inputs)
 
     diff = _diff_section(args, worktree, excluded_inputs)
@@ -184,7 +240,13 @@ def _resume_prompt(args: StartArgs, inputs: InputValues) -> str:
         f"--{name}" for name in ("context", "risks", "rules", "report") if inputs[name] is not None
     ]
     ignored_flags = [
-        flag for flag, given in (("--template", args.template), ("--diff", args.diff)) if given
+        flag
+        for flag, given in (
+            ("--template", args.template),
+            ("--diff", args.diff),
+            ("--base", args.base),
+        )
+        if given
     ]
 
     if ignored_inputs or ignored_flags:
@@ -251,10 +313,9 @@ def template_slug(args: StartArgs) -> str:
 def _create_job(
     jobs: Path,
     args: StartArgs,
+    run: RunSettings,
     worktree: Path,
-    thread_id: str | None,
     prompt: str,
-    schema: Path | None,
 ) -> Path:
     """Create the job directory, prompt, argv, and initial metadata."""
     jobs.mkdir(parents=True, exist_ok=True)
@@ -268,16 +329,16 @@ def _create_job(
         worktree=worktree,
         job_dir=job_dir,
         effort=args.effort,
-        sandbox=args.sandbox,
+        sandbox=run.sandbox,
         model=args.model,
         tier=args.tier,
         network=args.network,
-        thread_id=thread_id,
-        schema=schema,
+        thread_id=run.thread_id,
+        schema=run.schema,
     )
     (job_dir / PROMPT).write_text(prompt, encoding="utf-8")
 
-    meta = _initial_meta(job_id, args, worktree, argv, thread_id)
+    meta = _initial_meta(job_id, args, run, worktree, argv)
     write_meta(job_dir, meta)
     return job_dir
 
@@ -285,20 +346,22 @@ def _create_job(
 def _initial_meta(
     job_id: str,
     args: StartArgs,
+    run: RunSettings,
     worktree: Path,
     argv: list[str],
-    thread_id: str | None,
 ) -> JobMeta:
     """Build the initial metadata for a running job."""
     return {
         "id": job_id,
         "template": template_label(args),
+        "sandbox": run.sandbox,
+        "schema": str(run.schema) if run.schema else None,
         "worktree": str(worktree),
         "argv": argv,
         "pid": None,
         "status": "running",
         "exit_code": None,
-        "thread_id": thread_id,
+        "thread_id": run.thread_id,
         "usage": None,
         "session_id": os.environ.get("CLAUDE_CODE_SESSION_ID"),
         "resumed_from": args.resume,
