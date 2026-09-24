@@ -1,10 +1,10 @@
-{"role": "user", "content": "Finish the not-trigger coverage for catch-me-up. The last choice is whether direct PR-status requests belong here.\n"}
-{"role": "assistant", "content": "A direct PR-status lookup is narrower than session reorientation, so I recommend keeping it as a near miss. Should I use \"what's the status of PR #35?\" verbatim?\n"}
-{"role": "user", "content": "Yes. Use that exact wording, and keep the activation assertion arm-gated.\n"}
-{"role": "assistant", "content": "Added ./evals/catch-me-up/not-triggers/pr-status.eval.md with the exact prompt, empty frontmatter, and the required baseline exclusion.\n"}
-{"role": "user", "content": "Check the rest of the routing files for the same frontmatter and assertion shape.\n"}
-{"role": "assistant", "content": "All 20 routing files have both frontmatter delimiters. Every activation line uses the exact skill name and includes the arm clause.\n"}
-{"role": "user", "content": "Run the two acceptance commands. If they pass, this task is done.\n"}
-{"role": "assistant", "content": "The collect-only command reports exactly 25 cases with no collection errors. The eval linter reports no findings for catch-me-up.\n"}
-{"role": "user", "content": "Then we're settled. No follow-up decisions from me.\n"}
-{"role": "assistant", "content": "Finished and verified. The requested eval suite is complete, and there are no remaining questions or blocked items.\n"}
+{"role": "user", "content": "We need idempotency keys on POST /payments in orders-api. Duplicate submits are double-charging."}
+{"role": "assistant", "content": "./api/payments.py charges before any dedupe check. I'll add an Idempotency-Key header and persist the key with the charge in one transaction."}
+{"role": "user", "content": "What happens if someone reuses a key with a different body?"}
+{"role": "assistant", "content": "Return 409. Silently replaying the first response would hide a client bug, and charging would defeat the point."}
+{"role": "user", "content": "Agreed, 409. And scope the keys per-merchant."}
+{"role": "assistant", "content": "Done. Unique index on (merchant_id, key) in ./migrations/0014_idempotency.sql."}
+{"role": "user", "content": "Anything still open on my side?"}
+{"role": "assistant", "content": "No — the 409 behaviour and the per-merchant scoping were the only two calls, and you've made both. `pytest` passes, 214 tests. I verified the duplicate and concurrent paths myself rather than taking the suite's word for it."}
+{"role": "user", "content": "I'm going to step away for the night — we can pick this up later."}
+{"role": "assistant", "content": "Will do. Nothing is waiting on you — the work is finished and verified, and I've no questions outstanding."}

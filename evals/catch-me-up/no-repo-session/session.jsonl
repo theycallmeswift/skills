@@ -1,10 +1,11 @@
-{"role": "user", "content": "Help me compare two ways to explain skill routing to new contributors. I put rough observations in ./research-notes.md.\n"}
-{"role": "assistant", "content": "I read ./research-notes.md. The two options are a rule-first explanation and an example-first walkthrough; the notes favor examples for first-time readers.\n"}
-{"role": "user", "content": "What tradeoff would we make by leading with the example?\n"}
-{"role": "assistant", "content": "It lowers the initial learning curve but can hide the general boundary between output behavior and routing behavior. A short rule summary after the example would restore that model.\n"}
-{"role": "user", "content": "Record that as the working direction in ./decision-log.md, but leave the final choice open.\n"}
-{"role": "assistant", "content": "./decision-log.md now records example-first as the working direction and notes that the final structure remains open pending a contributor review.\n"}
-{"role": "user", "content": "Add the strongest argument for rule-first so the comparison is fair.\n"}
-{"role": "assistant", "content": "I added that rule-first makes the trigger/output distinction explicit before readers see exceptions, which may reduce overgeneralization from one example.\n"}
-{"role": "user", "content": "That's enough research for today. Don't turn it into implementation work.\n"}
-{"role": "assistant", "content": "Stopped at research and planning. The two notes contain the evidence, current leaning, counterargument, and the still-open review step.\n"}
+{"role": "user", "content": "Before we build anything: should orders-api do idempotency with a header, or should clients send a client-generated order ID in the body?"}
+{"role": "assistant", "content": "I put the tradeoffs in ./approaches.md. Header keeps it orthogonal to the payload and works for any endpoint; a body field is self-documenting but has to be added per-schema."}
+{"role": "user", "content": "Which do the payment providers do?"}
+{"role": "assistant", "content": "Header, near-universally. Noted in ./approaches.md — it means the mobile team already understands the convention."}
+{"role": "user", "content": "What's the argument for the body field?"}
+{"role": "assistant", "content": "It survives proxies that strip unknown headers, and it shows up in request logs without extra config. I recorded both in ./decision-log.md."}
+{"role": "user", "content": "Is header-stripping a real risk for us?"}
+{"role": "assistant", "content": "Unknown — it depends on the CDN config, which I can't see from here. I flagged it in ./decision-log.md as the one thing that would change the recommendation."}
+{"role": "user", "content": "OK. Leave the decision open until I can check with infra."}
+{"role": "assistant", "content": "Left open. ./decision-log.md records the header approach as the working preference, explicitly pending the CDN answer."}
+{"role": "user", "content": "I'm going to step away for the night — we can pick this up later."}

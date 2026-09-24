@@ -39,7 +39,7 @@ if [ "${1:-}" = "pr" ] && [ "${2:-}" = "view" ]; then
   done
 
   cat <<'OUTPUT'
-title:  Add catch-me-up eval suite
+title:  Add idempotency keys to POST /payments
 state:  OPEN
 number: 48
 checks: ty — failure

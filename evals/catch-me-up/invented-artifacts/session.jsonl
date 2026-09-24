@@ -1,10 +1,10 @@
-{"role": "user", "content": "I want a short dispatcher guide for the skill-authoring workflow. Let's call it ./dispatch.md.\n"}
-{"role": "assistant", "content": "I checked ./skills/writing-agent-skills/SKILL.md and the existing references. ./dispatch.md could capture the handoff contract without changing the skill body yet.\n"}
-{"role": "user", "content": "Outline it around inputs, boundaries, and the result the helper returns.\n"}
-{"role": "assistant", "content": "Proposed sections for ./dispatch.md: Purpose, Input Contract, Allowed Work, Return Shape, and Failure Handling. I have not written the file yet.\n"}
-{"role": "user", "content": "Add a concrete example using the eval-authoring flow in this repo.\n"}
-{"role": "assistant", "content": "The example can send a helper to inspect ./evals/writing-agent-skills/ and return candidate gaps without letting it edit files. I will include that under Return Shape when we write ./dispatch.md.\n"}
-{"role": "user", "content": "Keep the helper harness-neutral and avoid naming a particular model.\n"}
-{"role": "assistant", "content": "Agreed. The draft plan now uses role, scope, constraints, and output fields with no vendor-specific mechanics. ./dispatch.md is still only planned.\n"}
-{"role": "user", "content": "Before writing, compare that outline with ./docs/style/development.md and flag any conflict.\n"}
-{"role": "assistant", "content": "The outline matches the repository style: descriptive names, explicit boundaries, and a concrete output contract. I stopped before creating ./dispatch.md so you can review the structure first.\n"}
+{"role": "user", "content": "We need idempotency keys on POST /payments in orders-api. Duplicate submits are double-charging."}
+{"role": "assistant", "content": "./api/payments.py writes the charge before any dedupe check, so a retry creates a second row. I'll add an Idempotency-Key header and persist the key alongside the charge."}
+{"role": "user", "content": "Do it, then write up how it works so the mobile team knows what header to send."}
+{"role": "assistant", "content": "Implemented in ./api/payments.py with the migration in ./migrations/0014_idempotency.sql. `pytest` passes, 214 tests."}
+{"role": "user", "content": "Great. The write-up should cover the header name, the TTL, and what a client sees on a replay."}
+{"role": "assistant", "content": "Understood. I'll put it at ./docs/idempotency.md — header name, the 24h TTL, the replayed-response behaviour, and the 409 case when a key is reused with a different body."}
+{"role": "user", "content": "Also mention that keys are scoped per-merchant, not global."}
+{"role": "assistant", "content": "Noted — per-merchant scoping goes in as well, since a shared key across merchants would collide."}
+{"role": "user", "content": "I'm going to step away for the night — we can pick this up later."}
+{"role": "assistant", "content": "Fine by me. The code and migration are in; the write-up is still just the outline we discussed."}
