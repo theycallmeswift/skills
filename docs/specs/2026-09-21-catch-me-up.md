@@ -33,8 +33,8 @@ You're adding a feature to **MechaSwift**, your personal agent-skills plugin —
 ### Cliff Notes
 
 - **The project:** `mechaswift` is your repo of reusable *skills* — instruction files that teach an agent how to do a specific job the same way every time. This work is on the skill that helps you **write other skills**.
-- **What #34 asks for:** when that skill needs to read another skill's instructions, it should **spin up a cheap throwaway subagent** to go read it and report back, *rather than pulling the whole file into the main conversation.* The point is keeping your working context clean.
-- **Where it stands:** the change is written and **PR #35 is open** — 3 commits, ready for your eyes.
+- **What the issue asks for:** when that skill needs to read another skill's instructions, it should **spin up a cheap throwaway subagent** to go read it and report back, *rather than pulling the whole file into the main conversation.* The point is keeping your working context clean.
+- **Where it stands:** the change is written and **the pull request is open** — 3 commits, ready for your eyes.
 - **Local checks passed** last night at 23:15. *`make test` runs the test suite; `make lint` checks style. Both green.*
 - **The overnight failure:** CI went red at 06:02 on two errors from **`ty`**, the type-checker added to this repo last week. *It's flagging a mismatch in `scripts/run_eval.py` — bookkeeping, not a flaw in the feature.*
 - **The open question we punted on:** should the helper agent **always** use the cheap model, or should the caller pick? We shipped the PR without deciding so it wouldn't block.
@@ -43,7 +43,7 @@ You're adding a feature to **MechaSwift**, your personal agent-skills plugin —
 
 ### Next Up
 
-**You:** Decide the helper-agent model question — always-cheap, or caller's choice. *Always-cheap is simpler and the job is trivial.* Then give PR #35 a look.
+**You:** Decide the helper-agent model question — always-cheap, or caller's choice. *Always-cheap is simpler and the job is trivial.* Then give the pull request a look.
 
 **Me:** Fix the two `ty` errors, re-run the local checks, push. No decision needed from you first.
 
@@ -90,8 +90,8 @@ You're adding a feature to **MechaSwift**, your personal agent-skills plugin —
 - **Fixtures are curated real captures in the native shape.** Each scenario carries a sibling `session.jsonl` loaded via `history: ./session.jsonl`.
   - Real captures as raw material so transcripts carry genuine tool-call rhythm; doctored because four of the five scenarios are *defined* by a discrepancy no real session contains.
   - Native `{"role","content"}` over Claude Code vendor shape: ~14.6k tokens per 20 turns against ~68.6k, and no hand-maintained `uuid`/`parentUuid` chain while trimming.
-  - Depends on benchspec#151 for the path form. Inline `history:` turns are the drop-in fallback — #151 keeps the list form working, so nothing here blocks.
-  - **The transcript must sit inside its own scenario folder.** #151 rejects a path escaping the eval directory, so `session.jsonl` cannot be shared from `evals/support/` the way `fake-codex/setup.sh` is sourced.
+  - Depends on theycallmeswift/benchspec#151 for the path form. Inline `history:` turns are the drop-in fallback — that issue keeps the list form working, so nothing here blocks.
+  - **The transcript must sit inside its own scenario folder.** That change rejects a path escaping the eval directory, so `session.jsonl` cannot be shared from `evals/support/` the way `fake-codex/setup.sh` is sourced.
 - **The scripted fakes follow the existing shared-fake layout.** `evals/support/fake-git/` alongside `evals/support/fake-codex/`, sourced from each scenario's `setup.sh`. `no-repo-session` sources nothing and ships a workspace without `.git`.
 
 ## Testing Plan
@@ -131,7 +131,7 @@ You're adding a feature to **MechaSwift**, your personal agent-skills plugin —
 ## References
 
 - [theycallmeswift/mechaswift#39](https://github.com/theycallmeswift/mechaswift/issues/39) — the tracking issue this spec grounds, written from the same interview.
-- [theycallmeswift/benchspec#151](https://github.com/theycallmeswift/benchspec/issues/151) — open; adds the `history: ./session.jsonl` path form, and supplies the token figures and the eval-folder containment rule cited above.
+- [theycallmeswift/benchspec#151](https://github.com/theycallmeswift/benchspec/issues/151) — adds the `history: ./session.jsonl` path form, and supplies the token figures and the eval-folder containment rule cited above.
 - `evals/support/fake-codex/` — the shared-fake layout (`README.md`, `lib.sh`, `setup.sh`) the `git`/`gh` fakes follow; `evals/delegating-to-codex/python3-missing/setup.sh` shows the one-line source.
 - `evals/interview-me/` — the per-skill eval layout this mirrors: one directory per scenario, plus `triggers/` and `not-triggers/`.
 - `hooks/hooks.json` — the `SessionStart` hook deliberately left untouched.
