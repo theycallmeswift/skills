@@ -1,0 +1,10 @@
+{"role": "user", "content": "Help me compare two ways to explain skill routing to new contributors. I put rough observations in ./research-notes.md.\n"}
+{"role": "assistant", "content": "I read ./research-notes.md. The two options are a rule-first explanation and an example-first walkthrough; the notes favor examples for first-time readers.\n"}
+{"role": "user", "content": "What tradeoff would we make by leading with the example?\n"}
+{"role": "assistant", "content": "It lowers the initial learning curve but can hide the general boundary between output behavior and routing behavior. A short rule summary after the example would restore that model.\n"}
+{"role": "user", "content": "Record that as the working direction in ./decision-log.md, but leave the final choice open.\n"}
+{"role": "assistant", "content": "./decision-log.md now records example-first as the working direction and notes that the final structure remains open pending a contributor review.\n"}
+{"role": "user", "content": "Add the strongest argument for rule-first so the comparison is fair.\n"}
+{"role": "assistant", "content": "I added that rule-first makes the trigger/output distinction explicit before readers see exceptions, which may reduce overgeneralization from one example.\n"}
+{"role": "user", "content": "That's enough research for today. Don't turn it into implementation work.\n"}
+{"role": "assistant", "content": "Stopped at research and planning. The two notes contain the evidence, current leaning, counterargument, and the still-open review step.\n"}

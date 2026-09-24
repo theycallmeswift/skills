@@ -1,0 +1,10 @@
+{"role": "user", "content": "I want a short dispatcher guide for the skill-authoring workflow. Let's call it ./dispatch.md.\n"}
+{"role": "assistant", "content": "I checked ./skills/writing-agent-skills/SKILL.md and the existing references. ./dispatch.md could capture the handoff contract without changing the skill body yet.\n"}
+{"role": "user", "content": "Outline it around inputs, boundaries, and the result the helper returns.\n"}
+{"role": "assistant", "content": "Proposed sections for ./dispatch.md: Purpose, Input Contract, Allowed Work, Return Shape, and Failure Handling. I have not written the file yet.\n"}
+{"role": "user", "content": "Add a concrete example using the eval-authoring flow in this repo.\n"}
+{"role": "assistant", "content": "The example can send a helper to inspect ./evals/writing-agent-skills/ and return candidate gaps without letting it edit files. I will include that under Return Shape when we write ./dispatch.md.\n"}
+{"role": "user", "content": "Keep the helper harness-neutral and avoid naming a particular model.\n"}
+{"role": "assistant", "content": "Agreed. The draft plan now uses role, scope, constraints, and output fields with no vendor-specific mechanics. ./dispatch.md is still only planned.\n"}
+{"role": "user", "content": "Before writing, compare that outline with ./docs/style/development.md and flag any conflict.\n"}
+{"role": "assistant", "content": "The outline matches the repository style: descriptive names, explicit boundaries, and a concrete output contract. I stopped before creating ./dispatch.md so you can review the structure first.\n"}
