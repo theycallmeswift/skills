@@ -22,7 +22,7 @@ git commit -qm "Initial eval fixtures"
 git checkout -qb eval/stale-state
 
 printf '\n\ndef hash_body(body):\n    raise NotImplementedError\n' >> api/payments.py
-printf '\nALTER TABLE payment_idempotency ADD COLUMN expires_at TIMESTAMPTZ;\n' >> migrations/0014_idempotency.sql
+printf '\n-- TODO: confirm the sweep job uses the expires_at index.\n' >> migrations/0014_idempotency.sql
 
 expected_status=$' M api/payments.py\n M migrations/0014_idempotency.sql'
 actual_status="$(git status --porcelain --untracked-files=no)"
