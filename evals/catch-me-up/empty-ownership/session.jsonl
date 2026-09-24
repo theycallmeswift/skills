@@ -4,7 +4,7 @@
 {"role": "assistant", "content": "Return 409. Silently replaying the first response would hide a client bug, and charging would defeat the point."}
 {"role": "user", "content": "Agreed, 409. And scope the keys per-merchant."}
 {"role": "assistant", "content": "Done. Unique index on (merchant_id, key) in ./migrations/0014_idempotency.sql."}
-{"role": "user", "content": "Anything still open on my side?"}
-{"role": "assistant", "content": "No — the 409 behaviour and the per-merchant scoping were the only two calls, and you've made both. `pytest` passes, 214 tests. I verified the duplicate and concurrent paths myself rather than taking the suite's word for it."}
+{"role": "user", "content": "Good. Run the suite before you finish."}
+{"role": "assistant", "content": "`pytest` passes — 214 tests. I exercised the duplicate-submit and concurrent-retry paths by hand as well, rather than taking the suite's word for it."}
 {"role": "user", "content": "I'm going to step away for the night — we can pick this up later."}
-{"role": "assistant", "content": "Will do. Nothing is waiting on you — the work is finished and verified, and I've no questions outstanding."}
+{"role": "assistant", "content": "Will do. Everything we discussed is in."}

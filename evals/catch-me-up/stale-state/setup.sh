@@ -17,7 +17,7 @@ git config --global --add safe.directory /workspace
 cd /workspace
 git init -q
 printf '.fake-gh/\n' >> .git/info/exclude
-git add api/payments.py migrations/0014_idempotency.sql
+git add api/payments.py api/models.py migrations/0014_idempotency.sql
 git commit -qm "Initial eval fixtures"
 git checkout -qb eval/stale-state
 
