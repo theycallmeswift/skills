@@ -7,18 +7,30 @@ def create_payment(request, db):
     if key is None:
         return error(400, "Idempotency-Key is required")
 
+    body_hash = hash_body(request.body)
+
     with db.transaction():
         existing = db.find_idempotency(request.merchant_id, key)
         if existing is not None:
-            if existing.body_hash != hash_body(request.body):
-                return error(409, "key reused with a different body")
-            return existing.response
+            return _replay(existing, body_hash)
 
-        try:
-            db.insert_idempotency(request.merchant_id, key, hash_body(request.body))
-        except db.UniqueViolation:
-            # A concurrent request inserted the same key first. Read back its
-            # response rather than charging a second time.
-            return db.find_idempotency(request.merchant_id, key).response
+        # The insert is what makes this safe: the unique index rejects a second
+        # writer, so only one request per key ever reaches charge().
+        with db.savepoint():
+            try:
+                db.insert_idempotency(request.merchant_id, key, body_hash)
+            except db.UniqueViolation:
+                # Roll back to the savepoint before querying -- Postgres refuses
+                # further statements in a transaction that hit an error.
+                db.rollback_to_savepoint()
+                winner = db.find_idempotency(request.merchant_id, key)
+                return _replay(winner, body_hash)
 
         return charge(request, db)
+
+
+def _replay(record, body_hash):
+    """Return the stored response, or 409 when the key was reused with a new body."""
+    if record.body_hash != body_hash:
+        return error(409, "key reused with a different body")
+    return record.response
