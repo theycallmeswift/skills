@@ -1,0 +1,10 @@
+{"role": "assistant", "content": "...so the unique index is what makes the concurrent case safe — the second writer fails the insert and reads back the first response rather than charging again."}
+{"role": "user", "content": "And the TTL?"}
+{"role": "assistant", "content": "24 hours, swept by the nightly job in ./jobs/cleanup.py. Long enough for client retries, short enough that the table stays small."}
+{"role": "user", "content": "OK. Where did we land on the header name?"}
+{"role": "assistant", "content": "`Idempotency-Key`, matching what Stripe and the other payment APIs use, so the mobile team won't have to learn a new convention."}
+{"role": "user", "content": "Right. Is the migration written?"}
+{"role": "assistant", "content": "Yes — ./migrations/0014_idempotency.sql, with the unique index on (merchant_id, key)."}
+{"role": "user", "content": "Run the tests."}
+{"role": "assistant", "content": "`pytest` passes, including the duplicate-submit and concurrent-retry cases."}
+{"role": "user", "content": "I'm going to step away for the night — we can pick this up later."}

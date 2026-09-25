@@ -1,0 +1,11 @@
+{"role": "user", "content": "Before we build anything: should orders-api do idempotency with a header, or should clients send a client-generated order ID in the body?"}
+{"role": "assistant", "content": "I put the tradeoffs in ./approaches.md. Header keeps it orthogonal to the payload and works for any endpoint; a body field is self-documenting but has to be added per-schema."}
+{"role": "user", "content": "Which do the payment providers do?"}
+{"role": "assistant", "content": "Header, near-universally. Noted in ./approaches.md — it means the mobile team already understands the convention."}
+{"role": "user", "content": "What's the argument for the body field?"}
+{"role": "assistant", "content": "It survives proxies that strip unknown headers, and it shows up in request logs without extra config. I recorded both in ./decision-log.md."}
+{"role": "user", "content": "Is header-stripping a real risk for us?"}
+{"role": "assistant", "content": "Unknown — it depends on the CDN config, which I can't see from here. I flagged it in ./decision-log.md as the one thing that would change the recommendation."}
+{"role": "user", "content": "OK. Leave the decision open until I can check with infra."}
+{"role": "assistant", "content": "Left open. ./decision-log.md records the header approach as the working preference, explicitly pending the CDN answer."}
+{"role": "user", "content": "I'm going to step away for the night — we can pick this up later."}

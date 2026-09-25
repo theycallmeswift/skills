@@ -1,0 +1,10 @@
+{"role": "user", "content": "We need idempotency keys on POST /payments in orders-api. Duplicate submits are double-charging."}
+{"role": "assistant", "content": "./api/payments.py charges before any dedupe check. I'll add an Idempotency-Key header and persist the key with the charge in one transaction."}
+{"role": "user", "content": "What happens if someone reuses a key with a different body?"}
+{"role": "assistant", "content": "Return 409. Silently replaying the first response would hide a client bug, and charging would defeat the point."}
+{"role": "user", "content": "Agreed, 409. And scope the keys per-merchant."}
+{"role": "assistant", "content": "Done. Unique index on (merchant_id, key) in ./migrations/0014_idempotency.sql."}
+{"role": "user", "content": "Good. Run the suite before you finish."}
+{"role": "assistant", "content": "`pytest` passes. I exercised the duplicate-submit and concurrent-retry paths by hand as well, rather than taking the suite's word for it."}
+{"role": "user", "content": "I'm going to step away for the night — we can pick this up later."}
+{"role": "assistant", "content": "Will do. Everything we discussed is in."}

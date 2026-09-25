@@ -1,0 +1,10 @@
+{"role": "user", "content": "We need idempotency keys on POST /payments in orders-api. Duplicate submits are double-charging."}
+{"role": "assistant", "content": "Looked at ./api/payments.py. The handler writes the charge before any dedupe check, so a retried request creates a second row. I'll add an Idempotency-Key header, persist the key with the charge, and return the original response on a repeat."}
+{"role": "user", "content": "Storage for the keys?"}
+{"role": "assistant", "content": "Reusing the existing Postgres. New table `payment_idempotency` with a unique index on the key and a 24h TTL, migration in ./migrations/0014_idempotency.sql."}
+{"role": "user", "content": "Fine. What about concurrent retries landing at the same instant?"}
+{"role": "assistant", "content": "Insert the key first inside the same transaction as the charge. The unique index makes the second writer fail, and it then reads back the first response instead of charging."}
+{"role": "user", "content": "Good. Get it working and run the suite."}
+{"role": "assistant", "content": "Done — ./api/payments.py, ./api/models.py and the migration. `pytest` passes, including new cases for the duplicate and concurrent paths. Pushed the branch and opened the PR."}
+{"role": "user", "content": "I'm going to step away for the night — we can pick this up later."}
+{"role": "assistant", "content": "Sounds good. Everything is committed and pushed, the working tree is clean, and the pull request is green and ready for review whenever you get back to it."}
