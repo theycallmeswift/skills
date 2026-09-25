@@ -1,44 +1,42 @@
 # writing-agent-skills — eval record
 
-Recorded 2026-09-18 from `iteration_06` (benchspec 0.0.4, Claude Code in the guest; baseline bare, trial with the plugin loaded via `--plugin-dir`, sonnet, `--count 3`). Re-run with `make evals SKILL=writing-agent-skills EVAL_ARGS="--count 3"`.
+Recorded 2026-09-25 from `iteration_01` (benchspec 0.0.5, Claude Code 2.1.263 in the guest; baseline bare, trial with the plugin loaded via `--plugin-dir`, sonnet, `--count 3`). Routing queries run on trial only: their activation lines are scoped off baseline, so a baseline run grades nothing. Re-run with `make evals SKILL=writing-agent-skills EVAL_ARGS="--count 3 -k 'not (triggers and baseline)'"`.
 
-Activation lines (`` Skill `…` invoked ``) are scoped off baseline and excluded from the output tallies, so these rates don't compare 1:1 with the 2026-09-04 record.
+Activation lines (`` Skill `…` invoked ``) are excluded from the output tallies.
 
 ## Output evals — baseline vs trial
 
 | Eval | baseline | trial | Δ |
 |---|---|---|---|
-| build-commit-message-skill | 9/21 (43%) | 20/21 (95%) | +52pp |
-| db-migrate-internals-trap | 4/15 (27%) | 5/15 (33%) | +7pp |
-| improve-changelog-skill | 14/15 (93%) | 15/15 (100%) | +7pp |
-| react-conventions-trap | 0/12 (0%) | 12/12 (100%) | +100pp |
-| **All (pooled)** | 27/63 (42%) | 52/63 (82%) | +40pp |
+| build-commit-message-skill | 0/18 (0%) | 13/18 (72%) | +72pp |
+| db-migrate-internals-trap | 0/15 (0%) | 6/15 (40%) | +40pp |
+| improve-changelog-skill | 13/15 (87%) | 13/15 (87%) | +0pp |
+| react-conventions-trap | 3/12 (25%) | 12/12 (100%) | +75pp |
+| **All (pooled)** | 16/60 (27%) | 44/60 (73%) | +46pp |
 
-Pooled sums assertions; `benchmark.md`'s headline averages per-eval rates.
-
-## Routing evals — trial arm: 14/15
+## Routing evals — trial arm: 8/9 at 3/3
 
 | Query | Expected | Result |
 |---|---|---|
 | bootstrap-pass-rate | writing-agent-skills invoked | pass |
 | build-commit-skill | writing-agent-skills invoked | pass |
-| build-recipe-format-skill | writing-agent-skills invoked | pass |
 | draft-pr-review-skill-md | writing-agent-skills invoked | pass |
-| expand-git-workflow-trigger | writing-agent-skills invoked | pass |
 | fix-archive-description | writing-agent-skills invoked | pass |
-| regression-test-ingest | writing-agent-skills invoked | pass |
 | rerun-evals-haiku | writing-agent-skills invoked | pass |
-| run-archive-evals | writing-agent-skills invoked | pass |
-| run-trigger-evals-ingest | writing-agent-skills invoked | pass |
-| scaffold-notion-sync | writing-agent-skills invoked | pass |
 | setup-changelog-evals | writing-agent-skills invoked | pass |
 | skill-name-choice | writing-agent-skills invoked · writing-prompts not invoked | pass |
 | split-wiki-skill | writing-agent-skills invoked | pass |
-| todo-list-skill-or-claude-md | writing-agent-skills invoked · writing-prompts not invoked | **fail** (0/3) |
+| todo-list-skill-or-claude-md | writing-agent-skills invoked · writing-prompts not invoked | **fail** (0/3 invoked; writing-prompts quiet 3/3) |
+
+Negatives for this skill are the `writing-agent-skills not invoked` lines on `writing-prompts` queries (see that record).
 
 ## Notes
 
-**`writing-prompts` holds where the skill writes a SKILL.md.** The unchanged body passes the process line 9/9 across build-commit, improve-changelog, and react-conventions-trap at n=3; consolidating the repeated mandates into one §5 step dropped it to 4/9, so the repetition stays. It is still 0/9 on `db-migrate-internals-trap` (see below).
+**`writing-prompts` step regressed since 2026-09-18.** The `process:` line on `build-commit-message-skill` is 0/3 (it was 9/9 across three evals); every miss wrote the SKILL.md and never called `writing-prompts`. A control on `main`'s unedited SKILL.md with the same eval file scored 1/3, so the drop predates the routing-eval guidance change and tracks the harness/runner update, not this edit. Open gap, and the main cause of trial misses here. A first control attempt refused 3/3, calling the scripted `history:` an unverifiable approval — a fragility of this eval's multi-turn setup worth watching.
+
+**`improve-changelog-skill` doesn't discriminate.** Bare agents write the broadened description, trim the body, and keep conventions (13/15 on both arms; 14/15 vs 15/15 last record). Only the `writing-prompts` line separates the arms.
+
+**Pruned 2026-09-24.** Routing capped at 10 queries per skill. Removed rewordings of intents already covered: `run-archive-evals`, `regression-test-ingest`, `run-trigger-evals-ingest` (running evals; `bootstrap-pass-rate` and `rerun-evals-haiku` stay), `build-recipe-format-skill`, `scaffold-notion-sync` (building a skill; `build-commit-skill` and `draft-pr-review-skill-md` stay), `expand-git-workflow-trigger` (description debugging; `fix-archive-description` stays). `build-commit-message-skill` dropped its standalone frontmatter line, which the conventions line already grades.
 
 **Skill names: noun form in 1 of 3.** `build-commit-message-skill`'s name line misses in one sample (`commit-message`). An inline verb/gerund rule in §2 had no measured effect and was not kept. Open gap.
 
