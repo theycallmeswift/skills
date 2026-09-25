@@ -25,7 +25,7 @@ Skip checks that don't apply, silently: no repository, no git statements; no `gh
 
 ## 3. Write the recap
 
-The reply starts at `### TL;DR` — no preamble about what you checked. One shape, every time. The reader has no project context: name the repo or topic and what it's for before the update, gloss tool names and jargon on first use, and give the *why* before the *what*.
+The first line of the reply is `### TL;DR`. That line is what a returning reader sees first; a status line about your checks ahead of it buries the recap. What the checks found goes in Cliff Notes. One shape, every time. The reader has no project context: name the repo or topic and what it's for before the update, gloss tool names and jargon on first use, and give the *why* before the *what*.
 
 ```
 ### TL;DR
