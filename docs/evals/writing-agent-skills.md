@@ -41,7 +41,7 @@ Negatives are the `writing-agent-skills not invoked` lines on writing-prompts qu
 
 Suggestive (p≈0.13), not conclusive. #33 reframed the sequencing as a risk ("shaky", "makes the risk certain"), which may read as license to skip. Both arms sit far below 9/9, so most of the drop is runtime (model or Claude Code build), not text. Separately, about 1 in 4 samples on either text distrusts the scripted `history:` ("no evidence any baseline run happened") and skips the workflow or refuses; this eval's multi-turn setup is fragile.
 
-**`improve-changelog-skill` didn't discriminate** (13/15 both arms): bare agents broaden the description and trim the body too. On 2026-09-25 it gained a line for the diagnose table's required artifact, a routing-eval set under the cap. That line fails 6/6 on both arms: the skill fixes the description but never writes or proposes routing evals. Skill gap; stays red until fixed.
+**`improve-changelog-skill` baseline is contaminated** (13/15 both arms): 7 of 12 baseline samples on 2026-09-25 found and read `/project/skills/writing-agent-skills/` (the read-only repo mount), so the arm isn't bare. See *Baseline contamination* below. On 2026-09-25 it gained a line for the diagnose table's required artifact, a routing-eval set under the cap. That line fails 6/6 on both arms: the skill fixes the description but never writes or proposes routing evals. Skill gap; stays red until fixed.
 
 **Pruned 2026-09-24** (routing cap: 10). Cut three extra "run the evals" asks, two extra "build a skill" asks, and `expand-git-workflow-trigger` (covered by `fix-archive-description`). `build-commit-message-skill`'s frontmatter check is now its own line only; the conventions line no longer repeats it.
 
@@ -52,3 +52,5 @@ Suggestive (p≈0.13), not conclusive. #33 reframed the sequencing as a risk ("s
 **`react-conventions-followthrough` removed.** Once the user agrees conventions aren't a skill, loading the skill would be wrong, so its activation line rewarded a mistake; bare agents already write the doc (6/6). `react-conventions-trap` still grades the pushback.
 
 **Routing.** The description now claims deciding whether something should be a skill, and naming one; `skill-name-choice` went from 0/3 on the prior description to 3/3. "Do I need a skill for my todo list, or just CLAUDE.md?" stays 0/3 across every wording tried, with `writing-prompts` correctly quiet; recorded as a sonnet boundary.
+
+**Baseline contamination.** Baseline has no `--plugin-dir`, but `/project` is still mounted. When the prompt names a skill, the agent tries `Skill`, fails, runs `find /`, and reads the SKILL.md by hand. On 2026-09-25: improve-changelog 7/12, react-conventions-trap 1/3, db-migrate 1/3, build-commit 0/6. Every Δ here is a lower bound until baseline can't see `/project/skills`.

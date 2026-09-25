@@ -22,8 +22,9 @@ wrote it.
 
 - [ ] Skill `to-spec` invoked
   - if: {BENCHSPEC_ARM} != "baseline"
-- [ ] A spec file was written at './docs/specs/{TODAY}-<slug>.md' — the filename is today's date plus a kebab-case slug derived from the title, with NO '-design' suffix
+- [ ] A spec file was written at './docs/specs/{TODAY}-<slug>.md' — the filename is today's date plus a kebab-case slug derived from the title
 - [ ] Exactly one `*.md` file exists under './docs/specs/'
+- [ ] No spec file under './docs/specs/' carries a '-design' suffix
 - [ ] The spec opens with a one-line TL;DR and contains all of these H2 sections: Problem, Solution, User Stories, Implementation Decisions, Testing Plan, Documentation Plan, Out of Scope, References, Verification
 - [ ] The Problem section uses labeled bullets (e.g. Symptom / Constraint), not multi-sentence paragraphs
 - [ ] The Solution section leads with a short copy-pasteable artifact (a code/config snippet) followed by no more than two sentences of prose
