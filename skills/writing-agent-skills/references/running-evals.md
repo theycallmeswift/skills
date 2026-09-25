@@ -169,8 +169,8 @@ presupposes a prior design discussion carries a short `history:` recap, because 
 session the agent correctly says there is nothing to write up rather than routing.
 
 `make evals SKILL=<name>` runs one skill's suite; `EVAL_ARGS="-k <slug> --count 3"` samples
-a query that looks flaky. Build 20 queries, ≈50/50 should-trigger / should-not, weighted
-toward near-miss negatives (share the skill's vocabulary but need different handling).
+a query that looks flaky. Build at most 10 queries, each probing a distinct
+phrasing or near-miss (see [`evaluating-skills.md`](evaluating-skills.md) § Routing evals for what earns a slot).
 Routing is a model-tier decision: a query that routes on opus and misses on sonnet is a
 boundary to record in the skill's eval notes, not a description defect.
 

@@ -19,3 +19,5 @@ can you spec this out before we lose the thread?
 
 - [ ] Skill `to-spec` invoked
   - if: {BENCHSPEC_ARM} != "baseline"
+- [ ] Skill `interview-me` not invoked
+  - if: {BENCHSPEC_ARM} != "baseline"

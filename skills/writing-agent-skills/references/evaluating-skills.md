@@ -12,7 +12,7 @@ Build the eval before the skill. Run without the skill to establish a baseline, 
 
 **Output evals** measure the quality of what the skill produces. The same prompt runs across two arms declared in `pyproject.toml` — a `baseline` that runs the agent bare and a `trial` that runs it with the plugin loaded; the set's `baseline = "baseline"` key makes the delta (trial − baseline) the quality metric.
 
-**Routing evals** measure whether the description fires the skill at all. 20 queries, half should-trigger half not, each an ordinary eval whose assertions are activation lines — one per skill that has a stake in the ask — in the same set.
+**Routing evals** measure whether the description fires the skill at all. At most 10 queries covering both polarities, each an ordinary eval whose assertions are activation lines — one per skill that has a stake in the ask — in the same set.
 
 Author both. Output evals don't matter if the skill never loads.
 
@@ -131,7 +131,9 @@ Stop when the user is satisfied, the delta flattens, or you can't think of an im
 
 Output evals test what happens *after* the skill loads. The `description:` field decides whether it loads at all.
 
-Build 20 queries, ≈50/50 should-trigger / should-not, weighted toward near-miss negatives (share keywords, need something different). Substantive queries only — trivial one-step asks don't trigger skills regardless of description quality.
+Build at most 10 queries; fewer is fine. Every query needs a distinct reason to exist: a phrasing or intent the description must catch, or a near-miss negative that shares keywords with the skill but needs something different. If two queries would fail for the same reason, keep one. Rewordings of one intent ("write this up as a spec", "turn this into a spec", "draft a spec") are one query, not five. Cover both polarities, weighted toward near-miss negatives; obviously unrelated negatives ("fix this TypeError" for a prompt-writing skill) prove nothing.
+
+**What counts toward the 10:** the files in the skill's own `triggers/` and `not-triggers/` folders. An activation line the skill adds to a sibling's file doesn't count against the cap but does count as coverage, so a skill whose negatives all live as lines on its siblings' queries still covers both polarities. That line has to be a real near-miss too, not a free extra assertion. Substantive queries only — trivial one-step asks don't trigger skills regardless of description quality.
 
 Each query is one file — `evals/<skill>/triggers/<query-slug>.eval.md` for an ask that must reach this skill, `evals/<skill>/not-triggers/<query-slug>.eval.md` for a near-miss no loaded skill owns — with the verbatim user message as the `## Prompt` (routing-sensitive; never reword) and one activation line per skill that has a stake in it: `` Skill `<skill>` invoked `` for the owner, `` Skill `<other>` not invoked `` for a sibling that shares the vocabulary. Leave the sibling line out when the owner may legitimately delegate to that sibling mid-task, since activation counts any dispatch in the run. A positive that presupposes a prior design discussion ("write up what we landed on") gets a short `history:` recap so the ask refers to something; in an empty session the agent correctly says there is nothing to write up instead of routing. They run in the same set as the output evals, so on `trial` the skill competes with its real peers; the arm clause keeps them off `baseline`.
 
