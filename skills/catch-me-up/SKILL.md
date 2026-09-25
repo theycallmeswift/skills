@@ -9,7 +9,7 @@ Re-orient a reader who is coming back cold to *this* session. The narrative come
 
 ## 1. Check what the conversation is missing
 
-Do this first, before touching the workspace. Read the first turn. If it opens mid-thought — a reply starting with "…", references to decisions you can't see, a summary standing in for earlier turns — the start of the conversation is gone. That gap is in *your context*, not in the workspace: the TL;DR says earlier context is missing, the recap covers only what survives, and you don't reconstruct the missing start or blame the gap on missing files.
+Do this first, before touching the workspace. Read the first turn. If it opens mid-thought — a reply starting with "…", references to decisions you can't see, a summary standing in for earlier turns — the start of the conversation is gone. That gap is in *your context*, not in the workspace, and it outranks anything the workspace checks turn up: the TL;DR opens by saying earlier context is missing, the recap covers only what survives, and you don't reconstruct the missing start or blame the gap on missing files or the environment.
 
 ## 2. Check what the conversation claims
 
@@ -30,7 +30,7 @@ One shape, every time. The reader has no project context: name the repo or topic
 ```
 ### TL;DR
 
-<1–2 sentences of plain body text — not a heading, not bold. What this is, where it stands, and the one thing that most needs attention. If earlier context is missing, say so here.>
+<If step 1 found the start missing, open with: "Earlier context is missing — this picks up at <first surviving topic>."> <1–2 sentences of plain body text — not a heading, not bold. What this is, where it stands, and the one thing that most needs attention.>
 
 ***
 
