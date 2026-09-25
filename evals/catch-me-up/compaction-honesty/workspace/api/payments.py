@@ -26,6 +26,8 @@ def create_payment(request, db):
                 winner = db.find_idempotency(request.merchant_id, key)
                 return _replay(winner, body_hash)
 
+        # Same transaction as the key: a retry blocked on the unique index only
+        # sees the row after commit, by which point the response is stored.
         response = db.charge(request)
         db.store_response(request.merchant_id, key, response)
         return response
