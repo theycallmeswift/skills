@@ -8,6 +8,8 @@ catch me up on where we left off
 
 ## Assertions
 
+- [ ] Skill `catch-me-up` invoked
+  - if: {BENCHSPEC_ARM} != "baseline"
 - [ ] The agent's reply states the working tree has uncommitted changes
 - [ ] The agent's reply does not claim the working tree is clean
 - [ ] The agent's reply names the branch it is on
