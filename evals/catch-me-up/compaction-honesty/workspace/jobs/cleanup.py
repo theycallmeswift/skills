@@ -1,11 +1,6 @@
 """Nightly sweep of expired idempotency keys."""
 
-TTL_HOURS = 24
-
 
 def sweep(db):
-    """Delete idempotency records older than the TTL."""
-    db.execute(
-        "DELETE FROM payment_idempotency WHERE created_at < now() - interval '%s hours'",
-        TTL_HOURS,
-    )
+    """Delete idempotency records past their 24-hour expiry (set by the migration)."""
+    db.execute("DELETE FROM payment_idempotency WHERE expires_at < now()")

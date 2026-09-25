@@ -19,8 +19,8 @@ remote_url="https://github.com/example/orders-api.git"
 
 cd /workspace
 seed="$(mktemp -d)"
-cp -R api migrations "$seed/"
-rm -rf api migrations
+cp -R api migrations tests "$seed/"
+rm -rf api migrations tests
 
 # main: the endpoint as it was before the session, charging before any dedupe check.
 git init -q
@@ -32,7 +32,7 @@ cat > api/payments.py <<'PY'
 
 def create_payment(request, db):
     """Charge the card and record the payment."""
-    return charge(request, db)
+    return db.charge(request)
 PY
 git add api/payments.py
 git commit -qm "Add POST /payments endpoint"
@@ -47,7 +47,8 @@ cp "$seed/api/models.py" api/
 git add api/models.py
 git commit -qm "Add IdempotencyRecord model"
 cp "$seed/api/payments.py" api/
-git add api/payments.py
+cp -R "$seed/tests" .
+git add api/payments.py tests
 git commit -qm "Dedupe POST /payments on Idempotency-Key"
 rm -rf "$seed"
 
@@ -69,7 +70,7 @@ fail() {
 }
 
 expected_status=$' M api/payments.py\n M migrations/0014_idempotency.sql'
-actual_status="$(git status --porcelain --untracked-files=no)"
+actual_status="$(git status --porcelain)"
 [ "$actual_status" = "$expected_status" ] || fail "status"$'\n'"$actual_status"
 [ "$(git rev-parse --abbrev-ref HEAD)" = "$branch" ] || fail "branch"
 [ "$(git rev-parse --abbrev-ref '@{u}')" = "origin/$branch" ] || fail "upstream"

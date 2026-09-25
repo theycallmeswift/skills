@@ -15,7 +15,7 @@ def create_payment(request, db):
             return _replay(existing, body_hash)
 
         # The insert is what makes this safe: the unique index rejects a second
-        # writer, so only one request per key ever reaches charge().
+        # writer, so only one request per key ever reaches db.charge().
         with db.savepoint():
             try:
                 db.insert_idempotency(request.merchant_id, key, body_hash)
@@ -26,7 +26,9 @@ def create_payment(request, db):
                 winner = db.find_idempotency(request.merchant_id, key)
                 return _replay(winner, body_hash)
 
-        return charge(request, db)
+        response = db.charge(request)
+        db.store_response(request.merchant_id, key, response)
+        return response
 
 
 def _replay(record, body_hash):
