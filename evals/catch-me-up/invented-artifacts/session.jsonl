@@ -1,7 +1,7 @@
 {"role": "user", "content": "We need idempotency keys on POST /payments in orders-api. Duplicate submits are double-charging."}
 {"role": "assistant", "content": "./api/payments.py writes the charge before any dedupe check, so a retry creates a second row. I'll add an Idempotency-Key header and persist the key alongside the charge."}
 {"role": "user", "content": "Do it, then write up how it works so the mobile team knows what header to send."}
-{"role": "assistant", "content": "Implemented in ./api/payments.py with the migration in ./migrations/0014_idempotency.sql. `pytest` passes, 214 tests."}
+{"role": "assistant", "content": "Implemented in ./api/payments.py with the migration in ./migrations/0014_idempotency.sql. `pytest` passes."}
 {"role": "user", "content": "Great. The write-up should cover the header name, the TTL, and what a client sees on a replay."}
 {"role": "assistant", "content": "Understood. I'll put it at ./docs/idempotency.md — header name, the 24h TTL, the replayed-response behaviour, and the 409 case when a key is reused with a different body."}
 {"role": "user", "content": "Also mention that keys are scoped per-merchant, not global."}

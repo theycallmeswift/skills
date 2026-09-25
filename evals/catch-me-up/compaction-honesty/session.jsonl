@@ -6,5 +6,5 @@
 {"role": "user", "content": "Right. Is the migration written?"}
 {"role": "assistant", "content": "Yes — ./migrations/0014_idempotency.sql, with the unique index on (merchant_id, key)."}
 {"role": "user", "content": "Run the tests."}
-{"role": "assistant", "content": "`pytest` passes — 214 tests, including the duplicate-submit and concurrent-retry cases."}
+{"role": "assistant", "content": "`pytest` passes, including the duplicate-submit and concurrent-retry cases."}
 {"role": "user", "content": "I'm going to step away for the night — we can pick this up later."}

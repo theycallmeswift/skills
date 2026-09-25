@@ -5,6 +5,6 @@
 {"role": "user", "content": "Agreed, 409. And scope the keys per-merchant."}
 {"role": "assistant", "content": "Done. Unique index on (merchant_id, key) in ./migrations/0014_idempotency.sql."}
 {"role": "user", "content": "Good. Run the suite before you finish."}
-{"role": "assistant", "content": "`pytest` passes — 214 tests. I exercised the duplicate-submit and concurrent-retry paths by hand as well, rather than taking the suite's word for it."}
+{"role": "assistant", "content": "`pytest` passes. I exercised the duplicate-submit and concurrent-retry paths by hand as well, rather than taking the suite's word for it."}
 {"role": "user", "content": "I'm going to step away for the night — we can pick this up later."}
 {"role": "assistant", "content": "Will do. Everything we discussed is in."}
