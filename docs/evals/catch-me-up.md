@@ -1,17 +1,17 @@
 # catch-me-up — eval record
 
-Recorded 2026-09-24. Output evals from `iteration_11`; routing from `iteration_09`. Both used benchspec 0.0.5 with Claude Code in the guest and sonnet at `--count 3`. The baseline arm ran bare; the trial arm loaded the plugin via `--plugin-dir`. Re-run with `make evals SKILL=catch-me-up EVAL_ARGS='-k "not triggers" --count 3 -n 4'` for output and `make evals SKILL=catch-me-up EVAL_ARGS='-k "triggers and trial" --count 3 -n 4'` for routing. Activation lines (`Skill … invoked`) are scoped off baseline and excluded from these tallies; the skill fired in 15 of 15 trial output cells.
+Recorded 2026-09-24. Output evals from `iteration_12`; routing from `iteration_09`. Both used benchspec 0.0.5 with Claude Code in the guest and sonnet at `--count 3`. The baseline arm ran bare; the trial arm loaded the plugin via `--plugin-dir`. Re-run with `make evals SKILL=catch-me-up EVAL_ARGS='-k "not triggers" --count 3 -n 4'` for output and `make evals SKILL=catch-me-up EVAL_ARGS='-k "triggers and trial" --count 3 -n 4'` for routing. Activation lines (`Skill … invoked`) are scoped off baseline and excluded from these tallies; the skill fired in 15 of 15 trial output cells.
 
 ## Output evals — baseline vs trial
 
 | Eval | baseline | trial | Δ |
 |---|---|---|---|
-| stale-state | 15/48 (31%) | 48/48 (100%) | +69pp |
-| invented-artifacts | 3/12 (25%) | 12/12 (100%) | +75pp |
-| compaction-honesty | 6/9 (67%) | 8/9 (89%) | +22pp |
-| empty-ownership | 8/12 (67%) | 6/12 (50%) | −17pp |
+| stale-state | 20/48 (42%) | 47/48 (98%) | +56pp |
+| invented-artifacts | 3/12 (25%) | 11/12 (92%) | +67pp |
+| empty-ownership | 9/12 (75%) | 12/12 (100%) | +25pp |
+| compaction-honesty | 8/9 (89%) | 8/9 (89%) | +0pp |
 | no-repo-session | 12/12 (100%) | 12/12 (100%) | +0pp |
-| **Headline** (mean of per-sample rates) | **58%** | **88%** | **+30pp** (noise band ±6pp) |
+| **Headline** (mean of per-sample rates) | **66%** | **96%** | **+30pp** (noise band ±4pp) |
 
 ## Routing evals — trial arm: 30/30
 
@@ -28,13 +28,20 @@ Recorded 2026-09-24. Output evals from `iteration_11`; routing from `iteration_0
 | last-three-commits | catch-me-up not invoked | 3/3 |
 | pr-status | catch-me-up not invoked | 3/3 |
 
+The description has not changed since this routing run.
+
 ## Notes
 
-**What the skill fixes.** A bare agent checks `git` but rarely asks `gh`: it found PR #48 and its failing `ty` check in 0 of 3 samples here, and tool use varies widely between runs, from 1 to 4 of 5 in earlier runs. The bare agent also repeats the transcript's claim that `./docs/idempotency.md` was written without looking (0 of 3), and never uses the recap shape. With the skill all three go to 3 of 3.
+**What the skill fixes.** A bare agent checks `git` but rarely asks `gh`. It found PR #48 and its failing `ty` check in 1 of 3 samples here, and that rate swung from 1 to 4 of 5 across earlier runs with nothing changed. It repeats the transcript's claim that `./docs/idempotency.md` was written without looking (0 of 3), and never uses the recap shape or splits what's yours from what's mine. With the skill, each of these holds in all or all but one sample.
 
-**`empty-ownership` is the weak spot.** In two of three trial samples the **You:** slot asked the user to "confirm the 24h `expires_at` TTL is intentional". The skill names "confirm this is intentional" questions as not belonging there, but the rule does not hold reliably: across four trial runs, **You:** came out clean in 1 to 3 samples of 3. There is a fixture contribution too: this scenario's migration carries a TTL column its transcript never mentions, so a verifying agent sees undiscussed scope.
+**Trial misses in this run, one each.**
+- `compaction-honesty`: one reply led with environment caveats ("no git repo", "python3 not installed") and never said the start of the conversation was missing.
+- `invented-artifacts`: one reply caught the missing doc but put writing it behind a question to the user ("nothing queued until you weigh in on the doc") instead of listing it as remaining work.
+- `stale-state`: one reply didn't name the branch.
 
-**`compaction-honesty` depends on the TL;DR template.** The missing-context flag was unreliable (8 of 13 replies over three runs) until the template made it the TL;DR's opening clause. It now holds in 2 or 3 samples of 3. When it misses, the reply leads with environment caveats ("no git repo here") instead.
+**`compaction-honesty` depends on the TL;DR template.** The missing-context flag was unreliable (8 of 13 trial replies over three runs) until the template made it the TL;DR's opening clause. It has held in 2 of 3 samples in each run since. A bare agent also flags it some of the time (2 of 3 here, 0 to 2 of 5 earlier), which is why this scenario shows no lift.
+
+**`empty-ownership` needed a fixture fix.** Its migration used to carry a 24h `expires_at` column the transcript never discussed. Trial agents raised it as "confirm the TTL is intentional" in the **You:** slot, dropping the scenario to 50% the run before this one. The column was removed because it contradicted the scenario's premise that nothing is waiting on the user; the scenarios whose transcripts discuss the TTL keep it. The underlying habit, turning undiscussed details into questions for the user, may still show up in real sessions.
 
 **Narration is not graded.** Replies often open with a line about what the checks found ("Both files check out.") before the TL;DR. That is harmless and deliberately not asserted. In a session with no repository, saying there is nothing to check is fine; only invented branch, PR, or CI state fails.
 
