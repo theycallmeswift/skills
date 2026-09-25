@@ -7,30 +7,30 @@ description: Use when the user returns to this session after a break and wants r
 
 Re-orient a reader who is coming back cold to *this* session. The narrative comes from the conversation; every hard fact is checked against the workspace before it is stated. The conversation is a record of what someone *said* happened — it goes stale, and the reader will act on whatever you tell them.
 
-## 1. Check what the conversation claims
+## 1. Check what the conversation is missing
 
-Before writing, list the conversation's concrete claims about the workspace and check each. Read-only: don't fix, commit, or push anything.
+Do this first, before touching the workspace. Read the first turn. If it opens mid-thought — a reply starting with "…", references to decisions you can't see, a summary standing in for earlier turns — the start of the conversation is gone. That gap is in *your context*, not in the workspace: the TL;DR says earlier context is missing, the recap covers only what survives, and you don't reconstruct the missing start or blame the gap on missing files.
+
+## 2. Check what the conversation claims
+
+List the conversation's concrete claims about the workspace and check each. Read-only: don't fix, commit, or push anything. This is a recap, not a review — confirm that claimed things exist and match their description; don't critique the code or hunt for bugs.
 
 - **Files.** Every file the conversation says was written or changed: confirm it exists and matches what was described. A file promised or discussed but not there is *not done*.
 - **Branch and tree.** In a git repository: `git status --short --branch` for branch, upstream, and uncommitted changes; `git log --oneline <default-branch>..HEAD` for its commits.
 - **Pull request and CI.** If `gh` is available: `gh pr view --json number,state,url,statusCheckRollup` for the current branch. Git alone can't tell you whether a PR exists or what its checks say — don't infer either from commits or remotes.
 
-Skip checks that don't apply: no repository, no git claims; no `gh` or no PR, no PR claims. When a check can't run, the fact it would have confirmed is *unverified* — say so instead of repeating the conversation's version.
+Skip checks that don't apply, silently: no repository, no git statements; no `gh` or no PR, no PR statements. A claim you can't check — a test run, a manual test — goes in Cliff Notes as *unverified*, in place of the conversation's version. It is not a task for the user.
 
 **Where the conversation and the workspace disagree, the workspace wins.** Report the observed state and name the contradiction in one line ("the session ended saying CI was green; PR #12's `lint` check is failing") so the reader knows which memory to discard.
 
-## 2. Check what the conversation is missing
-
-If the conversation opens mid-thought — a reply starting with "…", references to decisions you can't see, a summary standing in for earlier turns — earlier context is gone. Say so in the TL;DR, cover only what survives, and don't reconstruct the missing start.
-
 ## 3. Write the recap
 
-One shape, every time. The reader has no project context: name the repo or topic and what it's for before the update, gloss tool names and jargon on first use, and give the *why* before the *what*.
+The reply starts at `### TL;DR` — no preamble about what you checked. One shape, every time. The reader has no project context: name the repo or topic and what it's for before the update, gloss tool names and jargon on first use, and give the *why* before the *what*.
 
 ```
 ### TL;DR
 
-<1–2 sentences of plain body text — not a heading, not bold. What this is, where it stands, and the one thing that most needs attention.>
+<1–2 sentences of plain body text — not a heading, not bold. What this is, where it stands, and the one thing that most needs attention. If earlier context is missing, say so here.>
 
 ***
 
@@ -49,5 +49,5 @@ One shape, every time. The reader has no project context: name the repo or topic
 ```
 
 - Separate sections with `***`, never `---`.
-- **You:** only what needs the user. Don't manufacture a decision to fill it; an empty slot is information.
-- With no repository, still emit all three sections, and make no branch, PR, or CI statement at all — not even that there isn't one.
+- **You:** only decisions the conversation left open or the observed state forces. Don't manufacture one to fill the slot; an empty slot is information.
+- With no repository, still emit all three sections, and make no branch, PR, or CI statement anywhere in the reply — not in a bullet, not even that there isn't one.
