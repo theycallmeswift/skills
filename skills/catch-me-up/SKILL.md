@@ -25,7 +25,7 @@ Skip checks that don't apply, silently: no repository, no git statements; no `gh
 
 ## 3. Write the recap
 
-The first line of the reply is `### TL;DR`. That line is what a returning reader sees first; a status line about your checks ahead of it buries the recap. What the checks found goes in Cliff Notes. One shape, every time. The reader has no project context: name the repo or topic and what it's for before the update, gloss tool names and jargon on first use, and give the *why* before the *what*.
+The first line of the reply is `### TL;DR`. That line is what a returning reader sees first; a status line about your checks ahead of it buries the recap. Not "Both files check out.", not "Now I have what I need." — nothing before the heading. What the checks found goes in Cliff Notes. One shape, every time. The reader has no project context: name the repo or topic and what it's for before the update, gloss tool names and jargon on first use, and give the *why* before the *what*.
 
 ```
 ### TL;DR
@@ -49,5 +49,5 @@ The first line of the reply is `### TL;DR`. That line is what a returning reader
 ```
 
 - Separate sections with `***`, never `---`.
-- **You:** only decisions the conversation left open or the observed state forces. Don't manufacture one to fill the slot; an empty slot is information.
+- **You:** only decisions the conversation left open for the user, or a contradiction that blocks progress until they act. Unverified claims, your own observations about the code, and "confirm this is intentional" questions are not items. Don't manufacture one to fill the slot; an empty slot is information.
 - With no repository, still emit all three sections, and make no branch, PR, or CI statement anywhere in the reply — not in a bullet, not even that there isn't one.
