@@ -1,6 +1,6 @@
 # writing-agent-skills — eval record
 
-Recorded 2026-09-25 from `iteration_01` (benchspec 0.0.5, Claude Code 2.1.263 in the guest; baseline bare, trial with the plugin loaded via `--plugin-dir`, sonnet, `--count 3`). Routing queries run on trial only: their activation lines are scoped off baseline, so a baseline run grades nothing. Re-run with `make evals SKILL=writing-agent-skills EVAL_ARGS="--count 3 -k 'not (triggers and baseline)'"`.
+Recorded 2026-09-25 from `iteration_01` (benchspec 0.0.5, Claude Code 2.1.263 in the guest; baseline bare, trial with the plugin loaded via `--plugin-dir`, sonnet, `--count 3`). Routing queries run trial-only (baseline would grade nothing). Re-run with `make evals SKILL=writing-agent-skills EVAL_ARGS="--count 3 -k 'not (triggers and baseline)'"`.
 
 Activation lines (`` Skill `…` invoked ``) are excluded from the output tallies.
 
@@ -28,15 +28,22 @@ Activation lines (`` Skill `…` invoked ``) are excluded from the output tallie
 | split-wiki-skill | writing-agent-skills invoked | pass |
 | todo-list-skill-or-claude-md | writing-agent-skills invoked · writing-prompts not invoked | **fail** (0/3 invoked; writing-prompts quiet 3/3) |
 
-Negatives for this skill are the `writing-agent-skills not invoked` lines on `writing-prompts` queries (see that record).
+Negatives are the `writing-agent-skills not invoked` lines on writing-prompts queries.
 
 ## Notes
 
-**`writing-prompts` step regressed since 2026-09-18.** The `process:` line on `build-commit-message-skill` is 0/3 (it was 9/9 across three evals); every miss wrote the SKILL.md and never called `writing-prompts`. A control on `main`'s unedited SKILL.md with the same eval file scored 1/3, so the drop predates the routing-eval guidance change; its cause is unknown (n=3 on each side can't separate the two rates). Open gap, and the main cause of trial misses here. A first control attempt refused 3/3, calling the scripted `history:` an unverifiable approval — a fragility of this eval's multi-turn setup worth watching.
+**`writing-prompts` step regressed since 2026-09-18.** On `build-commit-message-skill` the agent now writes SKILL.md and skips `writing-prompts` (was 9/9). A/B on 2026-09-25, same runtime, trial only:
 
-**`improve-changelog-skill` doesn't discriminate.** Bare agents write the broadened description, trim the body, and keep conventions (13/15 on both arms; 14/15 vs 15/15 last record). Only the `writing-prompts` line separates the arms. On 2026-09-25 it gained a line grading the diagnose table's required artifact for this failure mode: a routing-eval set under the 10-query cap. That line fails 6/6 on both arms (`iteration_04`, 67% vs 67%): with the skill loaded, the agent fixes the description and writes the file but never writes or proposes routing evals. This is a skill gap under a "fix it now and write it" prompt, and the line stays red until the body carries that step through.
+| SKILL.md | writing-prompts invoked |
+|---|---|
+| current | 3/15 |
+| pre-#33 "Write first" paragraph | 6/12 |
 
-**Pruned 2026-09-24.** Routing capped at 10 queries per skill. Removed rewordings of intents already covered: `run-archive-evals`, `regression-test-ingest`, `run-trigger-evals-ingest` (running evals; `bootstrap-pass-rate` and `rerun-evals-haiku` stay), `build-recipe-format-skill`, `scaffold-notion-sync` (building a skill; `build-commit-skill` and `draft-pr-review-skill-md` stay), `expand-git-workflow-trigger` (description debugging; `fix-archive-description` stays). `build-commit-message-skill` dropped its standalone frontmatter line, which the conventions line already grades.
+Suggestive (p≈0.13), not conclusive. #33 reframed the sequencing as a risk ("shaky", "makes the risk certain"), which may read as license to skip. Both arms sit far below 9/9, so most of the drop is runtime (model or Claude Code build), not text. Separately, about 1 in 4 samples on either text distrusts the scripted `history:` ("no evidence any baseline run happened") and skips the workflow or refuses; this eval's multi-turn setup is fragile.
+
+**`improve-changelog-skill` didn't discriminate** (13/15 both arms): bare agents broaden the description and trim the body too. On 2026-09-25 it gained a line for the diagnose table's required artifact, a routing-eval set under the cap. That line fails 6/6 on both arms: the skill fixes the description but never writes or proposes routing evals. Skill gap; stays red until fixed.
+
+**Pruned 2026-09-24** (routing cap: 10). Cut three extra "run the evals" asks, two extra "build a skill" asks, and `expand-git-workflow-trigger` (covered by `fix-archive-description`). `build-commit-message-skill`'s frontmatter check is now its own line only; the conventions line no longer repeats it.
 
 **Skill names: noun form in 1 of 3.** `build-commit-message-skill`'s name line misses in one sample (`commit-message`). An inline verb/gerund rule in §2 had no measured effect and was not kept. Open gap.
 
