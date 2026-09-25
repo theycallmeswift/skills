@@ -32,7 +32,7 @@ Negatives for this skill are the `writing-agent-skills not invoked` lines on `wr
 
 ## Notes
 
-**`writing-prompts` step regressed since 2026-09-18.** The `process:` line on `build-commit-message-skill` is 0/3 (it was 9/9 across three evals); every miss wrote the SKILL.md and never called `writing-prompts`. A control on `main`'s unedited SKILL.md with the same eval file scored 1/3, so the drop predates the routing-eval guidance change and tracks the harness/runner update, not this edit. Open gap, and the main cause of trial misses here. A first control attempt refused 3/3, calling the scripted `history:` an unverifiable approval — a fragility of this eval's multi-turn setup worth watching.
+**`writing-prompts` step regressed since 2026-09-18.** The `process:` line on `build-commit-message-skill` is 0/3 (it was 9/9 across three evals); every miss wrote the SKILL.md and never called `writing-prompts`. A control on `main`'s unedited SKILL.md with the same eval file scored 1/3, so the drop predates the routing-eval guidance change; its cause is unknown (n=3 on each side can't separate the two rates). Open gap, and the main cause of trial misses here. A first control attempt refused 3/3, calling the scripted `history:` an unverifiable approval — a fragility of this eval's multi-turn setup worth watching.
 
 **`improve-changelog-skill` doesn't discriminate.** Bare agents write the broadened description, trim the body, and keep conventions (13/15 on both arms; 14/15 vs 15/15 last record). Only the `writing-prompts` line separates the arms.
 
