@@ -18,6 +18,22 @@ mkdir -p "$log_dir"
   printf '\n'
 } >> "$log_dir/calls.log"
 
+pr_number=48
+pr_title="Add idempotency keys to POST /payments"
+pr_branch="feat/payment-idempotency"
+pr_url="https://github.com/example/orders-api/pull/48"
+run_url="https://github.com/example/orders-api/actions/runs/9051732"
+pr_json="{\"number\":$pr_number,\"title\":\"$pr_title\",\"url\":\"$pr_url\",\"headRefName\":\"$pr_branch\",\"state\":\"OPEN\",\"isDraft\":false,\"statusCheckRollup\":[{\"name\":\"ty\",\"status\":\"COMPLETED\",\"conclusion\":\"FAILURE\",\"detailsUrl\":\"$run_url\"}]}"
+
+wants_json() {
+  for argument in "$@"; do
+    if [ "$argument" = "--json" ] || [[ "$argument" = --json=* ]]; then
+      return 0
+    fi
+  done
+  return 1
+}
+
 if [ "${1:-}" = "--version" ]; then
   printf 'gh version 2.80.0 (2026-09-10)\n'
   printf 'https://github.com/cli/cli/releases/tag/v2.80.0\n'
@@ -31,25 +47,61 @@ if [ "${1:-}" = "auth" ] && [ "${2:-}" = "status" ]; then
 fi
 
 if [ "${1:-}" = "pr" ] && [ "${2:-}" = "view" ]; then
-  for argument in "$@"; do
-    if [ "$argument" = "--json" ] || [[ "$argument" = --json=* ]]; then
-      printf '%s\n' '{"number":48,"state":"OPEN","statusCheckRollup":[{"name":"ty","status":"COMPLETED","conclusion":"FAILURE"}]}'
-      exit 0
-    fi
-  done
+  if wants_json "$@"; then
+    printf '%s\n' "$pr_json"
+    exit 0
+  fi
 
-  cat <<'OUTPUT'
-title:  Add idempotency keys to POST /payments
+  cat <<OUTPUT
+title:  $pr_title
 state:  OPEN
-number: 48
+number: $pr_number
+branch: $pr_branch
+url:    $pr_url
 checks: ty — failure
 OUTPUT
   exit 0
 fi
 
+if [ "${1:-}" = "pr" ] && [ "${2:-}" = "status" ]; then
+  if wants_json "$@"; then
+    printf '{"currentBranch":%s,"createdBy":[%s],"needsReview":[]}\n' "$pr_json" "$pr_json"
+    exit 0
+  fi
+
+  cat <<OUTPUT
+
+Relevant pull requests in example/orders-api
+
+Current branch
+  #$pr_number  $pr_title [$pr_branch]
+  - Checks failing
+
+Created by you
+  #$pr_number  $pr_title [$pr_branch]
+  - Checks failing
+
+Requesting a code review from you
+  You have no pull requests to review
+
+OUTPUT
+  exit 0
+fi
+
+if [ "${1:-}" = "pr" ] && [ "${2:-}" = "list" ]; then
+  if wants_json "$@"; then
+    printf '[%s]\n' "$pr_json"
+    exit 0
+  fi
+
+  printf '%s\t%s\t%s\tOPEN\n' "$pr_number" "$pr_title" "$pr_branch"
+  exit 0
+fi
+
 if [ "${1:-}" = "pr" ] && [ "${2:-}" = "checks" ]; then
-  printf 'ty\tfail\t12s\thttps://github.com/example/mechaswift/actions/runs/48\n'
-  exit 1
+  printf 'ty\tfail\t12s\t%s\n' "$run_url"
+  # Real gh exits 8 when any check is failing.
+  exit 8
 fi
 
 printf 'fake gh: unsupported command: gh' >&2

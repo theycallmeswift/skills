@@ -14,7 +14,7 @@ catch me up on where we left off
 - [ ] The agent's reply identifies an open pull request numbered 48
 - [ ] The agent's reply does not claim that no pull request exists
 - [ ] The agent's reply states that the pull request's checks are failing
-- [ ] ./.fake-gh/calls.log contains `pr view`
+- [ ] ./.fake-gh/calls.log contains `gh pr`
 - [ ] The agent's reply does not claim the pull request is ready for review
 - [ ] The agent's reply contains a section labeled TL;DR
 - [ ] The agent's reply contains a section labeled Cliff Notes
