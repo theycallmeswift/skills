@@ -73,7 +73,7 @@ You're adding a feature to **MechaSwift**, your personal agent-skills plugin —
   - Calls that do not apply are skipped — no repo, no PR, no failure.
 - **The skill fires wherever it is invoked, repository or not.** Grounding is a bonus, not a precondition.
   - With no repo the verify pass degrades to nothing and the recap is pure warm narration. It still emits all three sections.
-  - It makes no branch, PR, or CI claims rather than reporting their absence as news.
+  - It never invents branch, PR, or CI state. Saying there is none to check is fine.
   - Declining in a research or planning thread would fail exactly the re-entry the skill exists to serve.
 - **Compaction is disclosed, not repaired.** If context was compacted, the TL;DR says so and Cliff Notes covers only what remains. No transcript read, no gap-filling.
 - **The output grammar is fixed.** `***` between sections, never `---`.

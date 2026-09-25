@@ -19,13 +19,13 @@ List the conversation's concrete claims about the workspace and check each. Read
 - **Branch and tree.** In a git repository: `git status --short --branch` for branch, upstream, and uncommitted changes; `git log --oneline <default-branch>..HEAD` for its commits.
 - **Pull request and CI.** If `gh` is available: `gh pr view --json number,state,url,statusCheckRollup` for the current branch. Git alone can't tell you whether a PR exists or what its checks say — don't infer either from commits or remotes.
 
-Skip checks that don't apply, silently: no repository, no git statements; no `gh` or no PR, no PR statements. A claim you can't check — a test run, a manual test — goes in Cliff Notes as *unverified*, in place of the conversation's version. It is not a task for the user.
+Skip checks that don't apply: no repository, no git checks; no `gh` or no PR, no PR checks. A claim you can't check — a test run, a manual test — goes in Cliff Notes as *unverified*, in place of the conversation's version. It is not a task for the user.
 
 **Where the conversation and the workspace disagree, the workspace wins.** Report the observed state and name the contradiction in one line ("the session ended saying CI was green; PR #12's `lint` check is failing") so the reader knows which memory to discard.
 
 ## 3. Write the recap
 
-The first line of the reply is `### TL;DR`. That line is what a returning reader sees first; a status line about your checks ahead of it buries the recap. Not "Both files check out.", not "Now I have what I need." — nothing before the heading. What the checks found goes in Cliff Notes. One shape, every time. The reader has no project context: name the repo or topic and what it's for before the update, gloss tool names and jargon on first use, and give the *why* before the *what*.
+One shape, every time. The reader has no project context: name the repo or topic and what it's for before the update, gloss tool names and jargon on first use, and give the *why* before the *what*.
 
 ```
 ### TL;DR
@@ -50,4 +50,4 @@ The first line of the reply is `### TL;DR`. That line is what a returning reader
 
 - Separate sections with `***`, never `---`.
 - **You:** only decisions the conversation left open for the user, or a contradiction that blocks progress until they act. Unverified claims, your own observations about the code, and "confirm this is intentional" questions are not items. Don't manufacture one to fill the slot; an empty slot is information.
-- With no repository, still emit all three sections, and make no branch, PR, or CI statement anywhere in the reply — not in a bullet, not even that there isn't one.
+- With no repository, still emit all three sections. Never invent branch, PR, or CI state; saying there is none to check is fine.
