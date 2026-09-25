@@ -4,18 +4,26 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from codexrun import ASSETS
+from codexrun.state import LAST_MESSAGE
 
 EFFORTS = ("none", "minimal", "low", "medium", "high", "xhigh")
+READ_ONLY_SANDBOX = "read-only"
+WRITABLE_SANDBOX = "workspace-write"
+SANDBOXES = (READ_ONLY_SANDBOX, WRITABLE_SANDBOX)
 EXEC_FLAGS = ["--json", "--strict-config"]
 
 
+def writes_to_disk(sandbox: str) -> bool:
+    """Whether Codex may change the worktree under this sandbox."""
+    return sandbox == WRITABLE_SANDBOX
+
+
 def build_argv(
-    mode: str,
     *,
     worktree: Path,
     job_dir: Path,
     effort: str,
+    sandbox: str = WRITABLE_SANDBOX,
     model: str | None = None,
     tier: str | None = None,
     network: bool = False,
@@ -25,44 +33,57 @@ def build_argv(
     """Build the exact ``codex exec`` command for a job.
 
     Args:
-        mode: Job mode, either ``implement`` or ``review``.
         worktree: Repository worktree in which Codex runs.
         job_dir: State directory that receives Codex's final message.
         effort: Model reasoning effort setting.
+        sandbox: Codex sandbox the job runs under.
         model: Optional model override.
         tier: Optional service tier override.
-        network: Whether an implementation job may access the network.
+        network: Whether the job may access the network.
         thread_id: Existing Codex thread to resume.
-        schema: Optional review output schema override.
+        schema: Optional JSON schema the final message must satisfy.
 
     Returns:
         The complete subprocess argument vector.
 
     Raises:
-        ValueError: If the mode is unknown or review-only constraints are violated.
+        ValueError: If the sandbox is unknown.
     """
-    _validate(mode, network=network, thread_id=thread_id)
+    if sandbox not in SANDBOXES:
+        raise ValueError(f"unknown sandbox: {sandbox}")
 
-    task_settings = _task_settings(effort, model=model, tier=tier)
-    network_settings = _network_settings(network)
-    output_flags = ["-o", str(job_dir / "last.md"), "-"]
+    command = (
+        _resume_command(thread_id, sandbox) if thread_id else _fresh_command(worktree, sandbox)
+    )
 
-    if thread_id:
-        return _resume_argv(thread_id, task_settings, network_settings, output_flags)
+    return [
+        *command,
+        *_task_settings(effort, model=model, tier=tier),
+        *_network_settings(network),
+        *_schema_settings(schema),
+        "-o",
+        str(job_dir / LAST_MESSAGE),
+        "-",
+    ]
 
-    if mode == "implement":
-        return _implement_argv(worktree, task_settings, network_settings, output_flags)
 
-    output_schema = schema or ASSETS / "review-output.schema.json"
-    return _review_argv(worktree, output_schema, task_settings, output_flags)
+def _fresh_command(worktree: Path, sandbox: str) -> list[str]:
+    """Build the command and sandbox flags for a fresh job."""
+    return ["codex", "exec", "--sandbox", sandbox, "--cd", str(worktree), *EXEC_FLAGS]
 
 
-def _validate(mode: str, *, network: bool, thread_id: str | None) -> None:
-    """Validate mode-specific command options."""
-    if mode == "review" and (network or thread_id):
-        raise ValueError("review runs read-only and fresh: no network, no resume")
-    if mode not in ("implement", "review"):
-        raise ValueError(f"unknown mode: {mode}")
+def _resume_command(thread_id: str, sandbox: str) -> list[str]:
+    """Build the command and sandbox settings for a resumed thread."""
+    # Resume accepts sandbox config but not the --sandbox or --cd flags.
+    return [
+        "codex",
+        "exec",
+        "resume",
+        thread_id,
+        *EXEC_FLAGS,
+        "-c",
+        f'sandbox_mode="{sandbox}"',
+    ]
 
 
 def _task_settings(effort: str, *, model: str | None, tier: str | None) -> list[str]:
@@ -82,62 +103,8 @@ def _network_settings(enabled: bool) -> list[str]:
     return ["-c", "sandbox_workspace_write.network_access=true"]
 
 
-def _resume_argv(
-    thread_id: str,
-    task_settings: list[str],
-    network_settings: list[str],
-    output_flags: list[str],
-) -> list[str]:
-    """Build argv for resuming an implementation thread."""
-    # Resume accepts sandbox config but not the --sandbox or --cd flags.
-    sandbox_setting = ["-c", 'sandbox_mode="workspace-write"']
-    return [
-        "codex",
-        "exec",
-        "resume",
-        thread_id,
-        *EXEC_FLAGS,
-        *sandbox_setting,
-        *task_settings,
-        *network_settings,
-        *output_flags,
-    ]
-
-
-def _implement_argv(
-    worktree: Path,
-    task_settings: list[str],
-    network_settings: list[str],
-    output_flags: list[str],
-) -> list[str]:
-    """Build argv for a fresh implementation job."""
-    sandbox_flags = ["--sandbox", "workspace-write", "--cd", str(worktree)]
-    return [
-        "codex",
-        "exec",
-        *sandbox_flags,
-        *EXEC_FLAGS,
-        *task_settings,
-        *network_settings,
-        *output_flags,
-    ]
-
-
-def _review_argv(
-    worktree: Path,
-    schema: Path,
-    task_settings: list[str],
-    output_flags: list[str],
-) -> list[str]:
-    """Build argv for a fresh read-only review job."""
-    sandbox_flags = ["--sandbox", "read-only", "--ephemeral", "--cd", str(worktree)]
-    return [
-        "codex",
-        "exec",
-        *sandbox_flags,
-        *EXEC_FLAGS,
-        *task_settings,
-        "--output-schema",
-        str(schema),
-        *output_flags,
-    ]
+def _schema_settings(schema: Path | None) -> list[str]:
+    """Require a schema-shaped final message when the caller asked for one."""
+    if schema is None:
+        return []
+    return ["--output-schema", str(schema)]

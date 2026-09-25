@@ -92,14 +92,13 @@ def test_stub_sends_events_in_order_with_total_usage(tmp_path):
     assert usage["total_tokens"] == usage["input_tokens"] + usage["output_tokens"]
 
 
-def test_real_cli_accepts_implement_argv(contract_workspace):
+def test_real_cli_accepts_workspace_write_argv(contract_workspace):
     brief = contract_workspace.inputs / "implement.md"
     brief.write_text("Create hello.txt containing exactly: hi\n")
 
     result, job_id = start(
         contract_workspace.env,
         contract_workspace.repo,
-        "implement",
         brief,
         "--tier",
         "flex",
@@ -117,7 +116,6 @@ def test_real_cli_resume_reuses_the_thread(contract_workspace):
     initial_result, initial_id = start(
         contract_workspace.env,
         contract_workspace.repo,
-        "implement",
         initial_brief,
     )
     assert initial_result.returncode == 0, initial_result.stdout + initial_result.stderr
@@ -128,7 +126,6 @@ def test_real_cli_resume_reuses_the_thread(contract_workspace):
     result, resumed_id = start(
         contract_workspace.env,
         contract_workspace.repo,
-        "implement",
         resume_brief,
         "--resume",
         initial_id,
@@ -140,7 +137,7 @@ def test_real_cli_resume_reuses_the_thread(contract_workspace):
     assert resumed_meta["usage"] == RESUMED_USAGE
 
 
-def test_real_cli_review_sends_the_schema(contract_workspace):
+def test_real_cli_read_only_run_sends_the_schema(contract_workspace):
     (contract_workspace.repo / "hello.txt").write_text("hi\n")
     brief = contract_workspace.inputs / "review.md"
     brief.write_text("Review the new file.\n")
@@ -148,8 +145,13 @@ def test_real_cli_review_sends_the_schema(contract_workspace):
     result, job_id = start(
         contract_workspace.env,
         contract_workspace.repo,
-        "review",
         brief,
+        "--template",
+        "review",
+        "--sandbox",
+        "read-only",
+        "--schema",
+        "--diff",
     )
 
     assert result.returncode == 0, result.stdout + result.stderr
@@ -177,8 +179,9 @@ def test_real_cli_strict_config_rejects_an_unknown_key(contract_workspace):
     result, job_id = start(
         contract_workspace.env,
         contract_workspace.repo,
-        "review",
         brief,
+        "--sandbox",
+        "read-only",
     )
 
     assert result.returncode != 0

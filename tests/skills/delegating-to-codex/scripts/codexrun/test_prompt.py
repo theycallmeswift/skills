@@ -6,8 +6,7 @@ from codexrun.prompt import INLINE_MAX_BYTES, build_prompt, build_resume_prompt
 from codexrun.prompt import render_diff_section as render
 from support.codex import diff_info, headings
 
-IMPLEMENT_SECTIONS = ["TASK TEMPLATE", "RULES", "BRIEF", "CONTEXT", "NAMED RISKS"]
-REVIEW_SECTIONS = [
+ALL_SECTIONS = [
     "TASK TEMPLATE",
     "RULES",
     "BRIEF",
@@ -19,26 +18,37 @@ REVIEW_SECTIONS = [
 ALL_INPUTS = {"rules": "R", "context": "C", "report": "REP", "risks": "RISK", "diff": "D"}
 
 
-def test_implement_sections_in_order_without_review_ones():
-    prompt = build_prompt("implement", template="TEMPLATE", brief="BRIEF TEXT", **ALL_INPUTS)
-    assert headings(prompt) == IMPLEMENT_SECTIONS
+def test_supplied_sections_are_rendered_in_order():
+    prompt = build_prompt(template="TEMPLATE", brief="BRIEF TEXT", **ALL_INPUTS)
+
+    assert headings(prompt) == ALL_SECTIONS
     assert "TEMPLATE" in prompt and "BRIEF TEXT" in prompt
 
 
-def test_review_sections_in_order():
-    prompt = build_prompt("review", template="T", brief="B", **ALL_INPUTS)
-    assert headings(prompt) == REVIEW_SECTIONS
-
-
 def test_missing_optional_sections_are_omitted():
-    prompt = build_prompt("implement", template="T", brief="B")
+    prompt = build_prompt(template="T", brief="B")
     assert headings(prompt) == ["TASK TEMPLATE", "BRIEF"]
+
+
+def test_no_template_omits_the_template_section():
+    prompt = build_prompt(template=None, brief="B", report="REP", diff="D")
+    assert headings(prompt) == ["BRIEF", "IMPLEMENTER REPORT", "DIFF"]
 
 
 def test_resume_prompt_is_just_the_brief():
     prompt = build_resume_prompt("Fix finding 1.\n")
     assert headings(prompt) == ["BRIEF"]
     assert "Fix finding 1." in prompt
+
+
+def test_resume_prompt_restates_no_implementer_rules():
+    # A resumed review inherits a read-only sandbox and a JSON schema, so a header that
+    # restated the implement rules would order edits it cannot make in a shape it cannot use.
+    prompt = build_resume_prompt("Finding 1 is wrong; look again.\n")
+
+    forbidden = ("STATUS", "working tree", "git add", "commit", "stash", "checkout")
+    assert [word for word in forbidden if word in prompt] == []
+    assert "rules" in prompt
 
 
 def test_small_diff_is_inlined():

@@ -14,10 +14,9 @@ from typing import TypeAlias, TypedDict, cast
 
 import pytest
 from codexrun import SCRIPT
-from codexrun.argv import build_argv
 from codexrun.cli import main
 from codexrun.git import DiffInfo, resolve_worktree
-from codexrun.state import JobMeta, Usage, jobs_dir
+from codexrun.state import GateResult, JobMeta, Usage, jobs_dir, now
 
 GIT = [
     "git",
@@ -37,7 +36,7 @@ HOST_ENV = (
 )
 JsonValue: TypeAlias = None | bool | int | float | str | list["JsonValue"] | dict[str, "JsonValue"]
 JsonObject: TypeAlias = dict[str, JsonValue]
-JobMetaValue: TypeAlias = str | int | list[str] | Usage | None
+JobMetaValue: TypeAlias = str | int | list[str] | Usage | GateResult | None
 
 
 class CodexCall(TypedDict):
@@ -120,7 +119,6 @@ class Workspace:
 
     def start(
         self,
-        mode: str,
         *extra: str,
         effort: str = "low",
         brief: str | None = None,
@@ -128,7 +126,6 @@ class Workspace:
         """Invoke the start command with the common brief and effort defaults."""
         return self.run(
             "start",
-            mode,
             "--effort",
             effort,
             "--brief",
@@ -155,6 +152,12 @@ class Workspace:
         """Apply selected metadata changes directly for a test setup."""
         updated_meta = cast(JobMeta, {**self.meta(job_id), **changes})
         (self.jobs / job_id / "meta.json").write_text(json.dumps(updated_meta))
+
+    def forget_meta(self, job_id: str, *names: str) -> None:
+        """Drop metadata fields, so a test can read a job recorded before they existed."""
+        recorded = cast(dict[str, JobMetaValue], self.meta(job_id))
+        kept = {name: value for name, value in recorded.items() if name not in names}
+        (self.jobs / job_id / "meta.json").write_text(json.dumps(kept))
 
     def wait_until(self, condition: Callable[[], bool], timeout: float = 15) -> None:
         """Poll a condition until it succeeds or the timeout expires."""
@@ -206,11 +209,10 @@ class Repo:
         assert result.returncode == 0, result.stdout + result.stderr
         return result
 
-    def start(self, mode: str, brief: str, *extra: str) -> str:
+    def start(self, brief: str, *extra: str) -> str:
         """Run a foreground job and return its identifier."""
         result = self.codex_run(
             "start",
-            mode,
             "--effort",
             "low",
             "--brief",
@@ -223,30 +225,28 @@ class Repo:
         )
 
 
-def argv(
-    mode: str,
-    *,
-    worktree: Path,
-    job_dir: Path,
-    effort: str,
-    model: str | None = None,
-    tier: str | None = None,
-    network: bool = False,
-    thread_id: str | None = None,
-    schema: Path | None = None,
-) -> list[str]:
-    """Build argv with concise defaults for unit tests."""
-    return build_argv(
-        mode,
-        worktree=worktree,
-        job_dir=job_dir,
-        effort=effort,
-        model=model,
-        tier=tier,
-        network=network,
-        thread_id=thread_id,
-        schema=schema,
-    )
+def job_meta(**overrides: JobMetaValue) -> JobMeta:
+    """Build job metadata, leaving the call site only the fields its test turns on."""
+    defaults: JobMeta = {
+        "id": "job",
+        "template": "implement",
+        "sandbox": "workspace-write",
+        "schema": None,
+        "worktree": ".",
+        "argv": ["codex"],
+        "pid": None,
+        "status": "running",
+        "exit_code": None,
+        "thread_id": None,
+        "usage": None,
+        "session_id": None,
+        "resumed_from": None,
+        "gate_command": None,
+        "gate_timeout": 60.0,
+        "created_at": now(),
+        "finished_at": None,
+    }
+    return cast(JobMeta, {**defaults, **overrides})
 
 
 def jsonl(*events: JsonObject) -> str:

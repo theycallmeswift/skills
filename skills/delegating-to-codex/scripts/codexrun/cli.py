@@ -10,16 +10,17 @@ import sys
 from pathlib import Path
 from typing import Protocol, cast
 
-from codexrun import PreflightError, UsageError
-from codexrun.argv import EFFORTS
-from codexrun.events import format_usage
+from codexrun import ASSETS, PreflightError, UsageError
+from codexrun.argv import EFFORTS, SANDBOXES, WRITABLE_SANDBOX
 from codexrun.git import resolve_worktree
 from codexrun.preflight import preflight
-from codexrun.start import INPUTS, StartArgs, start_job
+from codexrun.result import show_result
+from codexrun.start import BUNDLED_TEMPLATES, INPUTS, StartArgs, start_job, template_label
 from codexrun.state import JobMeta, find_job, jobs_dir, list_jobs, now, refresh, write_meta
-from codexrun.worker import run_worker
+from codexrun.worker import GATE_TIMEOUT_SECONDS, run_worker
 
-EXIT_BY_STATUS = {"running": 4, "completed": 0}
+REVIEW_SCHEMA = ASSETS / "review-output.schema.json"
+TEMPLATE_COLUMN = 10
 
 
 class ParsedArgs(Protocol):
@@ -70,7 +71,7 @@ def cmd_preflight(_args: ParsedArgs) -> int:
 def cmd_start(args: StartArgs) -> int:
     """Start a job and optionally wait for its result."""
     job_dir, worker = start_job(args)
-    print(f"job {job_dir.name} started ({args.mode})")
+    print(f"job {job_dir.name} started ({template_label(args)})")
     print(f"dir {job_dir}")
 
     if not args.wait:
@@ -97,9 +98,22 @@ def cmd_status(args: StatusArgs) -> int:
 
 def _print_status_table(rows: list[JobMeta]) -> None:
     """Print job metadata as a compact terminal table."""
-    print(f"{'ID':<34} {'MODE':<10} {'STATUS':<10} CREATED")
+    print(f"{'ID':<34} {'TEMPLATE':<{TEMPLATE_COLUMN}} {'STATUS':<10} CREATED")
     for meta in rows:
-        print(f"{meta['id']:<34} {meta['mode']:<10} {meta['status']:<10} {meta['created_at']}")
+        template = _template_cell(meta["template"])
+        print(
+            f"{meta['id']:<34} {template:<{TEMPLATE_COLUMN}} "
+            f"{meta['status']:<10} {meta['created_at']}"
+        )
+
+
+def _template_cell(template: str) -> str:
+    """Fit a template name into its column so a file path cannot break the table."""
+    name = Path(template).stem
+    if len(name) <= TEMPLATE_COLUMN:
+        return name
+
+    return name[: TEMPLATE_COLUMN - 1] + "~"
 
 
 def cmd_result(args: ResultArgs) -> int:
@@ -134,56 +148,6 @@ def _stop_worker(pid: int | None) -> None:
         os.killpg(pid, signal.SIGTERM)
     except ProcessLookupError:
         pass
-
-
-def show_result(job_dir: Path, *, as_json: bool) -> int:
-    """Print a job result and return its status-specific exit code."""
-    meta = refresh(job_dir)
-    last_message = _last_message(job_dir)
-
-    if as_json:
-        print(json.dumps({**meta, "last_message": last_message}, indent=2))
-    else:
-        _print_result(job_dir, meta, last_message)
-
-    return EXIT_BY_STATUS.get(meta["status"], 1)
-
-
-def _last_message(job_dir: Path) -> str:
-    """Read Codex's final message when one was written."""
-    message_path = job_dir / "last.md"
-    if not message_path.is_file():
-        return ""
-    return message_path.read_text(encoding="utf-8")
-
-
-def _print_result(job_dir: Path, meta: JobMeta, last_message: str) -> None:
-    """Print a human-readable terminal result."""
-    if meta["status"] == "running":
-        print(f"job {meta['id']} still running")
-        return
-
-    exit_code = meta.get("exit_code")
-    exit_suffix = f" (exit {exit_code})" if exit_code is not None else ""
-    message = last_message.rstrip() if last_message.strip() else meta.get("error")
-    if not message:
-        message = _no_message(job_dir)
-
-    print(f"job {meta['id']}: {meta['status']}{exit_suffix}")
-    print(message)
-    print(format_usage(meta.get("usage")))
-
-
-def _no_message(job_dir: Path) -> str:
-    """Explain a missing final message, including a short stderr tail when available."""
-    stderr_path = job_dir / "stderr.log"
-    if not stderr_path.is_file():
-        return "(no final message)"
-
-    tail = stderr_path.read_text(errors="replace").splitlines()[-20:]
-    if not tail:
-        return "(no final message)"
-    return "(no final message); stderr tail:\n" + "\n".join(tail)
 
 
 def _jobs(args: WorktreeArgs) -> Path:
@@ -231,18 +195,45 @@ def _add_start_parser(
     commands: argparse._SubParsersAction[argparse.ArgumentParser],
 ) -> argparse.ArgumentParser:
     """Add and return the start subcommand parser."""
-    start = commands.add_parser("start", help="start an implement or review job")
-    start.add_argument("mode", choices=("implement", "review"))
+    start = commands.add_parser("start", help="start a codex job")
     start.add_argument("--effort", required=True, choices=EFFORTS)
+    start.add_argument(
+        "--template", help=f"{', '.join(BUNDLED_TEMPLATES)}, or a task template file"
+    )
     start.add_argument("--model")
     start.add_argument("--tier", help="service_tier")
-    start.add_argument("--network", action="store_true", help="allow network (implement)")
 
     for name in INPUTS:
         start.add_argument(f"--{name}", metavar="FILE")
 
-    start.add_argument("--base", help="review: diff against merge-base with REF")
-    start.add_argument("--resume", metavar="JOB_ID", help="implement: continue that job's thread")
+    start.add_argument(
+        "--sandbox",
+        choices=SANDBOXES,
+        help=f"sandbox Codex runs in (default: the resumed job's, else {WRITABLE_SANDBOX})",
+    )
+    start.add_argument(
+        "--schema",
+        nargs="?",
+        const=str(REVIEW_SCHEMA),
+        metavar="FILE",
+        help="require JSON output, inherited on --resume (default: the review schema)",
+    )
+    start.add_argument("--diff", action="store_true", help="attach the worktree diff to the prompt")
+    start.add_argument(
+        "--base", metavar="REF", help="diff against merge-base with REF (implies --diff)"
+    )
+    start.add_argument("--network", action="store_true", help="allow network access")
+    start.add_argument("--resume", metavar="JOB_ID", help="continue that job's thread")
+    start.add_argument(
+        "--gate", metavar="CMD", help="shell command run after the job, in the worktree"
+    )
+    start.add_argument(
+        "--gate-timeout",
+        type=float,
+        default=GATE_TIMEOUT_SECONDS,
+        metavar="SECONDS",
+        help=f"kill the gate and its children after this long (default: {GATE_TIMEOUT_SECONDS:g})",
+    )
     start.add_argument("--wait", action="store_true", help="run in the foreground")
     return start
 

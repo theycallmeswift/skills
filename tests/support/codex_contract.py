@@ -215,7 +215,6 @@ def run(env: dict[str, str], repo: Path, *args: str) -> subprocess.CompletedProc
 def start(
     env: dict[str, str],
     repo: Path,
-    mode: str,
     brief: Path,
     *args: str,
 ) -> tuple[subprocess.CompletedProcess[str], str]:
@@ -224,7 +223,6 @@ def start(
         env,
         repo,
         "start",
-        mode,
         "--effort",
         "low",
         "--model",

@@ -31,16 +31,24 @@ def test_implement_resume_review_round_trip(tmp_path):
     head = repo.git("rev-parse", "HEAD")
 
     brief = repo.input("brief.md", "Create hello.txt containing exactly: hi\n")
-    first = repo.start("implement", brief)
+    first = repo.start(brief, "--template", "implement")
     assert (repo.path / "hello.txt").read_text().strip() == "hi"
     assert "tokens: in " in repo.codex_run("result", first).stdout
 
     fix = repo.input("fix.md", "Also create bye.txt containing exactly: bye\n")
-    repo.start("implement", fix, "--resume", first)
+    repo.start(fix, "--resume", first)
     assert (repo.path / "bye.txt").read_text().strip() == "bye"
 
     review_brief = repo.input("review.md", "Review the new files for typos.\n")
-    review = repo.start("review", review_brief)
+    review = repo.start(
+        review_brief,
+        "--template",
+        "review",
+        "--sandbox",
+        "read-only",
+        "--schema",
+        "--diff",
+    )
     result = json.loads(repo.codex_run("result", review, "--json").stdout)
     verdict = json.loads(result["last_message"])
     assert {"verdict", "summary", "findings", "next_steps"} <= verdict.keys()
