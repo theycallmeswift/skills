@@ -18,7 +18,7 @@ Model-invoked. The agent picks them up when the request matches; you can also ca
 ### Claude Code
 
 ```sh
-claude plugin marketplace add theycallmeswift/mechaswift
+claude plugin marketplace add theycallmeswift/skills
 claude plugin install core@mechaswift
 ```
 
@@ -29,28 +29,28 @@ Skills are then available in every session as `core:<skill>` (e.g. `/core:to-spe
 The repo is a skills tap: each directory under `skills/` is one installable skill.
 
 ```sh
-hermes skills tap add theycallmeswift/mechaswift
-hermes skills install theycallmeswift/mechaswift/<skill>
+hermes skills tap add theycallmeswift/skills
+hermes skills install theycallmeswift/skills/<skill>
 ```
 
-Without adding the tap, a single skill installs directly with `hermes skills install theycallmeswift/mechaswift/skills/<skill>`. While the repo is private, Hermes needs a `GITHUB_TOKEN` in its `.env` to read it. `skills.sh.json` at the repo root supplies the category groupings the Hermes hub shows.
+Without adding the tap, a single skill installs directly with `hermes skills install theycallmeswift/skills/skills/<skill>`. While the repo is private, Hermes needs a `GITHUB_TOKEN` in its `.env` to read it. `skills.sh.json` at the repo root supplies the category groupings the Hermes hub shows.
 
 ## Development
 
 ```sh
-git clone git@github.com:theycallmeswift/mechaswift.git
-cd mechaswift
+git clone git@github.com:theycallmeswift/skills.git
+cd skills
 make install           # uv sync — pytest + ruff
 make test              # unit tests for skill scripts
 make lint              # ruff
 ```
 
-Load the plugin from disk to try changes: `claude --plugin-dir /path/to/mechaswift`, then `/reload-plugins` after edits. For Hermes, `hermes skills trust` in the checkout loads `skills/` directly (via the `.agents/skills` symlink). The full loop — evals, credentials — is in [`docs/development.md`](docs/development.md).
+Load the plugin from disk to try changes: `claude --plugin-dir /path/to/skills`, then `/reload-plugins` after edits. For Hermes, `hermes skills trust` in the checkout loads `skills/` directly (via the `.agents/skills` symlink). The full loop — evals, credentials — is in [`docs/development.md`](docs/development.md).
 
 ## Project Structure
 
 ```
-mechaswift/
+skills/
 ├── .claude-plugin/          # plugin.json (core) + marketplace.json (mechaswift)
 ├── skills/                  # One directory per skill: SKILL.md + references/, assets/, scripts/
 ├── evals/                   # benchspec evals per skill: <skill>/<scenario>/eval.md + <skill>/{triggers,not-triggers}/<query>.eval.md
