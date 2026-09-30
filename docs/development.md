@@ -54,7 +54,7 @@ Load the plugin from disk for one session, from any directory you want to work i
 
 ```bash
 cd /some/project
-claude --plugin-dir /path/to/mechaswift
+claude --plugin-dir /path/to/skills
 ```
 
 - `/plugin` lists the `core` plugin and its skills.
@@ -65,7 +65,7 @@ claude --plugin-dir /path/to/mechaswift
 To test the marketplace install path rather than `--plugin-dir`:
 
 ```
-/plugin marketplace add /path/to/mechaswift
+/plugin marketplace add /path/to/skills
 /plugin install core@mechaswift
 ```
 
@@ -74,14 +74,14 @@ To test the marketplace install path rather than `--plugin-dir`:
 Hermes loads repo-local skills from `./.agents/skills` in a project you've marked trusted, and `.agents/skills` here is a symlink to `skills/`. So the local loop is:
 
 ```bash
-cd /path/to/mechaswift
+cd /path/to/skills
 hermes skills trust        # once per checkout
 hermes skills list         # the skills show as project skills
 ```
 
 Edits to `skills/` are live in the next session. To try a skill against some other project instead, link the skill directories into `~/.hermes/skills/<name>`.
 
-The published path is the tap in the README: `hermes skills tap add theycallmeswift/mechaswift`, then `hermes skills install theycallmeswift/mechaswift/<name>`. Hermes downloads `SKILL.md` and every subdirectory beside it, so `references/`, `assets/`, and `scripts/` arrive intact. Skills installed from a tap go through Hermes's security scan and show its third-party notice on first install.
+The published path is the tap in the README: `hermes skills tap add theycallmeswift/skills`, then `hermes skills install theycallmeswift/skills/<name>`. Hermes downloads `SKILL.md` and every subdirectory beside it, so `references/`, `assets/`, and `scripts/` arrive intact. Skills installed from a tap go through Hermes's security scan and show its third-party notice on first install.
 
 ## Evals
 

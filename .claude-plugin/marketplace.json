@@ -6,7 +6,7 @@
   },
   "metadata": {
     "description": "MechaSwift — Swift's agent brain. Skills, tools, and prompts for Claude Code and Hermes.",
-    "version": "0.2.0"
+    "version": "0.3.0"
   },
   "plugins": [
     {

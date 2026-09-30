@@ -1,12 +1,12 @@
 {
   "name": "core",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "MechaSwift's core plugin: the skills and session hooks Swift runs in every Claude Code session.",
   "author": {
     "name": "Mike Swift"
   },
-  "homepage": "https://github.com/theycallmeswift/mechaswift",
-  "repository": "https://github.com/theycallmeswift/mechaswift",
+  "homepage": "https://github.com/theycallmeswift/skills",
+  "repository": "https://github.com/theycallmeswift/skills",
   "license": "MIT",
   "keywords": [
     "skills",
