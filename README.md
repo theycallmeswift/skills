@@ -33,7 +33,7 @@ hermes skills tap add theycallmeswift/skills
 hermes skills install theycallmeswift/skills/<skill>
 ```
 
-Without adding the tap, a single skill installs directly with `hermes skills install theycallmeswift/skills/skills/<skill>`. While the repo is private, Hermes needs a `GITHUB_TOKEN` in its `.env` to read it. `skills.sh.json` at the repo root supplies the category groupings the Hermes hub shows.
+Without adding the tap, a single skill installs directly with `hermes skills install theycallmeswift/skills/skills/<skill>`. `skills.sh.json` at the repo root supplies the category groupings the Hermes hub shows.
 
 ## Development
 
