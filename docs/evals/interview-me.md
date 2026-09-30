@@ -14,28 +14,16 @@ Recorded 2026-09-18 from `iteration_10` (benchspec 0.0.4, Claude Code in the gue
 | interview-manual-stop | 10/15 (67%) | 15/15 (100%) | +33pp |
 | **All (pooled)** | 52/72 (72%) | 70/72 (97%) | +25pp |
 
-## Routing evals — trial arm: 16/18 at 3/3, 2 at 2/3
+## Routing evals — trial arm: 5/6 at 3/3, 1 at 2/3 (of the queries still in the suite)
 
 | Query | Expected | Result |
 |---|---|---|
-| brainstorm-approaches | interview-me not invoked | pass |
 | brainstorm-feature | interview-me not invoked | pass |
-| interview-notes-summary | interview-me not invoked | pass |
 | job-interview-prep | interview-me not invoked | pass |
-| to-spec-spec-out | interview-me not invoked | 2/3 |
-| to-spec-writeup | interview-me not invoked | pass |
-| writing-plans-impl | interview-me not invoked | pass |
-| writing-prompts-wordsmith | interview-me not invoked | pass |
-| goal-bounded | interview-me invoked | pass |
 | grill-legacy | interview-me invoked | 2/3 |
-| grill-resolve | interview-me invoked | pass |
-| interview-idea | interview-me invoked | pass |
-| interview-until-stop | interview-me invoked | pass |
 | interview-until-to-spec | interview-me invoked | pass |
-| keep-grilling-handoff | interview-me invoked | pass |
 | relentless-questions | interview-me invoked | pass |
 | scope-before-spec | interview-me invoked | pass |
-| stress-test-design | interview-me invoked | pass |
 
 ## Notes
 
@@ -46,3 +34,5 @@ Recorded 2026-09-18 from `iteration_10` (benchspec 0.0.4, Claude Code in the gue
 **No refusals on multi-turn context.** None of the five `history:`-driven scenarios triggered the fabricated-transcript refusal benchspec's inline rendering can provoke; these recaps are dialogue the agent is asked to continue, not an approval it is asked to trust.
 
 **Routing: description unchanged.** `grill-legacy` and `to-spec-spec-out` each missed one sample; the control also missed `to-spec-spec-out` once. Near-misses (brainstorming, prompt tightening, implementation plans, job-interview prep, interview-note summaries, `to-spec` write-ups) otherwise stay quiet with the full plugin loaded.
+
+**Pruned 2026-09-24** (routing cap: 10). Cut six positives that all say "interview me" or "grill me"; stop-mode choice is graded by `interview-ambiguous-mode`, not routing. Cut `brainstorm-approaches` (dup of `brainstorm-feature`), `interview-notes-summary` (same trap as `job-interview-prep`), `writing-prompts-wordsmith` (no shared vocabulary). Three negatives duplicated to-spec queries; they're now `interview-me not invoked` lines on to-spec's `spec-this-out` and `impl-plan`, beside the one on `prd-migration`.

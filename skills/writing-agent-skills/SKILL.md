@@ -41,7 +41,7 @@ When the ask is *fix this skill / it's not triggering / it's too long / improve 
 
 | Failure mode | Entry point | Required artifact |
 |---|---|---|
-| Description doesn't fire on user's phrasing | step 9 (trigger evals) | a tightened description authored via `writing-prompts` **and** a set of 20 routing evals ≈50/50 under `evals/<skill>/` that grades the fix |
+| Description doesn't fire on user's phrasing | step 9 (trigger evals) | a tightened description authored via `writing-prompts` **and** ≤10 routing evals under `evals/<skill>/` that grade the fix |
 | Body is too long, slow, or noisy | step 7 (REFACTOR) | a concrete cut list or split-to-`references/*.md` plan applied to the actual body — not a "paste the body and I'll review" deferral |
 | Output evals failing on real scenarios | step 5 (GREEN) + step 7 (REFACTOR) | edits to the skill body, re-run output evals |
 | Skill not invoked when loaded | step 4/9 | check whether routing or prompt prescription is the cause; the trial arm's activation assertion distinguishes |
@@ -128,7 +128,7 @@ Output evals run on the model their arm inherits from the resolved eval set (`[t
 
 ### 9. Trigger evals
 
-Output evals test what happens *after* the skill loads. The `description:` decides whether it loads at all. Write `evals/<skill>/triggers/<query>.eval.md` (or `not-triggers/` for a near-miss no loaded skill owns), one per query: 20 queries, ≈50/50 should-trigger / should-not, near-miss negatives weighted up, each carrying the verbatim query as its prompt and a single `` Skill `<skill>` invoked `` or `` not invoked `` assertion. See [`references/evaluating-skills.md`](references/evaluating-skills.md) § Routing evals for the full schema.
+Output evals test what happens *after* the skill loads. The `description:` decides whether it loads at all. Write one `evals/<skill>/triggers/<query>.eval.md` per query (`not-triggers/` for a near-miss no loaded skill owns): at most 10, each a distinct phrasing or near-miss, both polarities, near-misses weighted up. Each carries the verbatim query as its prompt and one activation line per skill with a stake: `` Skill `<skill>` invoked `` for the owner, `` Skill `<other>` not invoked `` for a sibling sharing its vocabulary. See [`references/evaluating-skills.md`](references/evaluating-skills.md) § Routing evals for the full schema.
 
 Run: `make evals SKILL=<skill>` — they are ordinary evals in the same set. Uses real routing — the whole plugin loaded via `--plugin-dir`, so the description competes with its real peers.
 

@@ -51,5 +51,5 @@ SKILL.md file on disk.
 - [ ] The SKILL.md description is third-person, pushy, and includes trigger-phrase variants (e.g., 'commit', 'stage and commit', 'create a commit'), optionally with negative triggers.
 - [ ] The SKILL.md body has numbered steps with explicit gates between them.
 - [ ] The skill `name` is kebab-case and verb-first or gerund (e.g., `commit`, `writing-commits` — not `commit-utils`).
-- [ ] The written SKILL.md follows the skill conventions: name+description-only frontmatter, a body roughly 200 lines or fewer, and any bundled scripts/references/assets in those conventional subdirs.
+- [ ] The written SKILL.md follows the skill conventions: a body roughly 200 lines or fewer, and any bundled scripts/references/assets in those conventional subdirs.
 - [ ] process: Output uses or recommends writing-prompts for any descriptions, subagent prompts, or context docs the skill emits.

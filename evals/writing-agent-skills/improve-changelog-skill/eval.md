@@ -16,5 +16,6 @@ SKILL.md to disk.
 - [ ] A SKILL.md was written to disk at ./.claude/skills/changelog/SKILL.md — a concrete artifact, not abstract advice.
 - [ ] The written SKILL.md description is broadened past 'Generates changelogs.' to the user's natural-language triggers (release notes, what changed since the last release/tag) and avoids first/second person.
 - [ ] The written SKILL.md body is shorter than the original 200 lines.
+- [ ] The output also writes or proposes routing evals for `changelog`: at most 10 queries, both should-trigger and should-not, none a rewording of another.
 - [ ] The written SKILL.md follows the skill conventions: name+description-only frontmatter, a body roughly 200 lines or fewer, and any bundled scripts/references/assets in those conventional subdirs.
 - [ ] process: Output uses or recommends writing-prompts for any descriptions, subagent prompts, or context docs the skill emits.
