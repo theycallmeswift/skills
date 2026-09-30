@@ -24,6 +24,10 @@ SKILLS = sorted(p for p in (ROOT / "skills").glob("*/") if (p / "SKILL.md").exis
 REQUIRED_FIELDS = {"name", "description"}
 """Frontmatter every skill must declare. Every harness reads both."""
 
+MAX_DESCRIPTION_CHARS = 1024
+"""Spec cap on `description`. Harnesses that enforce it truncate the tail, which is where the
+"Don't use for…" exclusions that drive routing live."""
+
 
 class HarnessSpecificFieldWarning(UserWarning):
     """A skill declares frontmatter that only some harnesses honor."""
@@ -133,6 +137,15 @@ def test_skill_frontmatter_names_and_describes_the_skill(skill: Path):
     assert fields["name"] == skill.name
     assert re.fullmatch(r"[a-z0-9]+(-[a-z0-9]+)*", fields["name"])
     assert fields["description"], "description must not be empty"
+
+
+@pytest.mark.parametrize("skill", SKILLS, ids=lambda p: p.name)
+def test_skill_description_fits_the_length_cap(skill: Path):
+    description = _frontmatter((skill / "SKILL.md").read_text(encoding="utf-8"))["description"]
+    assert description not in {">", ">-", "|", "|-"}, "keep description on one line to measure it"
+    assert len(description) <= MAX_DESCRIPTION_CHARS, (
+        f"description is {len(description)} chars; cap is {MAX_DESCRIPTION_CHARS}"
+    )
 
 
 @pytest.mark.parametrize("skill", SKILLS, ids=lambda p: p.name)
