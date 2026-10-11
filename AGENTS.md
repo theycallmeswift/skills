@@ -50,6 +50,7 @@ Claude Code plugin layout. The manifest lives in `.claude-plugin/`; everything e
 - **delegating-to-codex** — hand implementation or review to the Codex CLI through a job-manager script. Codex edits; the orchestrator verifies and commits.
 - **claude-cloud-orchestrator** — dispatch worker Claude Code cloud sessions that open PRs, review their PRs with a fresh subagent, wake workers with Routines, and hand clean PRs to the user.
 - **claude-cloud-worker** — the worker side: take an orchestrator's task, open a draft PR, address review rounds, and report back through a Routine.
+- **bootstrap** — set up a repo, new or existing, to Swift's house setup: `AGENTS.md` with a `CLAUDE.md` symlink, `docs/style/`, test and lint gates, Claude settings, cloud-agent docs, and the PR template. Adds only what's missing and reports the gaps it left.
 
 ## References
 
