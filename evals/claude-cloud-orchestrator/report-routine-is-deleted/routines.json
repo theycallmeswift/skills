@@ -2,9 +2,8 @@
   {
     "id": "trig_01HZREPORT42",
     "name": "Report: PR #42 updated",
-    "cron_expression": "",
-    "run_once_at": "",
     "enabled": true,
+    "run_once_at": "",
     "ended_reason": "",
     "persistent_session_id": "session_01HZORCHESTRATOR0000000000",
     "derived_state": {
@@ -12,15 +11,14 @@
     },
     "last_run": {
       "status": "ROUTINE_RUN_STATUS_SUCCEEDED",
-      "session_id": "session_01HZORCHESTRATOR0000000000"
+      "session_id": "cse_01HZORCHESTRATOR0000000000"
     }
   },
   {
     "id": "trig_01HZWAKE42",
     "name": "Wake #42 worker: rename the helper",
-    "cron_expression": "",
-    "run_once_at": "",
     "enabled": true,
+    "run_once_at": "",
     "ended_reason": "",
     "persistent_session_id": "session_01HZWORKER0000000000000000",
     "derived_state": {
@@ -28,15 +26,14 @@
     },
     "last_run": {
       "status": "ROUTINE_RUN_STATUS_SUCCEEDED",
-      "session_id": "session_01HZWORKER0000000000000000"
+      "session_id": "cse_01HZWORKER0000000000000000"
     }
   },
   {
     "id": "trig_01HZREPORT41",
     "name": "Report: PR #41 opened",
-    "cron_expression": "",
-    "run_once_at": "",
     "enabled": true,
+    "run_once_at": "",
     "ended_reason": "",
     "persistent_session_id": "session_01HZORCHESTRATOR0000000000",
     "derived_state": {
@@ -44,7 +41,7 @@
     },
     "last_run": {
       "status": "ROUTINE_RUN_STATUS_SUCCEEDED",
-      "session_id": "session_01HZORCHESTRATOR0000000000"
+      "session_id": "cse_01HZORCHESTRATOR0000000000"
     }
   }
 ]
