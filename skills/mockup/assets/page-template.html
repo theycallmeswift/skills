@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<!--
+  Mockup page template. Copy it to mockups/vN/<screen>.html and replace the
+  <main> content. Keep the parts you use, delete the rest:
+    .options/.option   lettered choices (A–D), each with a .mockup beside its text
+    .cards/.card       visual designs side by side; .split for exactly two
+    .mockup            a framed preview; .mock-nav/-button/-input, .placeholder inside
+    .term              terminal grid for TUI screens; set --cols/--rows to the app's size
+    .flow/.screen      clickable prototype: link screens with <a href="#id">
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Queue screen · v1</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #f5f5f7; --surface: #fff; --sunken: #e5e5e7; --border: #d1d1d6;
+    --text: #1d1d1f; --muted: #6e6e73; --accent: #0071e3; --on-accent: #fff;
+    --term-bg: #1d1f21; --term-fg: #e6e6e6; --term-dim: #8a8f98; --term-accent: #5fd7ff; --term-warn: #ffaf5f;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #1d1d1f; --surface: #2d2d2f; --sunken: #3d3d3f; --border: #424245;
+      --text: #f5f5f7; --muted: #a1a1a6; --accent: #0a84ff;
+      --term-bg: #0b0c0d;
+    }
+  }
+  body { font: 16px/1.5 system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--text); padding: 1rem; max-width: 960px; margin: 0 auto; }
+  header { display: flex; justify-content: space-between; align-items: baseline; gap: 1rem; margin-bottom: 1rem; }
+  h1 { font-size: 1.25rem; }
+  h2 { font-size: 1.05rem; margin-bottom: .25rem; }
+  .version { font-size: .8rem; color: var(--muted); white-space: nowrap; }
+  .subtitle, .note { color: var(--muted); font-size: .9rem; margin-bottom: 1rem; }
+  .label { font-size: .7rem; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; }
+
+  /* Lettered options: one column on a phone, the mockup under its text */
+  .options { display: grid; gap: .75rem; }
+  .option { background: var(--surface); border: 2px solid var(--border); border-radius: 12px; padding: 1rem; display: grid; grid-template-columns: 2rem 1fr; gap: .75rem; }
+  .option .letter { background: var(--accent); color: var(--on-accent); width: 2rem; height: 2rem; border-radius: 8px; display: grid; place-items: center; font-weight: 700; }
+  .option .content p { color: var(--muted); font-size: .9rem; margin-bottom: .75rem; }
+  .option.recommended { border-color: var(--accent); }
+  .option.recommended h2::after { content: " · recommended"; color: var(--accent); font-size: .8rem; font-weight: 500; }
+
+  .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1rem; }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+  .card-body { padding: 1rem; }
+  .card-body p { color: var(--muted); font-size: .9rem; }
+  .split { display: grid; grid-template-columns: 1fr; gap: 1rem; }
+  @media (min-width: 720px) { .split { grid-template-columns: 1fr 1fr; } }
+
+  .mockup { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+  .mockup-header { background: var(--sunken); padding: .4rem .75rem; font-size: .75rem; color: var(--muted); }
+  .mockup-body { padding: 1rem; }
+  .mock-nav { background: var(--accent); color: var(--on-accent); padding: .6rem 1rem; display: flex; gap: 1rem; font-size: .9rem; }
+  .mock-button { background: var(--accent); color: var(--on-accent); border: 0; padding: .6rem 1rem; border-radius: 8px; font: inherit; min-height: 44px; }
+  .mock-button.secondary { background: var(--sunken); color: var(--text); }
+  .mock-input { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: .6rem; width: 100%; font: inherit; }
+  .placeholder { background: var(--sunken); border: 2px dashed var(--border); border-radius: 8px; padding: 1.5rem; text-align: center; color: var(--muted); }
+
+  /* Terminal grid: every row is exactly --cols characters; the font shrinks so the grid fits a phone */
+  .term { --cols: 80; --rows: 24; background: var(--term-bg); color: var(--term-fg); border-radius: 8px; padding: .5rem;
+    font: min(14px, calc((100vw - 4.5rem) / (var(--cols) * .6)))/1.25 ui-monospace, Menlo, Consolas, monospace;
+    white-space: pre; overflow-x: auto; width: max-content; max-width: 100%; }
+  .term .dim { color: var(--term-dim); }
+  .term .accent { color: var(--term-accent); }
+  .term .warn { color: var(--term-warn); }
+  .term .inv { background: var(--term-fg); color: var(--term-bg); }
+  .term .bold { font-weight: 700; }
+
+  /* Clickable flow: only the linked screen shows; the first shows by default */
+  .flow .screen { display: none; }
+  .flow .screen:target, .flow:not(:has(.screen:target)) .screen:first-child { display: block; }
+  .flow a { color: var(--accent); }
+
+  footer { margin-top: 1.5rem; color: var(--muted); font-size: .9rem; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Queue screen</h1>
+  <span class="version">v1 · booth-portal</span>
+</header>
+<p class="subtitle">What should people waiting in line see on the station between players?</p>
+
+<main class="options">
+  <section class="option recommended">
+    <div class="letter">A</div>
+    <div class="content">
+      <h2>Next name large, countdown beside it</h2>
+      <p>Readable from the line; the rest of the queue is one dim row.</p>
+<pre class="term" style="--cols: 48; --rows: 7">┌──────────────────────────────────────────────┐
+│ <span class="bold">NEXT UP</span>                         <span class="dim">queue: 3</span>     │
+│                                              │
+│   <span class="accent bold">Priya S.</span>  starts in <span class="warn">0:42</span>                   │
+│   <span class="dim">then Marcus T., Lena K.</span>                    │
+│                                              │
+└──────────────────────────────────────────────┘</pre>
+    </div>
+  </section>
+  <!-- B, C, D: same shape, at most four options -->
+</main>
+
+<!-- Clickable flow (replace .options above when the question spans screens):
+<main class="flow">
+  <section class="screen" id="queue">… <a href="#join">Join the line</a></section>
+  <section class="screen" id="join">… <a href="#queue">Cancel</a> <a href="#joined">Join</a></section>
+  <section class="screen" id="joined">…</section>
+</main>
+-->
+
+<footer>Reply with a letter, or say what's wrong or missing.</footer>
+</body>
+</html>
