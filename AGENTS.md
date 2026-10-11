@@ -51,6 +51,7 @@ Claude Code plugin layout. The manifest lives in `.claude-plugin/`; everything e
 - **claude-cloud-orchestrator** — dispatch worker Claude Code cloud sessions that open PRs, review their PRs with a fresh subagent, wake workers with Routines, and hand clean PRs to the user.
 - **claude-cloud-worker** — the worker side: take an orchestrator's task, open a draft PR, address review rounds, and report back through a Routine.
 - **bootstrap** — set up a repo, new or existing, to Swift's house setup: `AGENTS.md` with a `CLAUDE.md` symlink, `docs/style/`, test and lint gates, Claude settings, cloud-agent docs, and the PR template. Adds only what's missing and reports the gaps it left.
+- **pull-request** — open a PR as a draft from the repo's template, fill the Ready gate only from evidence the session has, mark it ready once every row has evidence and CI is green, and back to draft when CI fails.
 
 ## References
 

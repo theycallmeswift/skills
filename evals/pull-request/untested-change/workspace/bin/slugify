@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+# Print a URL slug for the given title.
+set -euo pipefail
+
+max_length=0
+if [ "${1:-}" = "--max-length" ]; then
+  max_length="$2"
+  shift 2
+fi
+
+slug="$(printf '%s' "$*" | tr '[:upper:]' '[:lower:]' | tr -cs 'a-z0-9' '-')"
+slug="${slug#-}"
+slug="${slug%-}"
+
+if [ "$max_length" -gt 0 ] && [ "${#slug}" -gt "$max_length" ]; then
+  cut="${slug:0:$((max_length + 1))}"
+  if [[ "$cut" == *-* ]]; then
+    slug="${cut%-*}"
+  else
+    slug="${slug:0:$max_length}"
+  fi
+fi
+
+printf '%s\n' "$slug"
