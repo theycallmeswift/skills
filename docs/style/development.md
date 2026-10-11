@@ -203,6 +203,9 @@ def test_multi_sample_reports_zero_stdev(tmp_path):
 
 ## Landing changes
 
+- **Open a PR as a draft; mark it ready yourself once it is ready for review.**
+  If CI fails after that, convert it back to a draft, fix it, and mark it
+  ready again.
 - **A PR lands on `main` as exactly one squash commit.** The PR title is the
   commit title (`<type>(<scope>): summary (#N)`), the PR body is the commit
   body. Branch commits are for review and never reach `main`.
