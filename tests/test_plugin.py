@@ -122,6 +122,13 @@ def test_hooks_reference_an_executable_script_under_plugin_root():
                 assert os.access(script, os.X_OK), f"{script} is not executable"
 
 
+def test_pull_request_template_matches_the_one_bootstrap_ships():
+    shipped = ROOT / "skills/bootstrap/assets/template-pull_request_template.md"
+    used = ROOT / "skills/pull-request/assets/template-pull_request_template.md"
+
+    assert used.read_text() == shipped.read_text()
+
+
 def test_skills_sh_groupings_name_real_skills():
     groupings = _load("skills.sh.json")["groupings"]
     known = {p.name for p in SKILLS}
