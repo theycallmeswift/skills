@@ -27,8 +27,9 @@ Use the lightest form that answers the question:
 | Layout or visual choice | Static page from `assets/page-template.html` |
 | A flow across screens | Clickable single-file HTML prototype: the template's `.flow`, no real code, no app imports |
 
-Draw terminal UIs on the template's `.term` grid at the app's real size
-(e.g. 80×24).
+Draw terminal UIs on the template's `.term` grid at the app's real column
+widths (e.g. 80×24). Unless the whole screen is the question, mock only the
+region that changes, such as a dialog and the rows around it.
 
 ## Each round
 
