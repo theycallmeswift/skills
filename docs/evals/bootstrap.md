@@ -1,6 +1,6 @@
 # bootstrap — eval record
 
-Recorded 2026-10-11. Output evals from `iteration_05`; routing from `iteration_04`. Both used benchspec 0.0.5 (Docker sandbox) with Claude Code 2.1.296 in the guest and sonnet at `--count 3`. The baseline arm ran bare; the trial arm loaded the plugin via `--plugin-dir`. Re-run with `make evals SKILL=bootstrap EVAL_ARGS="-k repo --count 3 -n 8"` for output and `make evals SKILL=bootstrap EVAL_ARGS="-k 'triggers and trial' --count 3 -n 4"` for routing. Activation lines are scoped off baseline and excluded from these tallies; the skill fired in 6 of 6 trial output cells.
+Recorded 2026-10-11. Output evals from `iteration_05`, except `fresh-repo-no-main` (added with the no-`main` path, run separately; see Notes); routing from `iteration_04`. Both used benchspec 0.0.5 (Docker sandbox) with Claude Code 2.1.296 in the guest and sonnet at `--count 3`. The baseline arm ran bare; the trial arm loaded the plugin via `--plugin-dir`. Re-run with `make evals SKILL=bootstrap EVAL_ARGS="-k repo --count 3 -n 8"` for output and `make evals SKILL=bootstrap EVAL_ARGS="-k 'triggers and trial' --count 3 -n 4"` for routing. Activation lines are scoped off baseline and excluded from these tallies; the skill fired in 6 of 6 trial output cells.
 
 ## Output evals — baseline vs trial
 
@@ -8,7 +8,8 @@ Recorded 2026-10-11. Output evals from `iteration_05`; routing from `iteration_0
 |---|---|---|---|
 | existing-repo | 4/27 (15%) | 27/27 (100%) | +85pp |
 | new-python-repo | 0/21 (0%) | 21/21 (100%) | +100pp |
-| **Headline** (mean of per-sample rates) | **7%** | **100%** | **+93pp** (noise band ±2pp) |
+| fresh-repo-no-main | 0/12 (0%) | 12/12 (100%) | +100pp |
+| **Headline** (`iteration_05`, mean of per-sample rates) | **7%** | **100%** | **+93pp** (noise band ±2pp) |
 
 ## Routing evals — trial arm: 12/12
 
@@ -31,3 +32,7 @@ Recorded 2026-10-11. Output evals from `iteration_05`; routing from `iteration_0
 **The symlink assertion was dropped.** Every arm ran `ln -s AGENTS.md CLAUDE.md` once the prompt named it, and the judge can't tell a symlink from a copy (same SHA-256), so it failed one trial cell on evidence alone.
 
 **The existing-repo no-clobber lines pass on a baseline that does nothing.** An earlier prompt that said only "my house setup" left the bare agent unsure what to build, so it touched nothing and passed them. Naming the pieces in the prompt made it try, and clobber.
+
+**The no-`main` path.** `fresh-repo-no-main` is a repo whose only branch is `claude/*`, with an `origin` that has no `main`; a hook on the remote mirrors its branches into `.fake-origin/branches.txt` for the judge. Run at `--count 3` on Claude Code 2.1.296 in benchspec's Docker sandbox. A bare agent committed on its branch and never pushed in 3 of 3. With the skill, an empty root `main`, the setup on a new branch, a PR body naming the branch, and the default-branch note appeared in 3 of 3. The existing-repo and new-python-repo trial arms, which have no remote, re-ran at `--count 1` after the change and passed 9/9 and 7/7.
+
+**Keep the workspace's git dir out of `/workspace`.** The judge reads every file there as text, and a tiny loose object such as the empty tree decodes as text with NUL bytes, which the judge call rejects. The setup uses `--separate-git-dir`. Agents that install `uv` and leave a `.venv` can also crash fact collection on its dangling `python` symlink; that cost one trial cell an early run.

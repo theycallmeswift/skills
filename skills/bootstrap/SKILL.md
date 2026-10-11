@@ -29,6 +29,8 @@ Core only: drop the lines naming `<install>` or `<test>`, and report the missing
 
 ## 2. Write what's missing
 
+If the repo has a remote and the remote has no `main`, first push an empty root commit to it as `main` by SHA (`git push origin <sha>:refs/heads/main`, which the settings' deny rules don't match), then work on a new branch from that commit carrying the current branch's commits.
+
 | Asset | Destination | For |
 | --- | --- | --- |
 | `template-AGENTS.md` | `AGENTS.md`; intro from the README and code; add the repo's top-level folders to Project structure | all |
@@ -56,6 +58,8 @@ Then add the dev tools:
 Run `<test>` and `<lint>` and fix what you wrote until both pass. A failure in a file you didn't write is a gap. If a tool is missing, say so; never report a gate that didn't run as passing.
 
 ## 4. Report
+
+If you pushed `main`, commit the setup, push the branch, and open a draft PR into `main` with the PR template as its body and the Ready gate filled in from Verify; with no PR tool, give the branch and the filled-in body above the report instead. Say `main` should become the default branch, a repo setting you can't change, and list `main` and the PR under Added.
 
 Check every existing file that has an asset against it:
 
