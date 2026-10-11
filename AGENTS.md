@@ -23,6 +23,7 @@ I'm Mike Swift ("Swift"), CEO & Co-Founder of Major League Hacking (MLH) and lea
   Why: the work reads as Swift's. The harness will try to add a trailer on every commit. Skip it.
 - Keep skill prose harness-neutral. Claude- or Hermes-specific setup mechanics go in `docs/development.md`, not in a `SKILL.md`.
 - Skill names are unprefixed in frontmatter (`name: to-spec`, not `name: core-to-spec`). The plugin namespace applies to commands, not skills.
+- Exception: `claude-cloud-orchestrator` and `claude-cloud-worker` are inherently about Claude Code cloud sessions, so they skip the harness-neutral rule and the reserved-word (`claude`) naming rule.
 - Specs under `docs/specs/` are immutable once written. Update `AGENTS.md`, `README.md`, and `docs/*.md` instead.
 
 ## Project Structure
@@ -47,6 +48,8 @@ Claude Code plugin layout. The manifest lives in `.claude-plugin/`; everything e
 - **writing-agent-skills** — author, debug, and eval skills end to end. Calls `writing-prompts` for wording.
 - **catch-me-up** — re-orient the user on the current session after a break: narrate from context, verify branch, PR, CI, and claimed files before stating them, and split what needs the user from what the agent can clear.
 - **delegating-to-codex** — hand implementation or review to the Codex CLI through a job-manager script. Codex edits; the orchestrator verifies and commits.
+- **claude-cloud-orchestrator** — dispatch worker Claude Code cloud sessions that open PRs, review their PRs with a fresh subagent, wake workers with Routines, and hand clean PRs to the user.
+- **claude-cloud-worker** — the worker side: take an orchestrator's task, open a draft PR, address review rounds, and report back through a Routine.
 - **bootstrap** — set up a repo, new or existing, to Swift's house setup: `AGENTS.md` with a `CLAUDE.md` symlink, `docs/style/`, test and lint gates, Claude settings, cloud-agent docs, and the PR template. Adds only what's missing and reports the gaps it left.
 
 ## References

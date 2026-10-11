@@ -18,7 +18,9 @@
     {
       "title": "Delegation",
       "skills": [
-        "delegating-to-codex"
+        "delegating-to-codex",
+        "claude-cloud-orchestrator",
+        "claude-cloud-worker"
       ]
     },
     {
