@@ -1,0 +1,10 @@
+page-template.html adapts the CSS vocabulary (options, mockup, mock-button,
+placeholder, theme variables) of the brainstorming companion's frame template, from
+obra/superpowers at commit bb92a77:
+
+  skills/brainstorming/scripts/frame-template.html
+
+Copyright (c) 2025 Jesse Vincent. Licensed under the MIT License
+(https://opensource.org/licenses/MIT). page-template.html was modified: the server
+header, connection status, click-selection markup, cards, split, and nav removed; a
+phone-first layout, a terminal grid for TUI screens, and a clickable-flow block added.

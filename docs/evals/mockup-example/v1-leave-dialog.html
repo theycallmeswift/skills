@@ -1,0 +1,231 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Challenge leave dialog · v1</title>
+    <style>
+      * {
+        box-sizing: border-box;
+        margin: 0;
+      }
+      :root {
+        color-scheme: light dark;
+        --bg: #f5f5f7;
+        --surface: #fff;
+        --border: #d1d1d6;
+        --text: #1d1d1f;
+        --muted: #6e6e73;
+        --accent: #0071e3;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #1d1d1f;
+          --surface: #2d2d2f;
+          --border: #48484a;
+          --text: #f5f5f7;
+          --muted: #a1a1a6;
+          --accent: #0a84ff;
+        }
+      }
+      body {
+        font-family: system-ui, sans-serif;
+        line-height: 1.5;
+        background: var(--bg);
+        color: var(--text);
+        padding: 1rem;
+        max-width: 960px;
+        margin: auto;
+      }
+      header {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        gap: 1rem;
+      }
+      h1 {
+        font-size: 1.25rem;
+      }
+      h2 {
+        font-size: 1.05rem;
+      }
+      .version,
+      .subtitle,
+      .option p,
+      footer {
+        color: var(--muted);
+        font-size: 0.9rem;
+      }
+      .subtitle {
+        margin: 0.25rem 0 1rem;
+      }
+      footer {
+        margin-top: 1.5rem;
+      }
+
+      /* One option per row: each is a full 80-column grid */
+      .options {
+        display: grid;
+        gap: 0.75rem;
+      }
+      .option {
+        background: var(--surface);
+        border: 2px solid var(--border);
+        border-radius: 12px;
+        padding: 1rem;
+        display: grid;
+        grid-template-columns: 2rem 1fr;
+        gap: 0.75rem;
+      }
+      .option > div {
+        min-width: 0;
+      }
+      .option p {
+        margin: 0.25rem 0 0.75rem;
+      }
+      .letter {
+        background: var(--accent);
+        color: #fff;
+        height: 2rem;
+        border-radius: 8px;
+        display: grid;
+        place-items: center;
+        font-weight: 700;
+      }
+      .recommended {
+        border-color: var(--accent);
+      }
+      .recommended h2::after {
+        content: " · recommended";
+        color: var(--accent);
+        font-size: 0.8rem;
+        font-weight: 500;
+      }
+
+      /* Each row is --cols characters; the font shrinks to fit, never below 11px; wider grids pan */
+      .term {
+        --cols: 80;
+        background: #1d1f21;
+        color: #e6e6e6;
+        border-radius: 8px;
+        padding: 0.5rem;
+        font-family: ui-monospace, Menlo, monospace;
+        font-size: clamp(11px, calc((100vw - 8rem) / var(--cols) * 1.6), 14px);
+        line-height: 1.25;
+        overflow-x: auto;
+        width: max-content;
+        max-width: 100%;
+      }
+      .dim {
+        color: #5c6068;
+      }
+      .accent {
+        color: #5fd7ff;
+      }
+      .warn {
+        color: #ffaf5f;
+      }
+      .inv {
+        background: #e6e6e6;
+        color: #1d1f21;
+      }
+      .warn-bar {
+        background: #ffaf5f;
+        color: #1d1f21;
+      }
+      .bold {
+        font-weight: 700;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>Challenge · leave confirmation</h1>
+      <span class="version">v1 · booth-portal</span>
+    </header>
+    <p class="subtitle">
+      An attendee presses <b>Esc</b> during a challenge. Leaving deletes their
+      progress and sends the station back to Attract. Shown: the top 11 of 24
+      rows and the status bar, at 80 columns.
+    </p>
+
+    <main class="options">
+      <section class="option recommended">
+        <div class="letter">A</div>
+        <div>
+          <h2>Pop-up, timer paused, Enter keeps playing</h2>
+          <p>
+            Enter or Esc goes back to the challenge. Only <b>L</b> leaves, so
+            mashing keys can't wipe a run. Downside: if someone walks away with
+            it open, the station waits here until the idle reset.
+          </p>
+          <pre class="term" style="--cols: 80">
+<span class="dim"> PROMPT          </span>┌─ <span class="bold">Leave the challenge?</span> ─────────────────────┐<span class="dim">                 </span>
+<span class="dim"> Write is_palindr</span>│                                            │<span class="dim">on...            </span>
+<span class="dim"> case and punctua</span>│ Your score (140) won't be saved, and the   │<span class="dim">; try two        </span>
+<span class="dim"> agent's version </span>│ station resets for the next player.        │<span class="dim">ends:            </span>
+<span class="dim">                 </span>│                                            │<span class="dim">                 </span>
+<span class="dim">   def is_palindr</span>│ Timer paused at <span class="warn">3:12</span>.                      │<span class="dim">1                </span>
+<span class="dim">       t = [c.low</span>│                                            │<span class="dim">                 </span>
+<span class="dim">            if c.</span>│    <span class="inv">[ Keep playing ]</span>       Leave  <span class="warn bold">L</span>         │<span class="dim">                 </span>
+<span class="dim">       return t =</span>│                                            │<span class="dim">                 </span>
+<span class="dim">                 </span>└────────────────────────────────────────────┘<span class="dim">9/12 pass)       </span>
+<span class="dim">                                        │                                       </span>
+<span class="inv"> PAUSED 3:12   score 140            Enter keep playing  ·  L leave and reset    </span></pre>
+        </div>
+      </section>
+
+      <section class="option">
+        <div class="letter">B</div>
+        <div>
+          <h2>Status bar only: press Esc twice</h2>
+          <p>
+            No pop-up. The status bar turns orange for 3 s and the timer keeps
+            running. Easiest to build, but a double-tap on Esc still throws the
+            run away.
+          </p>
+          <pre class="term" style="--cols: 80">
+<span class="bold"> PROMPT</span>                                 │<span class="bold"> AGENT</span>
+ Write is_palindrome(s) that ignores    │ <span class="accent">&gt; reading your solution...</span>
+ case and punctuation. Then make the    │ <span class="accent">&gt; it allocates a list; try two</span>
+ agent's version faster than yours.     │   pointers from both ends:
+                                        │
+   def is_palindrome(s):                │   i, j = 0, len(s) - 1
+       t = [c.lower() for c in s        │   while i &lt; j:
+            if c.isalnum()]             │       ...
+       return t == t[::-1]              │
+                                        │ <span class="accent">&gt; running 12 tests  (9/12 pass)</span>
+                                        │
+<span class="warn-bar"> Esc again to leave — score 140 will be lost.     Any other key: keep playing   </span></pre>
+        </div>
+      </section>
+
+      <section class="option">
+        <div class="letter">C</div>
+        <div>
+          <h2>Pop-up like A, but the timer keeps running and it resets itself</h2>
+          <p>
+            Handles walk-aways: after 15 s with no key pressed, the station goes
+            back to Attract. Downside: an attendee who only stepped back for a
+            moment loses their run.
+          </p>
+          <pre class="term" style="--cols: 80">
+<span class="dim"> PROMPT          </span>┌─ <span class="bold">Leave the challenge?</span> ─────────────────────┐<span class="dim">                 </span>
+<span class="dim"> Write is_palindr</span>│                                            │<span class="dim">on...            </span>
+<span class="dim"> case and punctua</span>│ Your score (140) won't be saved, and the   │<span class="dim">; try two        </span>
+<span class="dim"> agent's version </span>│ station resets for the next player.        │<span class="dim">ends:            </span>
+<span class="dim">                 </span>│                                            │<span class="dim">                 </span>
+<span class="dim">   def is_palindr</span>│ Resetting in <span class="warn">0:15</span> unless you press Enter.  │<span class="dim">1                </span>
+<span class="dim">       t = [c.low</span>│                                            │<span class="dim">                 </span>
+<span class="dim">            if c.</span>│    <span class="inv">[ Keep playing ]</span>       Leave  <span class="warn bold">L</span>         │<span class="dim">                 </span>
+<span class="dim">       return t =</span>│                                            │<span class="dim">                 </span>
+<span class="dim">                 </span>└────────────────────────────────────────────┘<span class="dim">9/12 pass)       </span>
+<span class="dim">                                        │                                       </span>
+<span class="inv"> 3:04 left   score 140              Enter keep playing  ·  L leave and reset    </span></pre>
+        </div>
+      </section>
+    </main>
+
+    <footer>Reply with a letter, or say what's wrong or missing.</footer>
+  </body>
+</html>
