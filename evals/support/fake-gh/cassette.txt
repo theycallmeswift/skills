@@ -1,0 +1,64 @@
+# Recorded from the real gh by tests/support/gh_contract.py. See README.md.
+$ gh --version
+? 0
+gh version 2.89.0 (2026-03-26)
+https://github.com/cli/cli/releases/tag/v2.89.0
+$ gh auth status
+? 0
+github.com
+  ✓ Logged in to github.com account eval-user (/root/.config/gh/hosts.yml)
+  - Active account: true
+  - Git operations protocol: https
+  - Token: gho_************************************
+  - Token scopes: 'gist', 'read:org', 'repo', 'workflow'
+$ gh pr view
+? 0
+title:	Add idempotency keys to POST /payments
+state:	OPEN
+author:	eval-user (Eval User)
+labels:	
+assignees:	
+reviewers:	
+projects:	
+milestone:	
+number:	48
+url:	https://github.com/example/orders-api/pull/48
+additions:	64
+deletions:	2
+auto-merge:	disabled
+--
+Dedupe POST /payments on the Idempotency-Key header so retries never double-charge.
+$ gh pr view --json number,title,url,headRefName,state,isDraft,statusCheckRollup
+? 0
+{"headRefName":"feat/payment-idempotency","isDraft":false,"number":48,"state":"OPEN","statusCheckRollup":[{"__typename":"CheckRun","completedAt":"2026-10-08T15:10:12Z","conclusion":"FAILURE","detailsUrl":"https://github.com/example/orders-api/actions/runs/9051732","name":"ty","startedAt":"2026-10-08T15:10:00Z","status":"COMPLETED","workflowName":"CI"}],"title":"Add idempotency keys to POST /payments","url":"https://github.com/example/orders-api/pull/48"}
+$ gh pr status
+? 0
+
+Relevant pull requests in example/orders-api
+
+Current branch
+  #48  Add idempotency keys to POST /payments [feat/payment-idempotency]
+  × All checks failing ✓ No merge conflicts
+
+Created by you
+  #48  Add idempotency keys to POST /payments [feat/payment-idempotency]
+  × All checks failing ✓ No merge conflicts
+
+Requesting a code review from you
+  You have no pull requests to review
+
+$ gh pr status --json number,title,url,headRefName,state,isDraft,statusCheckRollup
+? 0
+{"createdBy":[{"headRefName":"feat/payment-idempotency","isDraft":false,"number":48,"state":"OPEN","statusCheckRollup":[{"__typename":"CheckRun","completedAt":"2026-10-08T15:10:12Z","conclusion":"FAILURE","detailsUrl":"https://github.com/example/orders-api/actions/runs/9051732","name":"ty","startedAt":"2026-10-08T15:10:00Z","status":"COMPLETED","workflowName":"CI"}],"title":"Add idempotency keys to POST /payments","url":"https://github.com/example/orders-api/pull/48"}],"currentBranch":{"headRefName":"feat/payment-idempotency","isDraft":false,"number":48,"state":"OPEN","statusCheckRollup":[{"__typename":"CheckRun","completedAt":"2026-10-08T15:10:12Z","conclusion":"FAILURE","detailsUrl":"https://github.com/example/orders-api/actions/runs/9051732","name":"ty","startedAt":"2026-10-08T15:10:00Z","status":"COMPLETED","workflowName":"CI"}],"title":"Add idempotency keys to POST /payments","url":"https://github.com/example/orders-api/pull/48"},"needsReview":[]}
+$ gh pr list
+? 0
+48	Add idempotency keys to POST /payments	feat/payment-idempotency	OPEN	2026-10-08T15:04:05Z
+$ gh pr list --json number,title,url,headRefName,state,isDraft,statusCheckRollup
+? 0
+[{"headRefName":"feat/payment-idempotency","isDraft":false,"number":48,"state":"OPEN","statusCheckRollup":[{"__typename":"CheckRun","completedAt":"2026-10-08T15:10:12Z","conclusion":"FAILURE","detailsUrl":"https://github.com/example/orders-api/actions/runs/9051732","name":"ty","startedAt":"2026-10-08T15:10:00Z","status":"COMPLETED","workflowName":"CI"}],"title":"Add idempotency keys to POST /payments","url":"https://github.com/example/orders-api/pull/48"}]
+$ gh pr checks
+? 1
+ty	fail	12s	https://github.com/example/orders-api/actions/runs/9051732	
+$ gh pr checks --json name,state,bucket,link
+? 0
+[{"bucket":"fail","link":"https://github.com/example/orders-api/actions/runs/9051732","name":"ty","state":"FAILURE"}]

@@ -1,0 +1,41 @@
+#!/usr/bin/env bash
+# Fake gh: replays real gh output from cassette.txt beside it. See README.md.
+set -u
+
+log_dir="${FAKE_GH_LOG_DIR:-/workspace/.fake-gh}"
+mkdir -p "$log_dir"
+{
+  printf 'argv: gh'
+  printf ' %q' "$@"
+  printf '\n'
+} >> "$log_dir/calls.log"
+
+# The entry to replay: `gh --version`, or `gh <command> <subcommand>`, plus any --json fields.
+entry="gh ${1:-}"
+[ "${1:-}" = "--version" ] || entry="$entry ${2:-}"
+json=""
+for argument in "$@"; do
+  if [ "$argument" = "--json" ] || [[ "$argument" = --json=* ]]; then
+    json=" --json *"
+  fi
+done
+
+found=0
+code=""
+while IFS= read -r line; do
+  if [[ "$line" = '$ '* ]]; then
+    [ "$found" = 1 ] && exit "$code"
+    # $json stays unquoted so its * matches whatever field list was recorded.
+    [[ "${line#\$ }" = "$entry"$json ]] && found=1
+  elif [ "$found" = 1 ] && [ -z "$code" ]; then
+    code="${line#? }"
+  elif [ "$found" = 1 ]; then
+    printf '%s\n' "$line"
+  fi
+done < "$(dirname "$(readlink -f "$0")")/cassette.txt"
+[ "$found" = 1 ] && exit "$code"
+
+printf 'fake gh: unsupported command: gh' >&2
+printf ' %q' "$@" >&2
+printf '\n' >&2
+exit 2
