@@ -47,6 +47,7 @@ Claude Code plugin layout. The manifest lives in `.claude-plugin/`; everything e
 - **writing-agent-skills** — author, debug, and eval skills end to end. Calls `writing-prompts` for wording.
 - **catch-me-up** — re-orient the user on the current session after a break: narrate from context, verify branch, PR, CI, and claimed files before stating them, and split what needs the user from what the agent can clear.
 - **delegating-to-codex** — hand implementation or review to the Codex CLI through a job-manager script. Codex edits; the orchestrator verifies and commits.
+- **bootstrap** — set up a repo, new or existing, to Swift's house setup: `AGENTS.md` with a `CLAUDE.md` symlink, `docs/style/`, test and lint gates, Claude settings, cloud-agent docs, and the PR template. Adds only what's missing and reports the gaps it left.
 
 ## References
 
