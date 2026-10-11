@@ -34,6 +34,12 @@
       "skills": [
         "bootstrap"
       ]
+    },
+    {
+      "title": "Landing Changes",
+      "skills": [
+        "pull-request"
+      ]
     }
   ]
 }

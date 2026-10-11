@@ -15,6 +15,7 @@ Model-invoked. The agent picks them up when the request matches; you can also ca
 - **claude-cloud-orchestrator** — In a Claude Code cloud session, hand PR-sized tasks to worker cloud sessions and supervise them: dispatch, review each PR with a fresh subagent, request changes until clean, then hand the PR to you. Say "hand this to a cloud agent", "spin up a worker for this", or "check on the workers".
 - **claude-cloud-worker** — The worker side of that protocol: open a draft PR, address review rounds, and report back to the orchestrator session. Loads when a worker's prompt names it.
 - **bootstrap** — Set up a repo, new or existing, to the house setup: `AGENTS.md` with a `CLAUDE.md` symlink, `docs/style/` guides (Python or TypeScript detected), test and lint gates, Claude settings, cloud-agent docs, and a PR template with a Ready gate. On an existing repo it never rewrites a file; it adds what's missing and lists the gaps. Say "bootstrap this repo" or "set this repo up the way my repos are".
+- **pull-request** — Open and update PRs in one format: what changed and why, a `Decide` section, and a Ready gate table. Each row is filled only from what the agent actually ran or changed this session; an empty row keeps the PR a draft, and it goes ready only once every row has evidence and CI is green. Say "open the PR", "mark it ready", or "update the PR body".
 
 ## Install
 
