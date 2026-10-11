@@ -32,3 +32,5 @@ Recorded 2026-10-11. Baseline and routing from `iteration_02`, trial output from
 **Publishing.** The sandbox has no hosted-page tool and the workspace isn't a git repo; every trial run said so and gave the file path, and none started a local server.
 
 **Template contamination, fixed.** `iteration_02`'s template example was a leave dialog, and trial option A copied it. The example is now a queue screen; `iteration_03` still scored 100% with options drawn from the workspace's README.
+
+**Example run.** [`mockup-example/`](mockup-example/transcript.md) holds one real run's transcript, the v1 page it produced, and phone screenshots in light and dark.
