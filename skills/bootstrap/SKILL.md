@@ -31,18 +31,18 @@ Core only: drop the lines naming `<install>` or `<test>`, and report the missing
 
 | Asset | Destination | For |
 | --- | --- | --- |
-| `AGENTS.md` | `AGENTS.md`; intro from the README and code; add the repo's top-level folders to Project structure | all |
+| `template-AGENTS.md` | `AGENTS.md`; intro from the README and code; add the repo's top-level folders to Project structure | all |
 | — | `CLAUDE.md` as a symlink: `ln -s AGENTS.md CLAUDE.md` | all |
-| `style-development.md`, `style-markdown.md`, `style-testing.md` | `docs/style/development.md`, `markdown.md`, `testing.md` | all |
-| `style-python.md` or `style-typescript.md` | `docs/style/python.md` or `typescript.md` | language |
-| `markdownlint-cli2.jsonc` | `.markdownlint-cli2.jsonc` | all |
-| `claude-settings.json` | `.claude/settings.json` | all |
-| `claude-cloud-node26-path.sh` | `.claude/hooks/claude-cloud-node26-path.sh`, executable | all |
-| `cloud-agents.md` | `docs/cloud-agents.md`; drop the uv block outside Python | all |
-| `pull_request_template.md` | `.github/pull_request_template.md`, byte for byte | all |
-| `gitignore` | lines appended to `.gitignore`; TypeScript adds `node_modules/` | all |
-| `Makefile`, `pyproject.toml` | same names | Python |
-| `package.json`, `tsconfig.json`, `biome.jsonc`, `vitest.config.ts` | same names | TypeScript |
+| `template-style-development.md`, `template-style-markdown.md`, `template-style-testing.md` | `docs/style/development.md`, `markdown.md`, `testing.md` | all |
+| `template-style-python.md` or `template-style-typescript.md` | `docs/style/python.md` or `typescript.md` | language |
+| `template-markdownlint-cli2.jsonc` | `.markdownlint-cli2.jsonc` | all |
+| `template-claude-settings.json` | `.claude/settings.json` | all |
+| `template-claude-cloud-node26-path.sh` | `.claude/hooks/claude-cloud-node26-path.sh`, executable | all |
+| `template-cloud-agents.md` | `docs/cloud-agents.md`; drop the uv block outside Python | all |
+| `template-pull_request_template.md` | `.github/pull_request_template.md`, byte for byte | all |
+| `template-gitignore` | lines appended to `.gitignore`; TypeScript adds `node_modules/` | all |
+| `template-Makefile`, `template-pyproject.toml` | `Makefile`, `pyproject.toml` | Python |
+| `template-package.json`, `template-tsconfig.json`, `template-biome.jsonc`, `template-vitest.config.ts` | the name without `template-` | TypeScript |
 
 If `CLAUDE.md` is a regular file and `AGENTS.md` is missing, write neither; report that `CLAUDE.md` should move to `AGENTS.md` with a symlink back.
 
