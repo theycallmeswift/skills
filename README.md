@@ -12,6 +12,8 @@ Model-invoked. The agent picks them up when the request matches; you can also ca
 - **writing-agent-skills** — Build, debug, and evaluate skills end to end: eval-first (RED → GREEN → REFACTOR), trigger-description tuning, and the conventions that keep a skill portable across harnesses. Calls `writing-prompts` for the wording.
 - **catch-me-up** — Re-orient you on the current session after a break. Narration comes from context, but branch, PR, CI, and claimed files are checked before they're stated, and a compacted context is disclosed rather than filled in. Ends with what needs your call and what the agent can clear on its own. Say "catch me up", "where were we", or "what's on me".
 - **delegating-to-codex** — Hand implementation or review work to the Codex CLI as background jobs: explicit effort per task, Codex edits but never commits, reviews come back as schema JSON, and fix rounds resume the same Codex thread. Say "have codex review my branch" or "let codex implement task 3", or assign a plan step to Codex. Needs the Codex CLI, signed in.
+- **claude-cloud-orchestrator** — In a Claude Code cloud session, hand PR-sized tasks to worker cloud sessions and supervise them: dispatch, review each PR with a fresh subagent, request changes until clean, then hand the PR to you. Say "hand this to a cloud agent", "spin up a worker for this", or "check on the workers".
+- **claude-cloud-worker** — The worker side of that protocol: open a draft PR, address review rounds, and report back to the orchestrator session. Loads when a worker's prompt names it.
 
 ## Install
 

@@ -6,7 +6,7 @@ import json
 import subprocess
 import sys
 import threading
-from collections.abc import Iterator
+from collections.abc import Generator
 from contextlib import contextmanager
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
@@ -166,7 +166,7 @@ def handler_for(stub: Stub) -> type[BaseHTTPRequestHandler]:
 
 
 @contextmanager
-def serve_stub(worktree: Path) -> Iterator[tuple[Stub, int]]:
+def serve_stub(worktree: Path) -> Generator[tuple[Stub, int]]:
     """Serve the Responses API stub on an ephemeral loopback port."""
     stub = Stub(worktree)
     server = ThreadingHTTPServer(("127.0.0.1", 0), handler_for(stub))
