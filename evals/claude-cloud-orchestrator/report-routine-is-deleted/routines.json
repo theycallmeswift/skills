@@ -1,0 +1,50 @@
+[
+  {
+    "id": "trig_01HZREPORT42",
+    "name": "Report: PR #42 updated",
+    "cron_expression": "",
+    "run_once_at": "",
+    "enabled": true,
+    "ended_reason": "",
+    "persistent_session_id": "session_01HZORCHESTRATOR0000000000",
+    "derived_state": {
+      "prompt": "[claude-cloud-worker report]\nsession: session_01HZWORKER0000000000000000"
+    },
+    "last_run": {
+      "status": "ROUTINE_RUN_STATUS_SUCCEEDED",
+      "session_id": "session_01HZORCHESTRATOR0000000000"
+    }
+  },
+  {
+    "id": "trig_01HZWAKE42",
+    "name": "Wake #42 worker: rename the helper",
+    "cron_expression": "",
+    "run_once_at": "",
+    "enabled": true,
+    "ended_reason": "",
+    "persistent_session_id": "session_01HZWORKER0000000000000000",
+    "derived_state": {
+      "prompt": "Review feedback on https://github.com/example/orders-api/pull/42: review on 3f1c2a7. Address it following the claude-cloud-worker skill."
+    },
+    "last_run": {
+      "status": "ROUTINE_RUN_STATUS_SUCCEEDED",
+      "session_id": "session_01HZWORKER0000000000000000"
+    }
+  },
+  {
+    "id": "trig_01HZREPORT41",
+    "name": "Report: PR #41 opened",
+    "cron_expression": "",
+    "run_once_at": "",
+    "enabled": true,
+    "ended_reason": "",
+    "persistent_session_id": "session_01HZORCHESTRATOR0000000000",
+    "derived_state": {
+      "prompt": "[claude-cloud-worker report]\nsession: session_01HZWORKER41"
+    },
+    "last_run": {
+      "status": "ROUTINE_RUN_STATUS_SUCCEEDED",
+      "session_id": "session_01HZORCHESTRATOR0000000000"
+    }
+  }
+]
