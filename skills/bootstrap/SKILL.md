@@ -10,7 +10,7 @@ Set a repo up to the house setup in `assets/`. The assets are the canonical copi
 ## Rules
 
 - **Never edit a file that exists.** Two exceptions: append missing `.gitignore` lines, and add dev dependencies through the package manager. Whatever an existing file lacks is a gap to report, not a fix: its content is someone's decision.
-- **Write only what the table lists.** No CI workflows, starter code, sample tests, or empty directories.
+- **Write only what the table lists.** No starter code, sample tests, or empty directories.
 - **Fill every `<placeholder>`** from the repo, and wrap filled prose at 80 columns.
 
 ## 1. Detect the language
@@ -42,6 +42,7 @@ If the repo has a remote and the remote has no `main`, first push an empty root 
 | `template-claude-cloud-node26-path.sh` | `.claude/hooks/claude-cloud-node26-path.sh`, executable | all |
 | `template-cloud-agents.md` | `docs/cloud-agents.md`; drop the uv block outside Python | all |
 | `template-pull_request_template.md` | `.github/pull_request_template.md`, byte for byte | all |
+| `template-ci-python.yml` or `template-ci-typescript.yml` | `.github/workflows/ci.yml`, byte for byte | language |
 | `template-gitignore` | lines appended to `.gitignore`; TypeScript adds `node_modules/` | all |
 | `template-Makefile`, `template-pyproject.toml` | `Makefile`, `pyproject.toml` | Python |
 | `template-package.json`, `template-tsconfig.json`, `template-biome.jsonc`, `template-vitest.config.ts` | the name without `template-` | TypeScript |
@@ -61,12 +62,15 @@ Run `<test>` and `<lint>` and fix what you wrote until both pass. A failure in a
 
 If you pushed `main`, commit the setup, push the branch, and open a draft PR into `main` with the PR template as its body and the Ready gate filled in from Verify; with no PR tool, give the branch and the filled-in body above the report instead. Say `main` should become the default branch, a repo setting you can't change, and list `main` and the PR under Added.
 
+If you wrote `.github/workflows/ci.yml`, say branch protection on `main` should require only its `CI passed` check, a repo setting you can't change.
+
 Check every existing file that has an asset against it:
 
 - `AGENTS.md`: each template section it lacks, by heading.
 - `CLAUDE.md`: not a symlink to `AGENTS.md`.
 - `.claude/settings.json`: missing attribution, deny rules, or the SessionStart hook.
 - Gate file: each missing `install`, `test`, `lint`, or `format` target or script.
+- `.github/workflows/ci.yml`: no docs-only skip for the tests, or no `CI passed` job for branch protection to require.
 - Style docs: each asset rule they lack or contradict.
 
 End with:
