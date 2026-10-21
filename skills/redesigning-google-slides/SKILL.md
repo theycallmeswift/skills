@@ -5,7 +5,9 @@ description: "Use when redesigning, restyling or polishing slides in an existing
 
 # Redesigning slides in an existing Google Slides deck
 
-**REQUIRED SUB-SKILL:** Use `google-workspace` for every Slides and Drive call: its Slides reference, field masks, revision guard, `slides_helper.py` (outline, build) and `render_export.py`. This skill adds only the redesign workflow.
+This skill is the redesign workflow. For Slides and Drive mechanics (field masks, EMU geometry, guarded writes, rendering), use the `google-workspace` skill when you have it.
+
+**Without `google-workspace`, ask before the first live edit.** Its rules are what keep raw Slides writes from landing in the wrong place or overwriting someone's newer change, so editing without them is the user's call. Before any write to the live deck, tell the user the skill isn't available, say what you'd change, and ask for an explicit go-ahead; then use whatever Slides tools you have. Reading the deck, planning, and reviewing saved copies or renders need no permission, so do steps 1 to 3 first and ask with the plan in hand.
 
 A redesign succeeds when the new slides read as part of the deck, every fact on them is still true, and nothing else in the deck contradicts them. Agents usually get the first right and miss the other two, so steps 4 and 5 carry the weight.
 
@@ -17,11 +19,11 @@ Before touching the deck, write down:
 - every fact, number and name on them, with its source. Keep names, casing and numbers exactly as sourced; if deck and source disagree, the source wins; say so.
 - anything the request changes that the deck states elsewhere (a renamed step, a new result, a dropped feature). Step 5 checks these.
 
-If the deck is someone else's or shared, ask before editing, or work on a copy.
+Check the file's owner and sharing. If the deck is someone else's or widely shared, ask before editing it, or offer to work on a copy.
 
 ## 2. Learn the deck's design from its finished slides
 
-Read two or three finished slides near the scoped ones, with the masked read and `slides_helper.py outline`. Note:
+Read two or three finished slides near the scoped ones, with a field mask so the read stays small. Note:
 
 - page size, margins, grid
 - title style (font, size, weight, phrase highlighting)
@@ -39,8 +41,8 @@ Link to the exact destination (the specific page, not a homepage), and link betw
 
 ## 4. Build, render, and get a critical review
 
-1. Build each slide in one guarded batch with `slides_helper.py build`, object IDs named slide-plus-role.
-2. Export and render the changed slides with `render_export.py`; look at them yourself.
+1. Build each slide in one batch, guarded by the revision ID from your latest read, with object IDs named slide-plus-role.
+2. Render the changed slides (a thumbnail or an export, whichever your tools offer) and look at them yourself. If no render is available, check the geometry from a fresh read instead: every box inside the page and margins, text that fits its box at its font size, and nothing overlapping. Say in the report that you couldn't see it.
 3. Get a second opinion from a reviewer who hasn't seen your work: spawn a subagent with the critic prompt below, passing page images of the changed slides and of the slides on either side, labeled. Without subagents, apply the prompt to the images yourself in a fresh pass.
 4. Fix every finding, re-render, recheck. Don't report done until at least one fix-and-recheck cycle has run, because one fix often causes another problem.
 
@@ -61,7 +63,7 @@ Critic prompt:
 
 ## 5. Sweep the deck for anything the change contradicts
 
-A changed fact is usually stated in more than one place. Read the whole deck as text (Drive `read_file_content`) and search for every term from step 1: the old number, old name, feature, step label. Stale copies hide in repeated components: progress trackers, agendas, section dividers, summary slides, speaker notes.
+A changed fact is usually stated in more than one place. Read the whole deck as text and search for every term from step 1: the old number, old name, feature, step label. Stale copies hide in repeated components: progress trackers, agendas, section dividers, summary slides, speaker notes. A deck's text export often leaves out speaker notes, so read the notes too.
 
 - Restatements of the same fact: update them in the same pass, so the deck never says two things.
 - Anything else the change makes wrong or odd (a title that no longer fits, steps describing the old result, a "pre-run" tag on live work): don't rewrite it silently. List each with slide number and proposed wording.

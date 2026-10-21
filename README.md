@@ -16,6 +16,7 @@ Model-invoked. The agent picks them up when the request matches; you can also ca
 - **claude-cloud-worker** — The worker side of that protocol: open a draft PR, address review rounds, and report back to the orchestrator session. Loads when a worker's prompt names it.
 - **bootstrap** — Set up a repo, new or existing, to the house setup: `AGENTS.md` with a `CLAUDE.md` symlink, `docs/style/` guides (Python or TypeScript detected), test and lint gates, Claude settings, cloud-agent docs, a CI workflow that skips tests on docs-only PRs, and a PR template with a Ready gate. On an existing repo it never rewrites a file; it adds what's missing and lists the gaps. Say "bootstrap this repo" or "set this repo up the way my repos are".
 - **pull-request** — Open and update PRs in one format: what changed and why, a `Decide` section, and a Ready gate table. Each row is filled only from what the agent actually ran or changed this session; an empty row keeps the PR a draft, and it goes ready only once every row has evidence and CI is green. Say "open the PR", "mark it ready", or "update the PR body".
+- **redesigning-google-slides** — Redesign or restyle slides in an existing Google Slides deck so they look like the rest of it, keep every sourced name and number exact, and sweep the deck for other slides, trackers and speaker notes the change makes wrong. Ends with what changed, what the render review caught, and what needs your call. Say "make these slides look like the others" or "the numbers changed, update the deck".
 
 ## Install
 
