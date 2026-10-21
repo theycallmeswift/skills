@@ -12,9 +12,9 @@ Source `setup.sh` from a scenario's `setup.sh`, then:
   deck to `/workspace/.fake-google-slides/`, and registers `server.py` twice as user-scope MCP
   servers named `Google_Slides` and `Google_Drive`, as the live connectors are. The overlay's
   fields replace recorded `get_file_metadata` fields, such as `{"owner": "priya@example.com"}`.
-- `add_google_workspace_skill` installs `google-workspace/SKILL.md` as a user skill. It is a short
-  stand-in for the bundled `google-workspace` skill, which isn't licensed for copying; scenarios
-  that test the skill's absence skip it.
+- `add_google_workspace_skill` installs `google-workspace-skill/SKILL.md` as the user skill
+  `google-workspace`: a short stand-in for the bundled skill, which isn't licensed for copying.
+  Scenarios that test the skill's absence skip it.
 
 ## What the fake does
 

@@ -28,5 +28,5 @@ add_google_slides() {
 # add_google_workspace_skill: installs the stand-in `google-workspace` skill as a user skill.
 add_google_workspace_skill() {
   mkdir -p /root/.claude/skills
-  cp -R "$FAKE_GOOGLE_SLIDES/google-workspace" /root/.claude/skills/google-workspace
+  cp -R "$FAKE_GOOGLE_SLIDES/google-workspace-skill" /root/.claude/skills/google-workspace
 }
