@@ -1,6 +1,6 @@
 ---
 name: google-workspace
-description: "Read this before the first Google Drive, Docs, Sheets or Slides connector call whenever the task creates or changes a Google file: a request that names Google Docs, Sheets, Slides or Drive and asks to make, edit, format, copy or rename a file, or a docs.google.com link with a request to change it. Do NOT use for read-only questions about a Google file, or for Word, Excel, PowerPoint or PDF files."
+description: "Rules for changing a file in the user's Google Drive through the Docs, Sheets, Slides and Drive connectors. Load it before the first connector call when a request asks to create, edit, restyle, copy or rename a Google Doc, Sheet or Slides deck, including a docs.google.com link with a change to make or a follow-up tweak to a Google file from earlier. Skip it when the user only wants to read or ask about a Google file, and for Word, Excel, PowerPoint or PDF files."
 ---
 
 # Google Slides mechanics
