@@ -1,0 +1,237 @@
+[
+  {
+    "server": "Google_Slides",
+    "name": "read_presentation",
+    "description": "Read a JSON representation of a Google Slides presentation.\n\nCorresponds to [`presentations.get`](https://developers.google.com/workspace/slides/api/reference/rest/v1/presentations/get) in the REST API.\n",
+    "inputSchema": {
+      "description": "Request to read a presentation.",
+      "properties": {
+        "commentsIncluded": {
+          "description": "Optional. If true, comments will be included in the response. By default, comments are not included.",
+          "type": "boolean"
+        },
+        "fields": {
+          "description": "Optional. A field mask specifying which subset of properties to return. Paths MUST accurately match the Google Slides REST API JSON resource structure (e.g. Presentation, Page, PageElement, Shape, Image, Table, Line, Video, TextContent). IMPORTANT GUIDELINES: - Always use targeted field masks rather than fetching unmasked or generic full presentation objects. - Syntax: Supports dot notation and subselection parentheses (e.g. `slides.pageElements(objectId,shape.text)` or `slides.pageElements.objectId,slides.pageElements.shape.text`). - Only include the fields you need.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "presentationId": {
+          "description": "Required. The ID of the presentation to read content from.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "presentationId"
+      ],
+      "type": "object"
+    }
+  },
+  {
+    "server": "Google_Slides",
+    "name": "read_slide_page",
+    "description": "Read a JSON representation of a single slide/page from a Google Slides presentation.\n\nCorresponds to [`presentations.pages.get`](https://developers.google.com/workspace/slides/api/reference/rest/v1/presentations.pages/get) in the REST API.\n",
+    "inputSchema": {
+      "description": "Request to read a single presentation page.",
+      "properties": {
+        "commentsIncluded": {
+          "description": "Optional. If true, comments will be included in the response. By default, comments are not included.",
+          "type": "boolean"
+        },
+        "fields": {
+          "description": "Optional. A field mask specifying which subset of properties to return for the slide page. Paths MUST accurately match the Google Slides REST API resource structure (e.g. Page, PageElement, Shape, Image, Table, Line, Video, TextContent). IMPORTANT GUIDELINES: - Always use targeted field masks rather than fetching unmasked or generic full page objects. - Syntax: Supports dot notation and subselection parentheses (e.g. `pageElements(objectId,shape.text)` or `pageElements.objectId,pageElements.shape.text`). - Only include the fields you need.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "pageId": {
+          "description": "Required. The ID of the slide page to retrieve.",
+          "type": "string"
+        },
+        "presentationId": {
+          "description": "Required. The ID of the presentation containing the page.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "presentationId",
+        "pageId"
+      ],
+      "type": "object"
+    }
+  },
+  {
+    "server": "Google_Slides",
+    "name": "read_slide_page_thumbnail",
+    "description": "Reads a thumbnail representation of a single slide page in a presentation, returning the thumbnail image URL along with its width and height dimensions.\n\nCorresponds to [`presentations.pages.getThumbnail`](https://developers.google.com/workspace/slides/api/reference/rest/v1/presentations.pages/getThumbnail) in the REST API.\n",
+    "inputSchema": {
+      "$defs": {
+        "ThumbnailProperties": {
+          "description": "Provides control over page thumbnail creation.",
+          "properties": {
+            "mimeType": {
+              "description": "Optional. The optional mime type of the thumbnail image. If a mime type is not specified, the default mime type is PNG.",
+              "enum": [
+                "MIME_TYPE_UNSPECIFIED",
+                "PNG"
+              ],
+              "type": "string",
+              "x-google-enum-descriptions": [
+                "The unspecified mime type.",
+                "PNG mime type."
+              ]
+            },
+            "thumbnailSize": {
+              "description": "Optional. The optional thumbnail image size. If a thumbnail size is not specified, the server chooses a default size of the image.",
+              "enum": [
+                "THUMBNAIL_SIZE_UNSPECIFIED",
+                "LARGE",
+                "MEDIUM",
+                "SMALL",
+                "WIDTH2000_PX"
+              ],
+              "type": "string",
+              "x-google-enum-descriptions": [
+                "The default thumbnail image size. The unspecified thumbnail size implies that the server chooses the size of the image in a way that might vary in the future.",
+                "The thumbnail image width of 1600px.",
+                "The thumbnail image width of 800px.",
+                "The thumbnail image width of 200px.",
+                "The thumbnail image width of 2000px."
+              ]
+            }
+          },
+          "type": "object"
+        }
+      },
+      "description": "Request to read a thumbnail representation of a single slide page in a presentation.",
+      "properties": {
+        "pageId": {
+          "description": "Required. The ID of the slide page to retrieve a thumbnail for.",
+          "type": "string"
+        },
+        "presentationId": {
+          "description": "Required. The ID of the presentation containing the page to retrieve a thumbnail for.",
+          "type": "string"
+        },
+        "thumbnailProperties": {
+          "$ref": "#/$defs/ThumbnailProperties",
+          "description": "Optional. The optional properties of the thumbnail image to be returned."
+        }
+      },
+      "required": [
+        "presentationId",
+        "pageId"
+      ],
+      "type": "object"
+    }
+  },
+  {
+    "server": "Google_Slides",
+    "name": "update_presentation",
+    "description": "Updates a presentation with set of batchUpdate requests.\n\nCorresponds to [`presentations.batchUpdate`](https://developers.google.com/workspace/slides/api/reference/rest/v1/presentations/batchUpdate) in the REST API.\n\nThe list of possible updates is:\n\n- `createSlide`: Creates a new slide.\n  Schema:\n    - `objectId` (string, optional): A user-supplied object ID. Must be unique if specified (5-50 characters, matching [a-zA-Z0-9_-:]). If omitted, an ID is generated.\n    - `insertionIndex` (integer, optional): Zero-based index indicating where to insert the slide. If omitted, inserted at the end.\n    - `slideLayoutReference` (object, optional): Layout reference of the slide to insert (exactly one required if specified):\n      - `predefinedLayout` (string): Predefined layout name (e.g. \"BLANK\", \"TITLE_AND_BODY\", \"TITLE\", \"SECTION_HEADER\", \"SECTION_TITLE_AND_DESCRIPTION\", \"ONE_COLUMN_TEXT\", \"MAIN_POINT\", \"BIG_NUMBER\", \"TITLE_AND_TWO_COLUMNS\").\n      - `layoutId` (string): Layout ID from the current master.\n    - `placeholderIdMappings` (array of objects, optional): Mappings for placeholders from layout to slide. Each item:\n      - `layoutPlaceholder` (object): `{\"type\": string, \"index\": integer}`.\n      - `objectId` (string, required): User-supplied object ID for the placeholder element.\n- `createShape`: Creates a new shape.\n  Schema:\n    - `objectId` (string, optional): A user-supplied object ID. If omitted, an ID is generated.\n    - `elementProperties` (object, required): Element location and sizing:\n      - `pageObjectId` (string, required): Object ID of the page where the shape is located.\n      - `size` (object, optional): `{\"width\": {\"magnitude\": number, \"unit\": string}, \"height\": {\"magnitude\": number, \"unit\": string}}` (unit: \"PT\" or \"EMU\").\n      - `transform` (object, optional): AffineTransform `{\"scaleX\": number, \"scaleY\": number, \"shearX\": number, \"shearY\": number, \"translateX\": number, \"translateY\": number, \"unit\": string}`.\n    - `shapeType` (string, required): Type of shape (e.g. \"RECTANGLE\", \"ROUND_RECTANGLE\", \"ELLIPSE\", \"TEXT_BOX\", \"LINE\", etc.).\n- `createTable`: Creates a new table.\n  Schema:\n    - `objectId` (string, optional): A user-supplied object ID. If omitted, an ID is generated.\n    - `elementProperties` (object, required): Element location and sizing:\n      - `pageObjectId` (string, required): Object ID of the page where the table is located.\n      - `size` (object, optional): `{\"width\": {\"magnitude\": number, \"unit\": string}, \"height\": {\"magnitude\": number, \"unit\": string}}`.\n      - `transform` (object, optional): AffineTransform `{\"scaleX\": number, \"scaleY\": number, \"shearX\": number, \"shearY\": number, \"translateX\": number, \"translateY\": number, \"unit\": string}`.\n    - `rows` (integer, required): Number of rows in the table.\n    - `columns` (integer, required): Number of columns in the table.\n- `insertText`: Inserts text into a shape or table cell.\n  Schema:\n    - `objectId` (string, required): Object ID of the shape or table.\n    - `cellLocation` (object, optional): Table cell if inserting into table: `{\"rowIndex\": integer, \"columnIndex\": integer}`.\n    - `text` (string, required): Text to insert.\n    - `insertionIndex` (integer, optional): Zero-based character index where text will be inserted. Defaults to 0.\n- `insertTableRows`: Inserts rows into a table.\n  Schema:\n    - `tableObjectId` (string, required): Object ID of the table.\n    - `cellLocation` (object, required): Reference cell location: `{\"rowIndex\": integer, \"columnIndex\": integer}`.\n    - `insertBelow` (boolean, required): Whether to insert new rows below the reference cell.\n    - `number` (integer, required): Number of rows to insert (maximum 20).\n- `insertTableColumns`: Inserts columns into a table.\n  Schema:\n    - `tableObjectId` (string, required): Object ID of the table.\n    - `cellLocation` (object, required): Reference cell location: `{\"rowIndex\": integer, \"columnIndex\": integer}`.\n    - `insertRight` (boolean, required): Whether to insert new columns to the right of the reference cell.\n    - `number` (integer, required): Number of… [truncated]",
+    "inputSchema": {
+      "$defs": {
+        "WriteControl": {
+          "description": "Provides control over how write requests are executed.",
+          "properties": {
+            "requiredRevisionId": {
+              "description": "The revision ID of the presentation required for the write request. If specified and the required revision ID doesn't match the presentation's current revision ID, the request is not processed and returns a 400 bad request error.",
+              "type": "string"
+            }
+          },
+          "type": "object"
+        }
+      },
+      "description": "Request to update a presentation.",
+      "properties": {
+        "presentationId": {
+          "description": "Required. The ID of the presentation to update.",
+          "type": "string"
+        },
+        "requests": {
+          "description": "Required. A list of batchUpdate requests, using the schema and semantics documented at https://developers.google.com/workspace/slides/api/reference/rest/v1/presentations/request",
+          "items": {
+            "additionalProperties": {
+              "description": "Properties of the object."
+            },
+            "type": "object"
+          },
+          "type": "array"
+        },
+        "writeControl": {
+          "$ref": "#/$defs/WriteControl",
+          "description": "Optional. Provides control over how write requests are executed."
+        }
+      },
+      "required": [
+        "presentationId",
+        "requests"
+      ],
+      "type": "object"
+    }
+  },
+  {
+    "server": "Google_Drive",
+    "name": "read_file_content",
+    "description": "Call this tool to fetch a natural language representation of a known Drive file, and if specified, its comments.\n\nREQUIREMENTS & WORKFLOW:\n - `fileId` is required. You MUST pass an exact Drive file ID returned by a previous discovery tool (`search_files` or `list_recent_files`) or provided explicitly in the user prompt.\n - NEVER guess, invent, or hallucinate a `fileId` string from a file title or name.\n - If given a file title, name, or topic without an explicit `fileId`, you MUST FIRST call `search_files` to find the file and retrieve its `fileId` before invoking this tool.\n\nThe file content may be incomplete for very large files. The text representation will change over time, so don't make assumptions about the particular format of the text returned by this tool. If supported and specified, comment tags will be included in the content.\n\nSupported Mime Types:\n\n - `application/vnd.google-apps.document` (supports comments)\n - `application/vnd.google-apps.presentation` (supports comments)\n - `application/vnd.google-apps.spreadsheet` (supports comments)\n - `application/pdf` \n - `application/msword` \n - `application/vnd.openxmlformats-officedocument.wordprocessingml.document` \n - `application/vnd.openxmlformats-officedocument.spreadsheetml.sheet` \n - `application/vnd.openxmlformats-officedocument.presentationml.presentation` \n - `application/vnd.oasis.opendocument.spreadsheet` \n - `application/vnd.oasis.opendocument.presentation` \n - `application/x-vnd.oasis.opendocument.text` \n - `image/png` \n - `image/jpeg` \n - `image/jpg` \n\nIf the file is not found, try using other tools like `search_files` to find the file the user is requesting using keywords.\n",
+    "inputSchema": {
+      "description": "Request to read file content with support for fetching comments.",
+      "properties": {
+        "fileId": {
+          "description": "Required. The ID of the file to retrieve.",
+          "type": "string"
+        },
+        "includeComments": {
+          "description": "Whether to include comments in the response. Comments will be inlined in the text content of the file with a mapping to the comment threads. Note: Comments are only supported for Google Docs, Slides, and Sheets.",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "fileId"
+      ],
+      "type": "object"
+    }
+  },
+  {
+    "server": "Google_Drive",
+    "name": "get_file_metadata",
+    "description": "Call this tool to find general metadata about a user's Drive file.\n\nContext window token management can be tuned via `snippetVerbosity` (default is `SnippetVerbosity.DETAILED`) or if only metadata is needed, use `excludeContentSnippets`.\n\nIf the file is not found, try using other tools like `search_files` to find the file the user is requesting.\n",
+    "inputSchema": {
+      "description": "Request to get the file.",
+      "properties": {
+        "excludeContentSnippets": {
+          "description": "If true, the content snippet will be excluded from the response.",
+          "type": "boolean"
+        },
+        "fileId": {
+          "description": "Required. The ID of the file to retrieve.",
+          "type": "string"
+        },
+        "snippetVerbosity": {
+          "description": "Optional. Set to specify how verbose the snippets should be. Defaults to DETAILED if not set.",
+          "enum": [
+            "UNSPECIFIED",
+            "BRIEF",
+            "MEDIUM",
+            "DETAILED",
+            "MAX_ALLOWED"
+          ],
+          "type": "string",
+          "x-google-enum-descriptions": [
+            "",
+            "Limits the returned snippet to about 1000 characters.",
+            "Limits the returned snippet to about 2500 characters.",
+            "Limits the returned snippet to about 5000 characters.",
+            "The verbosity is greatly increased, limited by the overall response size."
+          ]
+        }
+      },
+      "required": [
+        "fileId"
+      ],
+      "type": "object"
+    }
+  }
+]
