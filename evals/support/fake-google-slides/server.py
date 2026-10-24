@@ -2,15 +2,20 @@
 
 Usage: server.py <Google_Slides|Google_Drive> <state-dir> [<thumbnail-port>]
 
-The cassette (see RECORDING.md) is a synthetic 10-slide deck. setup.sh copies it into
-<state-dir>/deck.json and both servers read it from there, so the Slides server's edits show up
-in Drive reads. `update_presentation` applies text edits (insertText, deleteText, replaceAllText)
-and object creates, duplicates and deletes, then rewrites deck.json and deck.txt; every other
-request is validated and logged but changes nothing. Batches are atomic. Each `tools/call`
-appends one JSON line, server, tool and arguments, to <state-dir>/calls.log.
+The cassette (see RECORDING.md) is a synthetic 10-slide deck plus a 3-slide template. Each
+file lives in a folder of <state-dir>: the onboarding deck in <state-dir> itself (setup.sh copies
+it there), every other file in <state-dir>/files/<file-id>/, seeded from the cassette on first
+use. Both servers read the same folders, so the Slides server's edits show up in Drive reads.
+Drive `copy_file` copies a deck under a new ID and `create_file` makes a blank stock deck.
+`update_presentation` applies text edits (insertText, deleteText, replaceAllText), object
+creates, duplicates and deletes, transforms, shape properties and slide moves, then rewrites the
+folder's deck.json and deck.txt; every other request is validated and logged but changes nothing.
+Batches are atomic. Each `tools/call` appends one JSON line, server, tool and arguments, to
+<state-dir>/calls.log.
 
 Thumbnails: the Slides server serves the recorded PNGs over http on 127.0.0.1:<thumbnail-port>
-(default 8765). A slide changed since recording has no render, so its thumbnail is a tool error.
+(default 8765), for the recorded decks and their copies. A slide created or changed since
+recording has no render, so its thumbnail is a tool error.
 Standard library only: the eval guest has just the distribution's python3.
 """
 
@@ -26,9 +31,14 @@ from pathlib import Path
 
 CASSETTE = Path(__file__).parent
 TOOLS = json.loads((CASSETTE / "tools.json").read_text(encoding="utf-8"))
-RECORDED = json.loads((CASSETTE / "deck.json").read_text(encoding="utf-8"))["content"]
-FILE_ID = "acme-onboarding-fixture"
-THUMBNAIL_PATH = re.compile(rf"/docsdf/{FILE_ID}-(p-\d\d)=s800")
+ONBOARDING = "acme-onboarding-fixture"
+TEMPLATE = "acme-template-fixture"
+RECORDINGS = {ONBOARDING: CASSETTE, TEMPLATE: CASSETTE / "template"}
+PRESENTATION = "application/vnd.google-apps.presentation"
+THUMBNAIL_PATH = re.compile(
+    r"/docsdf/(acme-onboarding-fixture|acme-template-fixture)-(p-\d\d)=s800"
+)
+SKIPPED_PLACEHOLDERS = {"SLIDE_NUMBER", "FOOTER", "DATE_AND_TIME"}
 SNIPPET_LIMITS = {"BRIEF": 1000, "MEDIUM": 2500, "DETAILED": 5000}
 ERROR_PREFIX = (
     "Invalid argument: <eye3 title='/PresentationsService.BatchUpdatePresentation, "
@@ -38,8 +48,6 @@ ERROR_PREFIX = (
 STYLE_ONLY = {
     "updateTextStyle",
     "updateParagraphStyle",
-    "updateShapeProperties",
-    "updatePageElementTransform",
     "updatePageProperties",
     "updateSlideProperties",
     "updatePageElementAltText",
@@ -47,7 +55,6 @@ STYLE_ONLY = {
     "updateImageProperties",
     "createParagraphBullets",
     "deleteParagraphBullets",
-    "updateSlidesPosition",
     "updatePageElementsZOrder",
     "groupObjects",
     "ungroupObjects",
@@ -360,12 +367,63 @@ def create_shape(deck: dict, request: dict) -> dict:
 
 
 def create_slide(deck: dict, request: dict) -> dict:
-    """createSlide: an empty slide; layout placeholders are not instantiated."""
+    """createSlide: a slide on the named layout, with the layout's text placeholders."""
     object_id = new_id(deck, request.get("objectId"))
+    layout = slide_layout(deck, request.get("slideLayoutReference"))
     slide = {"objectId": object_id, "pageElements": [], "pageProperties": {}, "slideProperties": {}}
+    if layout:
+        slide["slideProperties"] = {
+            "layoutObjectId": layout["objectId"],
+            "masterObjectId": layout["layoutProperties"]["masterObjectId"],
+        }
+        wanted = request.get("placeholderIdMappings", [])
+        for element in layout.get("pageElements", []):
+            placeholder = element.get("shape", {}).get("placeholder")
+            if not placeholder or placeholder["type"] in SKIPPED_PLACEHOLDERS:
+                continue
+            chosen = next((m["objectId"] for m in wanted if names(m, element)), None)
+            instance = {"parentObjectId": element["objectId"], "type": placeholder["type"]}
+            if "index" in placeholder:
+                instance["index"] = placeholder["index"]
+            slide["pageElements"].append(
+                {
+                    "objectId": new_id(deck, chosen),
+                    "shape": {
+                        "placeholder": instance,
+                        "shapeProperties": {},
+                        "shapeType": element["shape"]["shapeType"],
+                    },
+                    "size": copy.deepcopy(element["size"]),
+                    "transform": copy.deepcopy(element["transform"]),
+                }
+            )
     index = request.get("insertionIndex", len(deck["slides"]))
     deck["slides"].insert(index, slide)
     return {"createSlide": {"objectId": object_id}}
+
+
+def slide_layout(deck: dict, reference: dict | None) -> dict | None:
+    """The layout a slideLayoutReference names, by object ID or predefined name."""
+    if not reference:
+        return None
+    for layout in deck.get("layouts", []):
+        if reference.get("layoutId") == layout["objectId"]:
+            return layout
+        if reference.get("predefinedLayout") == layout["layoutProperties"].get("name"):
+            return layout
+    raise BadRequest(f"The layout ({dump(reference)}) could not be found.")
+
+
+def names(mapping: dict, element: dict) -> bool:
+    """Whether a placeholderIdMappings entry picks this layout placeholder."""
+    if mapping.get("layoutPlaceholderObjectId") == element["objectId"]:
+        return True
+    wanted = mapping.get("layoutPlaceholder")
+    placeholder = element["shape"]["placeholder"]
+    return bool(wanted) and (
+        wanted.get("type") == placeholder["type"]
+        and wanted.get("index", 0) == placeholder.get("index", 0)
+    )
 
 
 def duplicate_object(deck: dict, request: dict) -> dict:
@@ -406,6 +464,85 @@ def style_only(deck: dict, request: dict) -> dict:
     return {}
 
 
+def update_transform(deck: dict, request: dict) -> dict:
+    """updatePageElementTransform: ABSOLUTE replaces the transform, RELATIVE composes with it."""
+    element, holder = find(deck, request["objectId"])
+    if holder is deck["slides"]:
+        raise BadRequest(f"The object ({request['objectId']}) is a page, not a page element.")
+    given = request["transform"]
+    keys = ("scaleX", "shearX", "translateX", "shearY", "scaleY", "translateY")
+    defaults = (1, 0, 0, 0, 1, 0)
+    new = [given.get(key, default) for key, default in zip(keys, defaults, strict=True)]
+    if request.get("applyMode") == "RELATIVE":
+        old = element.get("transform", {})
+        a, b, c, d, e, f = (
+            old.get(key, default) for key, default in zip(keys, defaults, strict=True)
+        )
+        sa, sb, sc, sd, se, sf = new
+        new = [
+            sa * a + sb * d,
+            sa * b + sb * e,
+            sa * c + sb * f + sc,
+            sd * a + se * d,
+            sd * b + se * e,
+            sd * c + se * f + sf,
+        ]
+    elif request.get("applyMode") != "ABSOLUTE":
+        raise BadRequest("applyMode must be RELATIVE or ABSOLUTE.")
+    transform = {
+        key: round(value, 4)
+        for key, value, default in zip(keys, new, defaults, strict=True)
+        if value != default or key in ("scaleX", "scaleY")
+    }
+    element["transform"] = {**transform, "unit": given.get("unit", "EMU")}
+    return {}
+
+
+def update_shape_properties(deck: dict, request: dict) -> dict:
+    """updateShapeProperties: copy each field the mask names from the request onto the shape."""
+    element, _ = find(deck, request["objectId"])
+    if "shape" not in element:
+        raise BadRequest(f"The object ({request['objectId']}) is not a shape.")
+    target = element["shape"].setdefault("shapeProperties", {})
+    given = request.get("shapeProperties", {})
+    mask = request.get("fields", "")
+    if not mask:
+        raise BadRequest("The fields mask must not be empty.")
+    paths = list(given) if mask == "*" else [path.strip() for path in mask.split(",")]
+    for path in paths:
+        *parents, leaf = path.split(".")
+        source: object = given
+        for part in parents + [leaf]:
+            source = source.get(part) if isinstance(source, dict) else None
+        holder = target
+        for part in parents:
+            holder = holder.setdefault(part, {})
+        if source is None:
+            holder.pop(leaf, None)
+        else:
+            holder[leaf] = copy.deepcopy(source)
+    return {}
+
+
+def update_slides_position(deck: dict, request: dict) -> dict:
+    """updateSlidesPosition: moves the slides, in the order given, to the index they had before."""
+    wanted = request.get("slideObjectIds", [])
+    if len(set(wanted)) != len(wanted):
+        raise BadRequest("The slideObjectIds must not repeat.")
+    slides = {slide["objectId"]: slide for slide in deck["slides"]}
+    for object_id in wanted:
+        if object_id not in slides:
+            raise BadRequest(f"The object ({object_id}) is not a slide.")
+    moving = [slides[object_id] for object_id in wanted]
+    index = request.get("insertionIndex", 0)
+    if not moving or not 0 <= index <= len(deck["slides"]):
+        raise BadRequest("The slides or insertion index are invalid.")
+    before = sum(1 for slide in deck["slides"][:index] if slide not in moving)
+    kept = [slide for slide in deck["slides"] if slide not in moving]
+    deck["slides"] = kept[:before] + moving + kept[before:]
+    return {}
+
+
 APPLY = {
     "insertText": insert_text,
     "deleteText": delete_text,
@@ -414,6 +551,9 @@ APPLY = {
     "createSlide": create_slide,
     "duplicateObject": duplicate_object,
     "deleteObject": delete_object,
+    "updatePageElementTransform": update_transform,
+    "updateShapeProperties": update_shape_properties,
+    "updateSlidesPosition": update_slides_position,
 }
 
 
@@ -478,8 +618,11 @@ def content_snippet(deck: dict) -> str:
     """Drive metadata `contentSnippet`: every paragraph, then the slide's speaker notes."""
     blocks = []
     count = len(deck["slides"])
+    masters = {master["objectId"]: master for master in deck.get("masters", [])}
     for number, slide in enumerate(deck["slides"], 1):
         shapes = [e["shape"] for e, _ in walk(slide.get("pageElements", [])) if "shape" in e]
+        master = masters.get(slide.get("slideProperties", {}).get("masterObjectId"), {})
+        shapes += [e["shape"] for e, _ in walk(master.get("pageElements", [])) if "shape" in e]
         notes = slide.get("slideProperties", {}).get("notesPage")
         if notes:
             speaker = notes["notesProperties"]["speakerNotesObjectId"]
@@ -508,22 +651,53 @@ class Fake:
         self.state = state
         self.port = port
 
-    def load(self) -> dict:
-        deck = json.loads((self.state / "deck.json").read_text(encoding="utf-8"))
+    def folder(self, file_id: object) -> Path:
+        """Where the file's state lives, seeding a recorded deck on first use."""
+        if not isinstance(file_id, str) or not re.fullmatch(r"[\w-]+", file_id):
+            raise LookupError(f"Requested entity was not found: {file_id}")
+        folder = self.state if file_id == ONBOARDING else self.state / "files" / file_id
+        if not (folder / "deck.json").exists():
+            if file_id not in RECORDINGS:
+                raise LookupError(f"Requested entity was not found: {file_id}")
+            folder.mkdir(parents=True, exist_ok=True)
+            deck = json.loads((RECORDINGS[file_id] / "deck.json").read_text(encoding="utf-8"))
+            self.save(folder, deck["content"])
+        return folder
+
+    def load(self, folder: Path) -> dict:
+        deck = json.loads((folder / "deck.json").read_text(encoding="utf-8"))
         return deck.get("content", deck)
 
-    def save(self, deck: dict) -> None:
+    def save(self, folder: Path, deck: dict) -> None:
         """Write the deck and its read_file_content view atomically, for the other server."""
         for name, body in (("deck.json", dump(deck)), ("deck.txt", file_content(deck))):
-            scratch = self.state / f".{name}.{self.server}"
+            scratch = folder / f".{name}.{self.server}"
             scratch.write_text(body, encoding="utf-8")
-            scratch.replace(self.state / name)
+            scratch.replace(folder / name)
 
-    def stale(self, deck: dict) -> set[str]:
+    def origin(self, folder: Path) -> str | None:
+        """The recorded deck whose renders this file's unchanged slides share."""
+        path = folder / "origin"
+        if path.exists():
+            return path.read_text(encoding="utf-8") or None
+        return self.load(folder)["presentationId"]
+
+    def base_meta(self, folder: Path, file_id: str) -> dict:
+        """The file's `get_file_metadata` before snippet, overlay and modified time."""
+        path = folder / "meta.json"
+        if not path.exists():
+            path = RECORDINGS[file_id] / "meta.json"
+        return json.loads(path.read_text(encoding="utf-8"))
+
+    def stale(self, folder: Path, deck: dict) -> set[str]:
         """Slides whose render would differ from the recorded thumbnail."""
-        path = self.state / "styled-pages.json"
+        path = folder / "styled-pages.json"
         styled = set(json.loads(path.read_text())) if path.exists() else set()
-        recorded = {slide["objectId"]: render_key(slide) for slide in RECORDED["slides"]}
+        origin = self.origin(folder)
+        recorded = {}
+        if origin:
+            source = json.loads((RECORDINGS[origin] / "deck.json").read_text(encoding="utf-8"))
+            recorded = {s["objectId"]: render_key(s) for s in source["content"]["slides"]}
         changed = {
             slide["objectId"]
             for slide in deck["slides"]
@@ -531,18 +705,11 @@ class Fake:
         }
         return styled | changed
 
-    def check_file(self, file_id: object) -> None:
-        if file_id != FILE_ID:
-            raise LookupError(f"Requested entity was not found: {file_id}")
-
     def call(self, name: object, arguments: dict) -> dict:
         try:
-            if name in ("read_presentation", "read_slide_page", "update_presentation"):
-                self.check_file(arguments.get("presentationId"))
-            if name in ("read_file_content", "get_file_metadata"):
-                self.check_file(arguments.get("fileId"))
             if name == "read_presentation":
-                return text({"content": masked(self.load(), arguments.get("fields"))})
+                deck = self.load(self.folder(arguments.get("presentationId")))
+                return text({"content": masked(deck, arguments.get("fields"))})
             if name == "read_slide_page":
                 return text({"content": masked(self.page(arguments), arguments.get("fields"))})
             if name == "read_slide_page_thumbnail":
@@ -550,17 +717,23 @@ class Fake:
             if name == "update_presentation":
                 return self.update(arguments)
             if name == "read_file_content":
-                deck = self.load()
-                recorded = json.loads((CASSETTE / "deck.txt").read_text(encoding="utf-8"))
-                return text({**recorded, "fileContent": file_content(deck)})
+                file_id = arguments.get("fileId")
+                folder = self.folder(file_id)
+                meta = self.base_meta(folder, str(file_id))
+                body = {"title": meta["title"], "viewUrl": meta["viewUrl"]}
+                return text({**body, "fileContent": file_content(self.load(folder))})
             if name == "get_file_metadata":
                 return text(self.metadata(arguments))
+            if name == "copy_file":
+                return text(self.copy(arguments))
+            if name == "create_file":
+                return text(self.create(arguments))
         except (LookupError, BadRequest) as error:
             return text(str(error), is_error=True)
         return text(f"unknown tool {name}", is_error=True)
 
     def page(self, arguments: dict) -> dict:
-        deck = self.load()
+        deck = self.load(self.folder(arguments.get("presentationId")))
         for page in all_pages(deck):
             if page["objectId"] == arguments.get("pageId"):
                 return {
@@ -571,22 +744,30 @@ class Fake:
         raise LookupError(f"Requested entity was not found: page {arguments.get('pageId')}")
 
     def thumbnail(self, arguments: dict) -> dict:
-        self.check_file(arguments.get("presentationId"))
+        folder = self.folder(arguments.get("presentationId"))
         page_id = arguments.get("pageId", "")
-        match = re.fullmatch(r"s(\d\d)_slide", page_id)
-        if page_id in self.stale(self.load()) or not match:
+        origin = self.origin(folder)
+        recorded = []
+        if origin:
+            source = json.loads((RECORDINGS[origin] / "deck.json").read_text(encoding="utf-8"))
+            recorded = [slide["objectId"] for slide in source["content"]["slides"]]
+        if page_id in self.stale(folder, self.load(folder)) or page_id not in recorded:
             raise LookupError(
                 f"Thumbnail unavailable for {page_id}: this fake serves only recorded renders, "
                 "and the page was created or edited since recording."
             )
-        recorded = json.loads((CASSETTE / f"thumbs/p-{match.group(1)}.json").read_text())
-        url = recorded["contentUrl"].replace(
+        assert origin is not None
+        number = recorded.index(page_id) + 1
+        thumb = RECORDINGS[origin] / f"thumbs/p-{number:02d}.json"
+        recorded_thumb = json.loads(thumb.read_text(encoding="utf-8"))
+        url = recorded_thumb["contentUrl"].replace(
             "https://lh7-us.googleusercontent.com", f"http://127.0.0.1:{self.port}"
         )
-        return text({**recorded, "contentUrl": url})
+        return text({**recorded_thumb, "contentUrl": url})
 
     def update(self, arguments: dict) -> dict:
-        deck = self.load()
+        folder = self.folder(arguments.get("presentationId"))
+        deck = self.load(folder)
         required = arguments.get("writeControl", {}).get("requiredRevisionId")
         if required and required != deck["revisionId"]:
             raise BadRequest(
@@ -612,31 +793,100 @@ class Fake:
                 detail = str(error) if isinstance(error, BadRequest) else f"missing {error}"
                 message = f"{ERROR_PREFIX}Invalid requests[{index}].{kind}: {detail};"
                 raise BadRequest(message) from None
-        number = int(deck["revisionId"].rsplit("-", 1)[1]) + 1
-        draft["revisionId"] = f"fixture-revision-{number:04d}"
-        self.save(draft)
-        path = self.state / "styled-pages.json"
+        prefix, number = deck["revisionId"].rsplit("-", 1)
+        draft["revisionId"] = f"{prefix}-{int(number) + 1:04d}"
+        self.save(folder, draft)
+        path = folder / "styled-pages.json"
         styled |= set(json.loads(path.read_text())) if path.exists() else set()
         path.write_text(json.dumps(sorted(styled)))
-        (self.state / "modified").write_text(datetime.now(UTC).isoformat())
+        (folder / "modified").write_text(datetime.now(UTC).isoformat())
         return text({"replies": replies})
 
     def metadata(self, arguments: dict) -> dict:
-        meta = json.loads((CASSETTE / "meta.json").read_text(encoding="utf-8"))
-        overlay = self.state / "meta-overlay.json"
+        file_id = arguments.get("fileId")
+        folder = self.folder(file_id)
+        meta = self.base_meta(folder, str(file_id))
+        overlay = folder / "meta-overlay.json"
         if overlay.exists():
             meta.update(json.loads(overlay.read_text(encoding="utf-8")))
-        modified = self.state / "modified"
+        modified = folder / "modified"
         if modified.exists():
             stamp = datetime.fromisoformat(modified.read_text())
             meta["modifiedTime"] = stamp.strftime("%Y-%m-%dT%H:%M:%S.") + "000Z"
         if arguments.get("excludeContentSnippets"):
             meta.pop("contentSnippet", None)
         else:
-            snippet = content_snippet(self.load())
+            snippet = content_snippet(self.load(folder))
             limit = SNIPPET_LIMITS.get(arguments.get("snippetVerbosity", "DETAILED"))
             meta["contentSnippet"] = snippet[:limit] if limit else snippet
         return meta
+
+    def copy(self, arguments: dict) -> dict:
+        """Drive copy_file: the deck under a new ID, keeping every object ID, as the API does."""
+        source_id = str(arguments.get("fileId"))
+        source = self.folder(source_id)
+        deck = self.load(source)
+        title = arguments.get("title") or f"Copy of {deck['title']}"
+        stem = source_id.removesuffix("-fixture")
+        file_id = self.unused(f"{stem}-copy-fixture")
+        folder = self.state / "files" / file_id
+        folder.mkdir(parents=True)
+        styled = source / "styled-pages.json"
+        if styled.exists():
+            (folder / "styled-pages.json").write_text(styled.read_text())
+        (folder / "origin").write_text(self.origin(source) or "")
+        reply = self.new_file("copy_file.json", file_id, title, arguments.get("parentId"))
+        (folder / "meta.json").write_text(dump(reply))
+        revision = f"{file_id.removesuffix('-fixture')}-revision-0001"
+        self.save(
+            folder, {**deck, "presentationId": file_id, "title": title, "revisionId": revision}
+        )
+        return reply
+
+    def create(self, arguments: dict) -> dict:
+        """Drive create_file: only a blank presentation, the stock deck of one empty TITLE slide."""
+        mime = arguments.get("contentMimeType") or arguments.get("mimeType")
+        content = arguments.get("textContent") or arguments.get("base64Content")
+        if mime != PRESENTATION or content or arguments.get("content"):
+            raise BadRequest(
+                f"This fake creates only blank presentations (contentMimeType {PRESENTATION}, "
+                "no content)."
+            )
+        title = str(arguments.get("title", ""))
+        if not title:
+            raise BadRequest("Invalid argument: title is required.")
+        file_id = self.unused("blank-deck-fixture")
+        folder = self.state / "files" / file_id
+        folder.mkdir(parents=True)
+        (folder / "origin").write_text("")
+        reply = self.new_file("create_file.json", file_id, title, arguments.get("parentId"))
+        (folder / "meta.json").write_text(dump(reply))
+        blank = json.loads((CASSETTE / "template/blank.json").read_text(encoding="utf-8"))
+        self.save(folder, {**blank["content"], "presentationId": file_id, "title": title})
+        return reply
+
+    def unused(self, file_id: str) -> str:
+        """`file_id`, or it with the first free -2, -3 suffix."""
+        taken = {ONBOARDING, *RECORDINGS, *(p.name for p in (self.state / "files").glob("*"))}
+        candidate, number = file_id, 1
+        while candidate in taken:
+            number += 1
+            candidate = f"{file_id}-{number}"
+        return candidate
+
+    def new_file(self, recorded: str, file_id: str, title: str, parent: object) -> dict:
+        """A recorded copy_file or create_file reply, re-pointed at a new file."""
+        reply = json.loads((CASSETTE / "template" / recorded).read_text(encoding="utf-8"))
+        url = f"https://docs.google.com/presentation/d/{file_id}/edit"
+        reply.update(
+            id=file_id,
+            title=title,
+            resourceUri=f"googledrive://file/{file_id}",
+            viewUrl=f"{url}?usp=drivesdk&ouid=000000000000000000000",
+        )
+        if parent:
+            reply["parentId"] = parent
+        return reply
 
     def answer(self, message: dict) -> dict | None:
         """The JSON-RPC response to one message, or None for a notification."""
@@ -677,7 +927,7 @@ class Thumbnails(BaseHTTPRequestHandler):
 
     def do_GET(self) -> None:  # noqa: N802 - http.server's naming
         match = THUMBNAIL_PATH.fullmatch(self.path)
-        png = CASSETTE / f"thumbs/{match.group(1)}.png" if match else None
+        png = RECORDINGS[match.group(1)] / f"thumbs/{match.group(2)}.png" if match else None
         if png is None or not png.exists():
             self.send_error(404)
             return

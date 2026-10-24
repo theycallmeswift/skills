@@ -7,5 +7,5 @@ Make me a new 8-slide deck about our Q3 results.
 
 ## Assertions
 
-- [ ] Skill `redesigning-google-slides` not invoked
+- [ ] Skill `google-slides` invoked
   - if: {BENCHSPEC_ARM} != "baseline"
