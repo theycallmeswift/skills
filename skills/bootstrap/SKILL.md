@@ -9,7 +9,7 @@ Set a repo up to the house setup in `assets/`. The assets are the canonical copi
 
 ## Rules
 
-- **Never edit a file that exists.** Two exceptions: append missing `.gitignore` lines, and add dev dependencies through the package manager. Whatever an existing file lacks is a gap to report, not a fix: its content is someone's decision.
+- **Never edit a file that exists.** Three exceptions: append missing `.gitignore` lines, add dev dependencies through the package manager, and add the CI badge to `README.md`. Whatever an existing file lacks is a gap to report, not a fix: its content is someone's decision.
 - **Write only what the table lists.** No starter code, sample tests, or empty directories.
 - **Fill every `<placeholder>`** from the repo, and wrap filled prose at 80 columns.
 
@@ -44,6 +44,8 @@ If the repo has a remote and the remote has no `main`, first push an empty root 
 | `template-pull_request_template.md` | `.github/pull_request_template.md`, byte for byte | all |
 | `template-ci-python.yml` or `template-ci-typescript.yml` | `.github/workflows/ci.yml`, byte for byte | language |
 | `template-node-version` | `.node-version`, which CI reads | language |
+| — | `README.md`: on the line under its title, `[![CI](https://github.com/<owner>/<repo>/actions/workflows/ci.yml/badge.svg)](https://github.com/<owner>/<repo>/actions/workflows/ci.yml)`, with `<owner>/<repo>` from the GitHub remote. No README, no GitHub remote, or a badge already there: skip it | language |
+| — | `.env.example`: every environment variable the code, docs, or `.env` names, each with an empty value under a one-line comment on what it's for. Never copy a value from `.env` | when any are known |
 | `template-gitignore` | lines appended to `.gitignore`; TypeScript adds `node_modules/` | all |
 | `template-Makefile`, `template-pyproject.toml` | `Makefile`, `pyproject.toml` | Python |
 | `template-package.json`, `template-tsconfig.json`, `template-biome.jsonc`, `template-vitest.config.ts` | the name without `template-` | TypeScript |
@@ -72,6 +74,8 @@ Check every existing file that has an asset against it:
 - `.claude/settings.json`: missing attribution, allow or deny rules, the `core@mechaswift` plugin, or the SessionStart hook.
 - Gate file: each missing `install`, `test`, `lint`, or `format` target or script.
 - `.github/workflows/ci.yml`: no docs-only skip for the tests, or no `CI passed` job for branch protection to require.
+- `README.md`: missing, or no CI badge because the repo has no GitHub remote.
+- `.env.example`: each known variable it lacks.
 - Style docs: each asset rule they lack or contradict.
 
 End with:

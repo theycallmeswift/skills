@@ -15,20 +15,24 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  # Whether a pull request changes only documentation: files under docs/, or
-  # the root README.md, AGENTS.md, or CLAUDE.md. Such a PR runs lint, which
-  # checks the Markdown, and skips the tests. Drop a path from the pattern once
-  # a test reads it. Renames count both paths, so moving a file into docs/
-  # still changes where it came from. Pushes to main run every job.
-  changes:
+  # One job, so each run bills one rounded-up minute rather than one per job.
+  # Branch protection requires it by name. A pull request that changes only
+  # documentation (files under docs/, or the root README.md, AGENTS.md, or
+  # CLAUDE.md) runs lint, which checks the Markdown, and skips the tests. Drop
+  # a path from the pattern once a test reads it. Renames count both paths, so
+  # moving a file into docs/ still changes where it came from. Pushes to main
+  # run everything. When CI needs a second job, rename this one and add a
+  # `CI passed` job that needs every other job, so branch protection still
+  # requires a single check.
+  ci:
+    name: CI passed
     runs-on: ubuntu-latest
-    outputs:
-      docs_only: ${{ steps.classify.outputs.docs_only }}
     steps:
       - name: Check out the repository
-        if: github.event_name == 'pull_request'
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          # On a pull request the checkout is the PR merged into its base, so
+          # HEAD^1 is the base.
           fetch-depth: 2
           persist-credentials: false
 
@@ -39,7 +43,6 @@ jobs:
         run: |
           docs_only=false
           if [ "$EVENT" = pull_request ]; then
-            # The checkout is the PR merged into its base, so HEAD^1 is the base.
             changed=$(git diff --name-only --no-renames HEAD^1 HEAD)
             printf 'Changed files:\n%s\n' "$changed"
             if [ -n "$changed" ] &&
@@ -48,12 +51,6 @@ jobs:
             fi
           fi
           echo "docs_only=$docs_only" | tee -a "$GITHUB_OUTPUT"
-
-  lint:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Check out the repository
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Set up uv
         uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
@@ -70,40 +67,7 @@ jobs:
       - name: Lint
         run: make lint
 
-  test:
-    needs: changes
-    if: needs.changes.outputs.docs_only != 'true'
-    runs-on: ubuntu-latest
-    steps:
-      - name: Check out the repository
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-
-      - name: Set up uv
-        uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
-
-      - name: Install dependencies
-        run: make install
-
+      # Runs after a lint failure too, so one push reports both.
       - name: Test
+        if: ${{ !cancelled() && steps.classify.outputs.docs_only != 'true' }}
         run: make test
-
-  # The one check branch protection requires. The test job skips on a
-  # docs-only PR, and requiring each job by name breaks once a skipped job is
-  # a matrix, which reports under its unexpanded name. This job passes when
-  # every job passed or skipped, and fails on a failed or cancelled one.
-  ci-passed:
-    name: CI passed
-    if: always()
-    needs: [changes, lint, test]
-    runs-on: ubuntu-latest
-    steps:
-      - name: Check every job passed or skipped
-        env:
-          RESULTS: ${{ join(needs.*.result, ' ') }}
-        run: |
-          echo "Job results: $RESULTS"
-          for result in $RESULTS; do
-            if [ "$result" != success ] && [ "$result" != skipped ]; then
-              exit 1
-            fi
-          done

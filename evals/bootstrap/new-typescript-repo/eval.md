@@ -20,4 +20,7 @@ user: finish end to end, then tell me what you did.
 - [ ] Every Set up Node step in ./.github/workflows/ci.yml reads `node-version-file: .node-version`
 - [ ] ./.claude/settings.json enables the `core@mechaswift` plugin
 - [ ] ./.claude/settings.json allows `npm test` and `npm run lint`
+- [ ] ./.env.example sets `SIFT_WEBHOOK_URL` to an empty value under a comment saying what it's for
+- [ ] ./.github/workflows/ci.yml runs lint and tests in its one job, named `CI passed`
+- [ ] The final message reports that ./README.md got no CI badge because the repo has no GitHub remote
 - [ ] The final message reports `npm test` and `npm run lint` as passed
