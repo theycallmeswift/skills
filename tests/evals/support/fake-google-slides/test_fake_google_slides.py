@@ -387,3 +387,61 @@ def test_transform_shape_and_position_updates_apply(slides: Server, drive: Serve
     assert fill["color"] == {"themeColor": "ACCENT1"}
     content = json.loads(drive.call("read_file_content", fileId=DECK)[0])["fileContent"]
     assert content.index("Next steps for this week") < content.index("# Tips")
+
+
+def test_relative_transforms_compose_as_matrices(slides: Server):
+    absolute = {"scaleX": 2, "scaleY": 3, "translateX": 10, "translateY": 20, "unit": "EMU"}
+    relative = {"scaleX": 0.5, "scaleY": 2, "shearX": 1, "translateX": 5, "translateY": 7}
+    requests = [
+        {
+            "updatePageElementTransform": {
+                "objectId": "s09_title",
+                "applyMode": mode,
+                "transform": transform,
+            }
+        }
+        for mode, transform in (("ABSOLUTE", absolute), ("RELATIVE", relative))
+    ]
+
+    body, error = slides.call("update_presentation", presentationId=DECK, requests=requests)
+
+    assert not error, body
+    page = json.loads(slides.call("read_slide_page", presentationId=DECK, pageId="s09_slide")[0])
+    title = next(e for e in page["content"]["pageElements"] if e["objectId"] == "s09_title")
+    # [[0.5, 1, 5], [0, 2, 7]] x [[2, 0, 10], [0, 3, 20]] = [[1, 3, 30], [0, 6, 47]]
+    assert title["transform"] == {
+        "scaleX": 1,
+        "shearX": 3,
+        "translateX": 30,
+        "scaleY": 6,
+        "translateY": 47,
+        "unit": "EMU",
+    }
+
+
+@pytest.mark.parametrize(
+    "request_body",
+    [
+        {"updateSlidesPosition": {"slideObjectIds": ["s09_title"], "insertionIndex": 0}},
+        {
+            "updateSlidesPosition": {
+                "slideObjectIds": ["s10_slide", "s10_slide"],
+                "insertionIndex": 0,
+            }
+        },
+        {
+            "updatePageElementTransform": {
+                "objectId": "s09_slide",
+                "applyMode": "ABSOLUTE",
+                "transform": {"scaleX": 1, "scaleY": 1},
+            }
+        },
+    ],
+)
+def test_moves_and_transforms_reject_the_wrong_kind_of_object(
+    slides: Server, drive: Server, request_body: dict
+):
+    body, error = slides.call("update_presentation", presentationId=DECK, requests=[request_body])
+
+    assert error, body
+    assert drive.call("read_file_content", fileId=DECK) == (cassette("deck.txt"), False)

@@ -466,7 +466,9 @@ def style_only(deck: dict, request: dict) -> dict:
 
 def update_transform(deck: dict, request: dict) -> dict:
     """updatePageElementTransform: ABSOLUTE replaces the transform, RELATIVE composes with it."""
-    element, _ = find(deck, request["objectId"])
+    element, holder = find(deck, request["objectId"])
+    if holder is deck["slides"]:
+        raise BadRequest(f"The object ({request['objectId']}) is a page, not a page element.")
     given = request["transform"]
     keys = ("scaleX", "shearX", "translateX", "shearY", "scaleY", "translateY")
     defaults = (1, 0, 0, 0, 1, 0)
@@ -524,7 +526,14 @@ def update_shape_properties(deck: dict, request: dict) -> dict:
 
 def update_slides_position(deck: dict, request: dict) -> dict:
     """updateSlidesPosition: moves the slides, in the order given, to the index they had before."""
-    moving = [find(deck, object_id)[0] for object_id in request.get("slideObjectIds", [])]
+    wanted = request.get("slideObjectIds", [])
+    if len(set(wanted)) != len(wanted):
+        raise BadRequest("The slideObjectIds must not repeat.")
+    slides = {slide["objectId"]: slide for slide in deck["slides"]}
+    for object_id in wanted:
+        if object_id not in slides:
+            raise BadRequest(f"The object ({object_id}) is not a slide.")
+    moving = [slides[object_id] for object_id in wanted]
     index = request.get("insertionIndex", 0)
     if not moving or not 0 <= index <= len(deck["slides"]):
         raise BadRequest("The slides or insertion index are invalid.")

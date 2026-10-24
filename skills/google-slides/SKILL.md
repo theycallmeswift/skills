@@ -25,7 +25,7 @@ For an existing deck, read the file's owner and sharing from its metadata. If th
 
 ### New deck
 
-- **Template or reference deck named:** copy it with Drive's copy tool and build in the copy. The copy keeps the template's theme colors, fonts, masters, layouts and logo; a blank deck loses them. Never edit the template itself. Learn the copy's design as for an existing deck, from its layouts and sample slides.
+- **Template or reference deck named:** copy it with Drive's copy tool and build in the copy. Never edit the template itself. Learn the copy's design as for an existing deck, from its layouts and sample slides.
 - **None named:** ask once, in one question, for a template or a deck to match, with your slide plan attached. If the user has none or already said go ahead, create a blank presentation and keep its stock theme: one accent color from the theme, at most two layouts (title; title and body), nothing invented. Brand colors, fonts and logo are the brand owner's call; if the deck seems to need them, list that under "Needs your call".
 
 Build new slides on the deck's own layouts, not hand-placed text boxes, and remove or reuse the template's sample slides.
