@@ -7,5 +7,5 @@ Export my Google Slides kickoff deck as a PDF. https://docs.google.com/presentat
 
 ## Assertions
 
-- [ ] Skill `redesigning-google-slides` not invoked
+- [ ] Skill `google-slides` not invoked
   - if: {BENCHSPEC_ARM} != "baseline"

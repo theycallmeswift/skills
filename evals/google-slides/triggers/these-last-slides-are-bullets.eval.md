@@ -7,5 +7,5 @@ These last two slides are just bullet points. Can you make them look like the re
 
 ## Assertions
 
-- [ ] Skill `redesigning-google-slides` invoked
+- [ ] Skill `google-slides` invoked
   - if: {BENCHSPEC_ARM} != "baseline"

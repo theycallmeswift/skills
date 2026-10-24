@@ -52,7 +52,7 @@ Claude Code plugin layout. The manifest lives in `.claude-plugin/`; everything e
 - **claude-cloud-worker** — the worker side: take an orchestrator's task, open a draft PR, address review rounds, and report back through a Routine.
 - **bootstrap** — set up a repo, new or existing, to Swift's house setup: `AGENTS.md` with a `CLAUDE.md` symlink, `docs/style/`, test and lint gates, Claude settings, cloud-agent docs, a CI workflow that skips tests on docs-only PRs, and the PR template. Adds only what's missing and reports the gaps it left.
 - **pull-request** — open a PR as a draft from the repo's template, fill the Ready gate only from evidence the session has, mark it ready once every row has evidence and CI is green, and back to draft when CI fails.
-- **redesigning-google-slides** — redesign slides in an existing Google Slides deck so they match it: scope the facts, design the slides as a set, render and critique, then sweep the deck for anything the change contradicts. Asks before live edits when `google-workspace` isn't available.
+- **google-slides** — build a new Google Slides deck from a template (Drive copy) or supplied content, or add and redesign slides in an existing one so they match it: scope the facts, design the slides as a set, render and critique, then sweep an existing deck for anything the change contradicts. Takes content as given. Asks before writes when `google-workspace` isn't available and before editing someone else's deck.
 
 ## References
 

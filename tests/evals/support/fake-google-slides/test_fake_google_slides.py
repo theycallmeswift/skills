@@ -1,4 +1,5 @@
-"""fake-google-slides replays its cassette, applies text edits, and logs every call."""
+"""fake-google-slides replays its cassette, copies and creates decks, applies text edits, and logs
+every call."""
 
 from __future__ import annotations
 
@@ -14,6 +15,9 @@ import pytest
 
 FAKE = Path(__file__).parents[4] / "evals" / "support" / "fake-google-slides"
 DECK = "acme-onboarding-fixture"
+TEMPLATE = "acme-template-fixture"
+COPY = "acme-template-copy-fixture"
+PRESENTATION = "application/vnd.google-apps.presentation"
 
 
 class Server:
@@ -245,3 +249,95 @@ def test_metadata_overlay_replaces_recorded_fields(drive: Server, state: Path):
     meta = json.loads(drive.call("get_file_metadata", fileId=DECK)[0])
 
     assert meta["owner"] == "priya@example.com"
+
+
+def test_template_reads_replay_its_cassette(slides: Server, drive: Server):
+    replay = slides.call("read_presentation", presentationId=TEMPLATE)
+    assert replay == (cassette("template/deck.json"), False)
+    for number in range(1, 4):
+        page = f"t{number:02d}_slide"
+        replay = slides.call("read_slide_page", presentationId=TEMPLATE, pageId=page)
+        assert replay == (cassette(f"template/pages/p-{number:02d}.json"), False)
+    assert drive.call("read_file_content", fileId=TEMPLATE) == (
+        cassette("template/deck.txt"),
+        False,
+    )
+    assert drive.call("get_file_metadata", fileId=TEMPLATE) == (
+        cassette("template/meta.json"),
+        False,
+    )
+
+
+def test_copy_file_serves_the_template_under_the_copy_id(slides: Server, drive: Server, port: int):
+    title = "Acme brand template (eval fixture) copy"
+
+    reply = drive.call("copy_file", fileId=TEMPLATE, title=title)
+
+    assert reply == (cassette("template/copy_file.json"), False)
+    deck = json.loads(slides.call("read_presentation", presentationId=COPY)[0])["content"]
+    template = json.loads((FAKE / "template" / "deck.json").read_text())["content"]
+    assert (deck["presentationId"], deck["title"]) == (COPY, title)
+    assert deck["slides"] == template["slides"] and deck["layouts"] == template["layouts"]
+    page, error = slides.call("read_slide_page", presentationId=COPY, pageId="t02_slide")
+    assert not error and json.loads(page)["content"]["objectId"] == "t02_slide"
+    body, error = slides.call("read_slide_page_thumbnail", presentationId=COPY, pageId="t03_slide")
+    with urllib.request.urlopen(json.loads(body)["contentUrl"]) as response:
+        assert response.read() == (FAKE / "template" / "thumbs" / "p-03.png").read_bytes()
+    assert not error and f"127.0.0.1:{port}" in body
+
+
+def test_editing_a_copy_leaves_the_template_alone(slides: Server, drive: Server, state: Path):
+    drive.call("copy_file", fileId=TEMPLATE)
+    edit = [{"insertText": {"objectId": "t02_title", "text": "New "}}]
+
+    assert not slides.call("update_presentation", presentationId=COPY, requests=edit)[1]
+
+    assert "# New State the takeaway" in (state / "files" / COPY / "deck.txt").read_text()
+    assert drive.call("read_file_content", fileId=TEMPLATE) == (
+        cassette("template/deck.txt"),
+        False,
+    )
+    second = json.loads(drive.call("copy_file", fileId=TEMPLATE)[0])
+    assert second["id"] == f"{COPY}-2"
+    assert second["title"] == "Copy of Acme brand template (eval fixture)"
+
+
+def test_create_file_makes_the_recorded_blank_deck(slides: Server, drive: Server):
+    reply = drive.call(
+        "create_file", title="Blank deck (eval fixture)", contentMimeType=PRESENTATION
+    )
+
+    assert reply == (cassette("template/create_file.json"), False)
+    deck = slides.call("read_presentation", presentationId="blank-deck-fixture")
+    assert deck == (cassette("template/blank.json"), False)
+    refused = drive.call("create_file", title="Notes", contentMimeType="text/plain")
+    assert refused[1] and "only blank presentations" in refused[0]
+
+
+def test_created_slides_get_their_layouts_text_placeholders(slides: Server, drive: Server):
+    drive.call("copy_file", fileId=TEMPLATE)
+    create = {
+        "objectId": "t04_slide",
+        "slideLayoutReference": {"layoutId": "p5"},
+        "placeholderIdMappings": [
+            {"layoutPlaceholder": {"type": "TITLE"}, "objectId": "t04_title"},
+            {"layoutPlaceholder": {"type": "BODY", "index": 1}, "objectId": "t04_right"},
+        ],
+    }
+    requests = [
+        {"createSlide": create},
+        {"insertText": {"objectId": "t04_title", "text": "Two options"}},
+        {"insertText": {"objectId": "t04_right", "text": "Option B"}},
+    ]
+
+    body, error = slides.call("update_presentation", presentationId=COPY, requests=requests)
+
+    assert not error, body
+    page = json.loads(slides.call("read_slide_page", presentationId=COPY, pageId="t04_slide")[0])
+    elements = page["content"]["pageElements"]
+    assert [e["shape"]["placeholder"]["type"] for e in elements] == ["TITLE", "BODY", "BODY"]
+    assert elements[0]["objectId"] == "t04_title" and elements[2]["objectId"] == "t04_right"
+    assert page["content"]["slideProperties"]["layoutObjectId"] == "p5"
+    content = json.loads(drive.call("read_file_content", fileId=COPY)[0])["fileContent"]
+    assert "# Two options" in content and "Option B" in content
+    assert slides.call("read_slide_page_thumbnail", presentationId=COPY, pageId="t04_slide")[1]
