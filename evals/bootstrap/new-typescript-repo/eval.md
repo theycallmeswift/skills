@@ -16,6 +16,8 @@ user: finish end to end, then tell me what you did.
 - [ ] ./docs/cloud-agents.md does not contain the phrase "the language's package hosts"
 - [ ] ./docs/cloud-agents.md has no uv bullet and no uv install block
 - [ ] ./tsconfig.json excludes `tmp`
+- [ ] ./test/unit/hello.test.ts holds a vitest test
+- [ ] No file in the workspace sets vitest's `passWithNoTests`
 - [ ] ./.node-version contains `26`
 - [ ] Every Set up Node step in ./.github/workflows/ci.yml reads `node-version-file: .node-version`
 - [ ] ./.claude/settings.json enables the `core@mechaswift` plugin

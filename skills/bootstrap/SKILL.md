@@ -10,7 +10,7 @@ Set a repo up to the house setup in `assets/`. The assets are the canonical copi
 ## Rules
 
 - **Never edit a file that exists.** Three exceptions: append missing `.gitignore` lines, add dev dependencies through the package manager, and add the CI badge to `README.md`. Whatever an existing file lacks is a gap to report, not a fix: its content is someone's decision.
-- **Write only what the table lists.** No starter code, sample tests, or empty directories.
+- **Write only what the table lists.** No starter code or empty directories. The only test is the TypeScript hello world test, so `npm test` has one to run.
 - **Fill every `<placeholder>`** from the repo, and wrap filled prose at 80 columns.
 
 ## 1. Detect the language
@@ -48,7 +48,8 @@ If the repo has a remote and the remote has no `main`, first push an empty root 
 | — | `.env.example`: every environment variable the code, docs, or `.env` names, each with an empty value under a one-line comment on what it's for. Never copy a value from `.env` | when any are known |
 | `template-gitignore` | lines appended to `.gitignore`; TypeScript adds `node_modules/` | all |
 | `template-Makefile`, `template-pyproject.toml` | `Makefile`, `pyproject.toml` | Python |
-| `template-package.json`, `template-tsconfig.json`, `template-biome.jsonc`, `template-vitest.config.ts` | the name without `template-` | TypeScript |
+| `template-package.json`, `template-tsconfig.json`, `template-biome.jsonc` | the name without `template-` | TypeScript |
+| `template-hello.test.ts` | `test/unit/hello.test.ts` | TypeScript |
 
 If `CLAUDE.md` is a regular file and `AGENTS.md` is missing, write neither; report that `CLAUDE.md` should move to `AGENTS.md` with a symlink back.
 
