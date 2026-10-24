@@ -33,16 +33,17 @@ If the repo has a remote and the remote has no `main`, first push an empty root 
 
 | Asset | Destination | For |
 | --- | --- | --- |
-| `template-AGENTS.md` | `AGENTS.md`; intro from the README and code; add the repo's top-level folders to Project structure | all |
+| `template-AGENTS.md` | `AGENTS.md`; intro from the README and code; add the repo's top-level folders to Project structure; TypeScript drops the line about markdownlint through `npx` | all |
 | — | `CLAUDE.md` as a symlink: `ln -s AGENTS.md CLAUDE.md` | all |
 | `template-style-development.md`, `template-style-markdown.md`, `template-style-testing.md` | `docs/style/development.md`, `markdown.md`, `testing.md` | all |
 | `template-style-python.md` or `template-style-typescript.md` | `docs/style/python.md` or `typescript.md` | language |
 | `template-markdownlint-cli2.jsonc` | `.markdownlint-cli2.jsonc` | all |
 | `template-claude-settings.json` | `.claude/settings.json` | all |
 | `template-claude-cloud-node26-path.sh` | `.claude/hooks/claude-cloud-node26-path.sh`, executable | all |
-| `template-cloud-agents.md` | `docs/cloud-agents.md`; drop the uv block outside Python | all |
+| `template-cloud-agents.md` | `docs/cloud-agents.md`; drop the uv bullet and the uv block outside Python | all |
 | `template-pull_request_template.md` | `.github/pull_request_template.md`, byte for byte | all |
 | `template-ci-python.yml` or `template-ci-typescript.yml` | `.github/workflows/ci.yml`, byte for byte | language |
+| `template-node-version` | `.node-version`, which CI reads | language |
 | `template-gitignore` | lines appended to `.gitignore`; TypeScript adds `node_modules/` | all |
 | `template-Makefile`, `template-pyproject.toml` | `Makefile`, `pyproject.toml` | Python |
 | `template-package.json`, `template-tsconfig.json`, `template-biome.jsonc`, `template-vitest.config.ts` | the name without `template-` | TypeScript |
@@ -68,7 +69,7 @@ Check every existing file that has an asset against it:
 
 - `AGENTS.md`: each template section it lacks, by heading.
 - `CLAUDE.md`: not a symlink to `AGENTS.md`.
-- `.claude/settings.json`: missing attribution, deny rules, or the SessionStart hook.
+- `.claude/settings.json`: missing attribution, allow or deny rules, the `core@mechaswift` plugin, or the SessionStart hook.
 - Gate file: each missing `install`, `test`, `lint`, or `format` target or script.
 - `.github/workflows/ci.yml`: no docs-only skip for the tests, or no `CI passed` job for branch protection to require.
 - Style docs: each asset rule they lack or contradict.

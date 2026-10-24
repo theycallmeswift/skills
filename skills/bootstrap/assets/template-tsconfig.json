@@ -13,5 +13,6 @@
     "exactOptionalPropertyTypes": true,
     "noImplicitOverride": true,
     "skipLibCheck": true
-  }
+  },
+  "exclude": ["tmp", "node_modules"]
 }
