@@ -19,6 +19,6 @@ to end, then tell me what you did.
 - [ ] ./docs/style/testing.md says e2e and integration tests carry most of the coverage
 - [ ] ./AGENTS.md says every PR lands on `main` as one squash commit and that a branch may update by merging `main` into it
 - [ ] ./.claude/settings.json sets `attribution.commit` and `attribution.pr` to empty strings
-- [ ] ./.github/workflows/ci.yml has a job named `CI passed` that needs every other job
-- [ ] ./.github/workflows/ci.yml skips the test job when a pull request changes only files under `docs/`
+- [ ] ./.github/workflows/ci.yml runs lint and tests in its one job, named `CI passed`
+- [ ] ./.github/workflows/ci.yml skips the test step when a pull request changes only files under `docs/`
 - [ ] The final message says branch protection on `main` should require the `CI passed` check

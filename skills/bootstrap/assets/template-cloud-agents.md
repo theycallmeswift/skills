@@ -4,16 +4,23 @@ Set up a Linux cloud VM so a coding agent can build and verify this repo.
 
 ## What the VM needs
 
-- **Node 26,** for markdownlint, installed beside the image's own.
-- **Network access** to `nodejs.org` and `registry.npmjs.org`, plus the
-  language's package hosts.
+- **Node 26,** installed beside the image's own.
+- **Python 3.13 through uv,** which installs from `astral.sh` and
+  `github.com` and fetches packages from `pypi.org` and
+  `files.pythonhosted.org`.
+- **Network access** to `nodejs.org`, `registry.npmjs.org`, `github.com` for
+  the skills plugin, and the image's apt mirrors when `libatomic1` is
+  missing.
+- **The `claude` CLI** on the image, for the plugin install. Claude Code
+  cloud images ship it.
 - **No secrets.** `<test>` and `<lint>` need no credentials.
 
 ## 1. Setup script
 
 Paste this into the service's setup-script field. It runs as root, installs
-Node 26 into `/opt/node26` with its checksum verified, and is safe to run
-twice. A failed download exits non-zero and stops the session, since a
+Node 26 into `/opt/node26` with its checksum verified, installs the
+`core@mechaswift` plugin that `.claude/settings.json` enables, and is safe to
+run twice. A failed download exits non-zero and stops the session, since a
 session without its tools can't verify anything.
 
 ```bash
@@ -54,6 +61,14 @@ fi
 
 ln -sf "$NODE_DIR/bin/node" "$NODE_DIR/bin/npm" "$NODE_DIR/bin/npx" /usr/local/bin/
 "$NODE_DIR/bin/node" --version
+
+# The house skills plugin. Enabling it in .claude/settings.json only declares
+# intent; each container must install it. Both commands are safe to repeat.
+if ! claude plugin marketplace list 2>/dev/null | grep -q mechaswift; then
+  claude plugin marketplace add theycallmeswift/skills
+fi
+claude plugin install core@mechaswift
+claude plugin list | grep -A 3 'core@mechaswift'
 ```
 
 ## 2. Each session
@@ -87,7 +102,8 @@ is the reference.
 
 - **Setup script:** paste step 1. Its result is cached for later sessions
   until the script or network settings change. Keep it under about five
-  minutes.
+  minutes. The cache also pins the plugin version it installed; to pick up a
+  newer `core@mechaswift`, edit the script (a comment will do) so it reruns.
 - **Node on `PATH`:** the image's own Node comes first on `PATH`. The
   SessionStart hook
   [`claude-cloud-node26-path.sh`](../.claude/hooks/claude-cloud-node26-path.sh)

@@ -9,8 +9,8 @@ Set a repo up to the house setup in `assets/`. The assets are the canonical copi
 
 ## Rules
 
-- **Never edit a file that exists.** Two exceptions: append missing `.gitignore` lines, and add dev dependencies through the package manager. Whatever an existing file lacks is a gap to report, not a fix: its content is someone's decision.
-- **Write only what the table lists.** No starter code, sample tests, or empty directories.
+- **Never edit a file that exists.** Three exceptions: append missing `.gitignore` lines, add dev dependencies through the package manager, and add the CI badge to `README.md`. Whatever an existing file lacks is a gap to report, not a fix: its content is someone's decision.
+- **Write only what the table lists.** No starter code or empty directories. The only test is the TypeScript hello world test, so `npm test` has one to run.
 - **Fill every `<placeholder>`** from the repo, and wrap filled prose at 80 columns.
 
 ## 1. Detect the language
@@ -33,19 +33,23 @@ If the repo has a remote and the remote has no `main`, first push an empty root 
 
 | Asset | Destination | For |
 | --- | --- | --- |
-| `template-AGENTS.md` | `AGENTS.md`; intro from the README and code; add the repo's top-level folders to Project structure | all |
+| `template-AGENTS.md` | `AGENTS.md`; intro from the README and code; add the repo's top-level folders to Project structure; TypeScript drops the line about markdownlint through `npx` | all |
 | — | `CLAUDE.md` as a symlink: `ln -s AGENTS.md CLAUDE.md` | all |
 | `template-style-development.md`, `template-style-markdown.md`, `template-style-testing.md` | `docs/style/development.md`, `markdown.md`, `testing.md` | all |
 | `template-style-python.md` or `template-style-typescript.md` | `docs/style/python.md` or `typescript.md` | language |
 | `template-markdownlint-cli2.jsonc` | `.markdownlint-cli2.jsonc` | all |
 | `template-claude-settings.json` | `.claude/settings.json` | all |
 | `template-claude-cloud-node26-path.sh` | `.claude/hooks/claude-cloud-node26-path.sh`, executable | all |
-| `template-cloud-agents.md` | `docs/cloud-agents.md`; drop the uv block outside Python | all |
+| `template-cloud-agents.md` | `docs/cloud-agents.md`; drop the uv bullet and the uv block outside Python | all |
 | `template-pull_request_template.md` | `.github/pull_request_template.md`, byte for byte | all |
 | `template-ci-python.yml` or `template-ci-typescript.yml` | `.github/workflows/ci.yml`, byte for byte | language |
+| `template-node-version` | `.node-version`, which CI reads | language |
+| — | `README.md`: on the line under its title, `[![CI](https://github.com/<owner>/<repo>/actions/workflows/ci.yml/badge.svg)](https://github.com/<owner>/<repo>/actions/workflows/ci.yml)`, with `<owner>/<repo>` from the GitHub remote. No README, no GitHub remote, or a badge already there: skip it | language |
+| — | `.env.example`: every environment variable the code, docs, or `.env` names, each with an empty value under a one-line comment on what it's for. Never copy a value from `.env` | when any are known |
 | `template-gitignore` | lines appended to `.gitignore`; TypeScript adds `node_modules/` | all |
 | `template-Makefile`, `template-pyproject.toml` | `Makefile`, `pyproject.toml` | Python |
-| `template-package.json`, `template-tsconfig.json`, `template-biome.jsonc`, `template-vitest.config.ts` | the name without `template-` | TypeScript |
+| `template-package.json`, `template-tsconfig.json`, `template-biome.jsonc` | the name without `template-` | TypeScript |
+| `template-hello.test.ts` | `test/unit/hello.test.ts` | TypeScript |
 
 If `CLAUDE.md` is a regular file and `AGENTS.md` is missing, write neither; report that `CLAUDE.md` should move to `AGENTS.md` with a symlink back.
 
@@ -68,9 +72,11 @@ Check every existing file that has an asset against it:
 
 - `AGENTS.md`: each template section it lacks, by heading.
 - `CLAUDE.md`: not a symlink to `AGENTS.md`.
-- `.claude/settings.json`: missing attribution, deny rules, or the SessionStart hook.
+- `.claude/settings.json`: missing attribution, allow or deny rules, the `core@mechaswift` plugin, or the SessionStart hook.
 - Gate file: each missing `install`, `test`, `lint`, or `format` target or script.
 - `.github/workflows/ci.yml`: no docs-only skip for the tests, or no `CI passed` job for branch protection to require.
+- `README.md`: missing, or no CI badge because the repo has no GitHub remote.
+- `.env.example`: each known variable it lacks.
 - Style docs: each asset rule they lack or contradict.
 
 End with:
