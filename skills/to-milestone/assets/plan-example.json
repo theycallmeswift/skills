@@ -1,0 +1,19 @@
+{
+  "repo": "acme/ledger",
+  "milestone": {
+    "title": "Export",
+    "description": "Accounts export to CSV and Excel with category totals and an on-screen summary. Spec: docs/specs/2026-10-08-export.md"
+  },
+  "labels": [
+    {"name": "lockfile", "color": "fbca04", "description": "Adds a dependency; run at most one of these at a time"},
+    {"name": "spike", "color": "5319e7", "description": "Time-boxed investigation that lands a docs/research write-up, not product code"},
+    {"name": "needs-human", "color": "d93f0b", "description": "Waits on something only a human can provide; don't dispatch to a worker"},
+    {"name": "milestone-closer", "color": "bfd4f2", "description": "The issues that tidy, ship, and close a milestone"}
+  ],
+  "issues": [
+    {"key": "1", "title": "Export core: the CSV writer", "labels": [], "blocked_by": [], "body_file": "1.md"},
+    {"key": "2", "title": "Excel output", "labels": ["lockfile"], "blocked_by": ["1", "#155"], "body_file": "2.md"},
+    {"key": "3", "title": "Export closer 1/2: simplify the code and tidy the docs", "labels": ["milestone-closer"], "blocked_by": ["1", "2"], "body_file": "3.md"},
+    {"key": "4", "title": "Export closer 2/2: check Done when, mark the spec shipped, close the milestone", "labels": ["milestone-closer"], "blocked_by": ["3"], "body_file": "4.md"}
+  ]
+}

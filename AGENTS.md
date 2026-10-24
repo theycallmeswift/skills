@@ -44,6 +44,7 @@ Claude Code plugin layout. The manifest lives in `.claude-plugin/`; everything e
 
 - **interview-me** — relentless one-question-at-a-time interviewer with a stop condition (manual, handoff to a named skill, or goal). Hands a clean scope to `to-spec`.
 - **to-spec** — synthesize the current conversation and codebase into a skim-first design spec under `docs/specs/`. No interview.
+- **to-milestone** — turn a settled, merged spec into a GitHub milestone: issues in the repo's own shape, labels, closers, and blocked-by links, created by a `gh api` script only after the user approves the plan, then the issue numbers written back into the spec.
 - **writing-prompts** — draft and tighten anything an LLM will read: system prompts, subagent briefs, `SKILL.md` text, `AGENTS.md`.
 - **writing-agent-skills** — author, debug, and eval skills end to end. Calls `writing-prompts` for wording.
 - **catch-me-up** — re-orient the user on the current session after a break: narrate from context, verify branch, PR, CI, and claimed files before stating them, and split what needs the user from what the agent can clear.
