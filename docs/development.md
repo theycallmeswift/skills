@@ -83,6 +83,13 @@ Edits to `skills/` are live in the next session. To try a skill against some oth
 
 The published path is the tap in the README: `hermes skills tap add theycallmeswift/skills`, then `hermes skills install theycallmeswift/skills/<name>`. Hermes downloads `SKILL.md` and every subdirectory beside it, so `references/`, `assets/`, and `scripts/` arrive intact. Skills installed from a tap go through Hermes's security scan and show its third-party notice on first install.
 
+## Publishing mockups
+
+The `mockup` skill publishes each version as a page the user can open on a phone, through the harness's hosted-page tool when it has one:
+
+- **Claude Code on claude.ai (cloud sessions):** the Artifact tool. Publish each version from its own file (`mockups/v1/…`, `mockups/v2/…`), so each gets its own private URL and earlier versions stay openable.
+- **Hermes, or any harness without one:** the skill commits the HTML and gives the path.
+
 ## Evals
 
 The runner is [benchspec](https://pypi.org/project/benchspec/), a pytest plugin that boots each `(eval × arm)` cell in a microVM and grades the result with deterministic checkers plus an LLM judge. It lives in the opt-in `evals` dependency group so a plain `make install` stays pytest + ruff; the `make evals*` targets sync it on demand with `uv run --group evals`.
