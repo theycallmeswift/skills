@@ -7,10 +7,11 @@ file lives in a folder of <state-dir>: the onboarding deck in <state-dir> itself
 it there), every other file in <state-dir>/files/<file-id>/, seeded from the cassette on first
 use. Both servers read the same folders, so the Slides server's edits show up in Drive reads.
 Drive `copy_file` copies a deck under a new ID and `create_file` makes a blank stock deck.
-`update_presentation` applies text edits (insertText, deleteText, replaceAllText) and object
-creates, duplicates and deletes, then rewrites the folder's deck.json and deck.txt; every other
-request is validated and logged but changes nothing. Batches are atomic. Each `tools/call`
-appends one JSON line, server, tool and arguments, to <state-dir>/calls.log.
+`update_presentation` applies text edits (insertText, deleteText, replaceAllText), object
+creates, duplicates and deletes, transforms, shape properties and slide moves, then rewrites the
+folder's deck.json and deck.txt; every other request is validated and logged but changes nothing.
+Batches are atomic. Each `tools/call` appends one JSON line, server, tool and arguments, to
+<state-dir>/calls.log.
 
 Thumbnails: the Slides server serves the recorded PNGs over http on 127.0.0.1:<thumbnail-port>
 (default 8765), for the recorded decks and their copies. A slide created or changed since
@@ -47,8 +48,6 @@ ERROR_PREFIX = (
 STYLE_ONLY = {
     "updateTextStyle",
     "updateParagraphStyle",
-    "updateShapeProperties",
-    "updatePageElementTransform",
     "updatePageProperties",
     "updateSlideProperties",
     "updatePageElementAltText",
@@ -56,7 +55,6 @@ STYLE_ONLY = {
     "updateImageProperties",
     "createParagraphBullets",
     "deleteParagraphBullets",
-    "updateSlidesPosition",
     "updatePageElementsZOrder",
     "groupObjects",
     "ungroupObjects",
@@ -466,6 +464,76 @@ def style_only(deck: dict, request: dict) -> dict:
     return {}
 
 
+def update_transform(deck: dict, request: dict) -> dict:
+    """updatePageElementTransform: ABSOLUTE replaces the transform, RELATIVE composes with it."""
+    element, _ = find(deck, request["objectId"])
+    given = request["transform"]
+    keys = ("scaleX", "shearX", "translateX", "shearY", "scaleY", "translateY")
+    defaults = (1, 0, 0, 0, 1, 0)
+    new = [given.get(key, default) for key, default in zip(keys, defaults, strict=True)]
+    if request.get("applyMode") == "RELATIVE":
+        old = element.get("transform", {})
+        a, b, c, d, e, f = (
+            old.get(key, default) for key, default in zip(keys, defaults, strict=True)
+        )
+        sa, sb, sc, sd, se, sf = new
+        new = [
+            sa * a + sb * d,
+            sa * b + sb * e,
+            sa * c + sb * f + sc,
+            sd * a + se * d,
+            sd * b + se * e,
+            sd * c + se * f + sf,
+        ]
+    elif request.get("applyMode") != "ABSOLUTE":
+        raise BadRequest("applyMode must be RELATIVE or ABSOLUTE.")
+    transform = {
+        key: round(value, 4)
+        for key, value, default in zip(keys, new, defaults, strict=True)
+        if value != default or key in ("scaleX", "scaleY")
+    }
+    element["transform"] = {**transform, "unit": given.get("unit", "EMU")}
+    return {}
+
+
+def update_shape_properties(deck: dict, request: dict) -> dict:
+    """updateShapeProperties: copy each field the mask names from the request onto the shape."""
+    element, _ = find(deck, request["objectId"])
+    if "shape" not in element:
+        raise BadRequest(f"The object ({request['objectId']}) is not a shape.")
+    target = element["shape"].setdefault("shapeProperties", {})
+    given = request.get("shapeProperties", {})
+    mask = request.get("fields", "")
+    if not mask:
+        raise BadRequest("The fields mask must not be empty.")
+    paths = list(given) if mask == "*" else [path.strip() for path in mask.split(",")]
+    for path in paths:
+        *parents, leaf = path.split(".")
+        source: object = given
+        for part in parents + [leaf]:
+            source = source.get(part) if isinstance(source, dict) else None
+        holder = target
+        for part in parents:
+            holder = holder.setdefault(part, {})
+        if source is None:
+            holder.pop(leaf, None)
+        else:
+            holder[leaf] = copy.deepcopy(source)
+    return {}
+
+
+def update_slides_position(deck: dict, request: dict) -> dict:
+    """updateSlidesPosition: moves the slides, in the order given, to the index they had before."""
+    moving = [find(deck, object_id)[0] for object_id in request.get("slideObjectIds", [])]
+    index = request.get("insertionIndex", 0)
+    if not moving or not 0 <= index <= len(deck["slides"]):
+        raise BadRequest("The slides or insertion index are invalid.")
+    before = sum(1 for slide in deck["slides"][:index] if slide not in moving)
+    kept = [slide for slide in deck["slides"] if slide not in moving]
+    deck["slides"] = kept[:before] + moving + kept[before:]
+    return {}
+
+
 APPLY = {
     "insertText": insert_text,
     "deleteText": delete_text,
@@ -474,6 +542,9 @@ APPLY = {
     "createSlide": create_slide,
     "duplicateObject": duplicate_object,
     "deleteObject": delete_object,
+    "updatePageElementTransform": update_transform,
+    "updateShapeProperties": update_shape_properties,
+    "updateSlidesPosition": update_slides_position,
 }
 
 

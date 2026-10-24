@@ -341,3 +341,49 @@ def test_created_slides_get_their_layouts_text_placeholders(slides: Server, driv
     content = json.loads(drive.call("read_file_content", fileId=COPY)[0])["fileContent"]
     assert "# Two options" in content and "Option B" in content
     assert slides.call("read_slide_page_thumbnail", presentationId=COPY, pageId="t04_slide")[1]
+
+
+def test_transform_shape_and_position_updates_apply(slides: Server, drive: Server):
+    requests = [
+        {
+            "updatePageElementTransform": {
+                "objectId": "s09_title",
+                "applyMode": "ABSOLUTE",
+                "transform": {"scaleX": 2, "scaleY": 0.5, "translateX": 100, "unit": "EMU"},
+            }
+        },
+        {
+            "updatePageElementTransform": {
+                "objectId": "s09_title",
+                "applyMode": "RELATIVE",
+                "transform": {"scaleX": 1, "scaleY": 1, "translateX": 50, "translateY": 20},
+            }
+        },
+        {
+            "updateShapeProperties": {
+                "objectId": "s09_title",
+                "shapeProperties": {
+                    "shapeBackgroundFill": {"solidFill": {"color": {"themeColor": "ACCENT1"}}}
+                },
+                "fields": "shapeBackgroundFill.solidFill.color",
+            }
+        },
+        {"updateSlidesPosition": {"slideObjectIds": ["s10_slide"], "insertionIndex": 8}},
+    ]
+
+    body, error = slides.call("update_presentation", presentationId=DECK, requests=requests)
+
+    assert not error, body
+    page = json.loads(slides.call("read_slide_page", presentationId=DECK, pageId="s09_slide")[0])
+    title = next(e for e in page["content"]["pageElements"] if e["objectId"] == "s09_title")
+    assert title["transform"] == {
+        "scaleX": 2,
+        "scaleY": 0.5,
+        "translateX": 150,
+        "translateY": 20,
+        "unit": "EMU",
+    }
+    fill = title["shape"]["shapeProperties"]["shapeBackgroundFill"]["solidFill"]
+    assert fill["color"] == {"themeColor": "ACCENT1"}
+    content = json.loads(drive.call("read_file_content", fileId=DECK)[0])["fileContent"]
+    assert content.index("Next steps for this week") < content.index("# Tips")

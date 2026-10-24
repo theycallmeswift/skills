@@ -33,9 +33,10 @@ Source `setup.sh` from a scenario's `setup.sh`, then:
   `blank-deck-fixture` (then `-2`, ...), from `template/blank.json`, replaying
   `template/create_file.json` for the recorded title; anything else is a tool error.
 - `update_presentation` applies `insertText`, `deleteText`, `replaceAllText`, `createShape`,
-  `createSlide`, `duplicateObject` and `deleteObject`, keeping text styles. `createSlide` on a
+  `createSlide`, `duplicateObject`, `deleteObject`, `updatePageElementTransform`,
+  `updateShapeProperties` and `updateSlidesPosition`, keeping text styles. `createSlide` on a
   layout adds the layout's text placeholders (not the slide number), named by
-  `placeholderIdMappings`. Style and position
+  `placeholderIdMappings`. Text, paragraph, page and other style
   requests are checked for valid object IDs and logged but change nothing. Batches are atomic,
   `writeControl.requiredRevisionId` is enforced, and each write bumps the revision ID.
 - `read_slide_page_thumbnail` returns the recorded PNG, served at `http://127.0.0.1:8765/...` in

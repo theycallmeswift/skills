@@ -19,7 +19,7 @@ Write down, before any write:
 - every fact, number and name on them, with its source. Keep the user's wording, names, casing and numbers exactly. If the deck and the source disagree, the source wins; say so.
 - anything the request changes that the deck states elsewhere (a renamed step, a new step, a new result, a dropped feature). Step 5 checks these.
 
-For an existing deck, check the owner and sharing. If it's someone else's deck or widely shared, stop and ask before editing, or offer to work on a copy. The user's go-ahead is not the owner's.
+For an existing deck, read the file's owner and sharing from its metadata. If the user has told you who they are and the owner is someone else, or the deck is widely shared, stop and ask before editing, or offer to work on a copy: the user's go-ahead is not the owner's. If the metadata read fails, fix the call; if you still can't read it, ask. An owner you have nothing to compare against is not a reason to stop.
 
 ## 2. Learn the design
 
