@@ -1,6 +1,6 @@
 [project]
 name = "mechaswift"
-version = "0.1.0"
+version = "0.3.0"
 description = "MechaSwift — Swift's agent brain. Skills, tools, and prompts for Claude Code and Hermes."
 requires-python = ">=3.11"
 dependencies = []
