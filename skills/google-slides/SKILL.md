@@ -42,22 +42,32 @@ Read two or three finished slides near the scoped ones, with a field mask. Note:
 
 New slides doing the same job as existing ones (another step, another stat) reuse their components; duplicating a finished slide and changing its text is usually cleanest.
 
+### Measure the reference
+
+The JSON records properties, not composition; a deck can match every font and color and still look wrong. New deck or existing, render three or more of the deck's best finished slides and look at them. Write down, as numbers: art and image coverage as a share of the slide, the type sizes in use and the smallest, words per slide, where imagery sits relative to the text, and how highlights are built. These numbers are the bar for new slides.
+
 ## 3. Design the slides as a set
 
 Slides doing the same job (steps, tips, options) share one layout so they read as a series. Adjacent slides doing different jobs get different layouts. Before building, check the slides on either side of the scoped ones; if your layout echoes a neighbor's, change it.
 
 Size every box to its content: a card a third empty looks unfinished, and text in too small a box spills over, because Slides never shrinks text. Body text needs strong contrast; mid-grey on white reads as disabled.
 
+Fit the content to the deck's density. Taking the content as given means keeping its wording, not cramming it onto the slide: keep each headline word for word, and if secondary lines would push text below the deck's smallest size (or below about 24pt for a large room), move them to the speaker notes and list what moved under "Needs your call".
+
+Crop images to their content (`cropProperties`) and scale art to the reference's coverage. Retype screenshot text the audience must read as native text. Never ship anything that looks like a placeholder: a dashed box, "image here". When generating art, size its slot first and generate at that slot's aspect ratio.
+
 Link to the exact destination (the specific page, not a homepage), and link between slides when the deck will be clicked through live.
 
 ## 4. Build, render, and get a critical review
 
+Building more than about five new slides into a strongly styled deck, prototype first: build two or three representative slides, render them beside the reference slides, run both critics, fix, and only then build the rest. A wrong direction caught on two slides costs two slides.
+
 1. Build each slide in one batch, guarded by the revision ID from your latest read. Name every object ID you choose slide-plus-role (`s04_title`, `s04_stat_value`).
 2. After your last write, read the changed slides back. Render them (thumbnail or export, whichever your tools offer) and look yourself. With no render, check geometry from the fresh read: every box inside the page and margins, text fits its box at its font size, nothing overlaps. Say in the report you couldn't see it.
-3. Get a second opinion from a reviewer who hasn't seen your work: spawn a subagent with the critic prompt below, passing labeled page images of the changed slides and the slides on either side. Without subagents, apply the prompt to the images yourself in a fresh pass.
-4. Fix every finding, re-render, recheck. Don't report done before at least one fix-and-recheck cycle; one fix often causes another problem.
+3. Get two second opinions from reviewers who haven't seen your work, each a subagent given labeled page images: the defect critic gets the changed slides and the slides on either side; the quality critic gets the changed slides beside the deck's best reference slides from step 2, not just their neighbors, plus your step 2 numbers. Without subagents, apply each prompt to the images yourself in a fresh pass.
+4. Fix every finding, and redesign any slide the quality critic scores under 8 rather than nudging it. Re-render, recheck. Don't report done before at least one fix-and-recheck cycle; one fix often causes another problem.
 
-Critic prompt:
+Defect critic prompt:
 
 > You are reviewing new or redesigned slides before they go in front of an audience. Assume there are problems and find them; "looks fine" is not an answer. The images show the changed slides and, for comparison, their neighbors. For each changed slide, list every issue, however minor:
 >
@@ -71,6 +81,10 @@ Critic prompt:
 > - leftover placeholder or template sample text, stray emoji, or decoration that adds nothing
 >
 > For each issue give the slide, what is wrong, where, and a concrete fix. End with the single most important fix.
+
+Quality critic prompt:
+
+> You are judging whether new slides are as good as the best slides in their deck. The reference images and measurements set the bar; passing a defect check is not the same as clearing it. Score each new slide 1 to 10 on: matching the reference look, legibility from the back of the room, hierarchy, art scale against the reference's coverage, and polish. For every score under 8, say what the reference does that this slide doesn't, and describe a redesign, not a nudge.
 
 ## 5. Existing deck: sweep for anything the change contradicts
 
@@ -86,4 +100,4 @@ Reply in three short parts; for a new deck, put its link first:
 
 1. **Changed:** one line per slide.
 2. **Checked:** what the render and review found, and what you fixed.
-3. **Needs your call:** each item from step 5's list, with slide number and proposed wording, plus anything in the content you couldn't confirm or had to leave out.
+3. **Needs your call:** each item from step 5's list, with slide number and proposed wording, plus anything in the content you couldn't confirm, had to leave out, or moved to speaker notes.

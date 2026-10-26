@@ -17,6 +17,28 @@ Recorded 2026-10-24 from `iteration_03`: benchspec 0.0.5, Docker sandbox, Claude
 
 Per sample, the trial took 58 s and 475k tokens against the baseline's 53 s and 415k.
 
+## 2026-10-26: measure the reference, quality critic
+
+Two runs after the skill added the reference measurements, density and image rules, the prototype checkpoint and the quality critic. benchspec 0.0.5, Docker sandbox, sonnet.
+
+`iteration_01`, the full suite on the new skill at `--count 1` (28 cells, 63 minutes serial):
+
+| Eval | baseline | trial | trial at `iteration_03` |
+|---|---|---|---|
+| new-slides-illustrated-deck (new) | 33% | 89% | — |
+| changed-fact-sweep | 62% | 88% | 92% |
+| missing-workspace-asks-first | 20% | 100% | 100% |
+| new-deck-from-template | 100% | 100% | 97% |
+| new-deck-no-template | 100% | 100% | 100% |
+| new-section-from-content | 70% | 90% | 100% |
+| new-section-matches-deck | 100% | 100% | 89% |
+| shared-deck-asks-first | 0% | 100% | 92% |
+| **Headline** | **61%** | **96%** | **96%** |
+
+One sample per cell, so no noise band; no scenario moved outside what the 3-sample record already shows run to run. Routing cells passed (6/6 scoped assertions on the trial arm). Per sample, the trial took 208 s and 1.26M tokens against the baseline's 191 s and 1.44M. The guest ran Claude Code 2.1.282, older than the 2.1.310 of `iteration_03`.
+
+`iteration_02`, the red run: `new-slides-illustrated-deck` with the previous SKILL.md (from `main`) at `--count 3 -n 6`. Baseline 11/27 (41%, ±6%), trial 8/18 (44%, ±0%), +4pp within the ±4pp noise band: the old skill scores what no skill scores, against 89% for the new one. One trial cell failed before the agent started (Docker couldn't mount the project dir under `-n 6`), so the trial figure is two samples. Claude Code 2.1.310 in the guest.
+
 ## Routing evals — trial arm: 18/18
 
 | Query | Expected | Result |
@@ -45,4 +67,4 @@ Per sample, the trial took 58 s and 475k tokens against the baseline's 53 s and 
 
 **The critic still never runs.** The fake serves only recorded thumbnails, so edited and new slides have no render. Trial samples fell back to geometry reads and said they couldn't see the result.
 
-**Fake.** The Slides and Drive tools come from `evals/support/fake-google-slides/`, a stdlib MCP server registered in each scenario's `setup.sh` on both arms. It replays two decks recorded from the live connectors: the onboarding deck (2026-10-21) and the brand template, Drive `copy_file` and `create_file` (2026-10-24). It applies text edits, creates, duplicates, deletes, transforms, shape properties and slide moves, so re-reads and the Drive text view reflect them. Before `iteration_03`, transforms and slide moves were logged but not applied, and one trial sample spent 290 s fighting shapes that never moved. Every scenario except `missing-workspace-asks-first` installs a short stand-in `google-workspace` skill on both arms; the bundled one isn't licensed for copying.
+**Fake.** The Slides and Drive tools come from `evals/support/fake-google-slides/`, a stdlib MCP server registered in each scenario's `setup.sh` on both arms. It replays decks recorded from the live connectors: the onboarding deck (2026-10-21), the brand template, Drive `copy_file` and `create_file` (2026-10-24), and the poster deck `acme-poster-fixture` for `new-slides-illustrated-deck` (2026-10-26; graded in the 2026-10-26 section above). It applies text edits, creates (images included since 2026-10-26), duplicates, deletes, transforms, shape properties and slide moves, so re-reads and the Drive text view reflect them. Before `iteration_03`, transforms and slide moves were logged but not applied, and one trial sample spent 290 s fighting shapes that never moved. Every scenario except `missing-workspace-asks-first` installs a short stand-in `google-workspace` skill on both arms; the bundled one isn't licensed for copying.
