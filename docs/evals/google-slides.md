@@ -35,9 +35,9 @@ Two runs after the skill added the reference measurements, density and image rul
 | shared-deck-asks-first | 0% | 100% | 92% |
 | **Headline** | **61%** | **96%** | **96%** |
 
-One sample per cell, so no noise band; no scenario moved outside what the 3-sample record already shows run to run. Routing cells passed.
+One sample per cell, so no noise band; no scenario moved outside what the 3-sample record already shows run to run. Routing cells passed (6/6 scoped assertions on the trial arm). Per sample, the trial took 208 s and 1.26M tokens against the baseline's 191 s and 1.44M. The guest ran Claude Code 2.1.282, older than the 2.1.310 of `iteration_03`.
 
-`iteration_02`, the red run: `new-slides-illustrated-deck` with the previous SKILL.md (from `main`) at `--count 3 -n 6`. Baseline 41%, trial 44%: the old skill scores what no skill scores, against 89% for the new one. One trial cell failed before the agent started (Docker couldn't mount the project dir under `-n 6`), so the trial figure is two samples.
+`iteration_02`, the red run: `new-slides-illustrated-deck` with the previous SKILL.md (from `main`) at `--count 3 -n 6`. Baseline 11/27 (41%, ±6%), trial 8/18 (44%, ±0%), +4pp within the ±4pp noise band: the old skill scores what no skill scores, against 89% for the new one. One trial cell failed before the agent started (Docker couldn't mount the project dir under `-n 6`), so the trial figure is two samples. Claude Code 2.1.310 in the guest.
 
 ## Routing evals — trial arm: 18/18
 
