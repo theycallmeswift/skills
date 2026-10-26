@@ -40,11 +40,11 @@ Source `setup.sh` from a scenario's `setup.sh`, then:
   `updateShapeProperties` and `updateSlidesPosition`, keeping text styles. `createSlide` on a
   layout adds the layout's text placeholders (not the slide number), named by
   `placeholderIdMappings`, and every new slide gets an empty speaker notes box. `createImage`
-  can't fetch its URL: given the URL of an image already in the deck (`contentUrl` or
-  `sourceUrl`), it keeps that image's base size and fits it, centered, in the requested size, as
-  the live API does; any other URL takes the requested size. Text, paragraph, page and other style
-  requests are checked for valid object IDs and logged but change nothing. Batches are atomic,
-  `writeControl.requiredRevisionId` is enforced, and each write bumps the revision ID.
+  fetches nothing: a URL already in the deck (as `contentUrl` or `sourceUrl`) keeps that image's
+  base size, fitted and centered in the requested size as the live API does; any other URL takes
+  the requested size. Text, paragraph, page and other style requests are checked for valid
+  object IDs and logged but change nothing. Batches are atomic, `writeControl.requiredRevisionId`
+  is enforced, and each write bumps the revision ID.
 - `read_slide_page_thumbnail` returns the recorded PNG, served at `http://127.0.0.1:8765/...` in
   place of the recorded Google URL, for the recorded decks and their copies. A slide created or
   changed since recording has no render, so its thumbnail is a tool error that says so.
@@ -58,8 +58,8 @@ Source `setup.sh` from a scenario's `setup.sh`, then:
 ## Re-record
 
 Re-record when `google-slides`, or an eval using this fake, changes. Run in a Claude Code session
-that has the Google Slides and Google Drive connectors and this repo checked out. The poster
-deck's images are inserted from `poster/art/` on GitHub, so that folder must be pushed first:
+that has the Google Slides and Google Drive connectors and this repo checked out. Push
+`poster/art/` first: the poster deck inserts its images from GitHub.
 
 ```text
 Re-record evals/support/fake-google-slides/ from the live Google Slides and Google Drive
