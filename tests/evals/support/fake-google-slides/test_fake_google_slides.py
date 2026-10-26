@@ -17,6 +17,7 @@ FAKE = Path(__file__).parents[4] / "evals" / "support" / "fake-google-slides"
 DECK = "acme-onboarding-fixture"
 TEMPLATE = "acme-template-fixture"
 COPY = "acme-template-copy-fixture"
+POSTER = "acme-poster-fixture"
 PRESENTATION = "application/vnd.google-apps.presentation"
 
 
@@ -445,3 +446,132 @@ def test_moves_and_transforms_reject_the_wrong_kind_of_object(
 
     assert error, body
     assert drive.call("read_file_content", fileId=DECK) == (cassette("deck.txt"), False)
+
+
+def test_poster_reads_replay_its_cassette(slides: Server, drive: Server):
+    replay = slides.call("read_presentation", presentationId=POSTER)
+    assert replay == (cassette("poster/deck.json"), False)
+    pages = [f"s{number:02d}_slide" for number in range(1, 8)] + ["art_drawer"]
+    for number, page in enumerate(pages, 1):
+        replay = slides.call("read_slide_page", presentationId=POSTER, pageId=page)
+        assert replay == (cassette(f"poster/pages/p-{number:02d}.json"), False)
+    assert drive.call("read_file_content", fileId=POSTER) == (cassette("poster/deck.txt"), False)
+    assert drive.call("get_file_metadata", fileId=POSTER) == (cassette("poster/meta.json"), False)
+
+
+def test_poster_thumbnails_serve_the_recorded_png(slides: Server):
+    for number, page in ((2, "s02_slide"), (8, "art_drawer")):
+        body, error = slides.call("read_slide_page_thumbnail", presentationId=POSTER, pageId=page)
+
+        assert not error, body
+        with urllib.request.urlopen(json.loads(body)["contentUrl"]) as response:
+            png = FAKE / "poster" / "thumbs" / f"p-{number:02d}.png"
+            assert response.read() == png.read_bytes()
+
+
+def image_request(object_id: str, url: str, width: int, height: int) -> dict:
+    """A createImage on s07_slide at the poster art's spot, sized in EMU."""
+    return {
+        "createImage": {
+            "objectId": object_id,
+            "url": url,
+            "elementProperties": {
+                "pageObjectId": "s07_slide",
+                "size": {
+                    "width": {"magnitude": width, "unit": "EMU"},
+                    "height": {"magnitude": height, "unit": "EMU"},
+                },
+                "transform": {
+                    "scaleX": 1,
+                    "scaleY": 1,
+                    "translateX": 914400,
+                    "translateY": 274320,
+                    "unit": "EMU",
+                },
+            },
+        }
+    }
+
+
+def test_create_image_keeps_a_recorded_images_base_size_and_aspect(slides: Server, drive: Server):
+    deck = json.loads((FAKE / "poster" / "deck.json").read_text())["content"]
+    drawer = next(slide for slide in deck["slides"] if slide["objectId"] == "art_drawer")
+    ship = next(e for e in drawer["pageElements"] if e["objectId"] == "art_ship")["image"]
+    requests = [
+        image_request("s07_ship", ship["sourceUrl"], 7315200, 3840480),
+        image_request("s07_ship_wide", ship["contentUrl"], 9144000, 3840480),
+    ]
+
+    body, error = slides.call("update_presentation", presentationId=POSTER, requests=requests)
+
+    assert not error, body
+    assert json.loads(body)["replies"] == [
+        {"createImage": {"objectId": "s07_ship"}},
+        {"createImage": {"objectId": "s07_ship_wide"}},
+    ]
+    page = json.loads(slides.call("read_slide_page", presentationId=POSTER, pageId="s07_slide")[0])
+    exact, wide = page["content"]["pageElements"][-2:]
+    for image in (exact, wide):
+        assert image["size"]["width"]["magnitude"] == 40000
+        assert image["transform"]["scaleX"] == image["transform"]["scaleY"] == 182.88
+        assert image["image"]["imageProperties"] == ship["imageProperties"]
+    assert exact["transform"]["translateX"] == 914400
+    assert wide["transform"]["translateX"] == 914400 + (9144000 - 7315200) / 2
+    assert exact["image"]["sourceUrl"] == ship["sourceUrl"]
+    assert exact["image"]["contentUrl"].endswith(f"{POSTER}-s07_ship=s2048")
+    assert drive.call("read_file_content", fileId=POSTER) == (cassette("poster/deck.txt"), False)
+    assert slides.call("read_slide_page_thumbnail", presentationId=POSTER, pageId="s07_slide")[1]
+
+
+def test_create_image_from_an_unknown_url_takes_the_requested_size(slides: Server):
+    url = "https://example.com/art.png"
+    request = image_request("s07_new_art", url, 2000000, 1000000)
+
+    body, error = slides.call("update_presentation", presentationId=POSTER, requests=[request])
+
+    assert not error, body
+    page = json.loads(slides.call("read_slide_page", presentationId=POSTER, pageId="s07_slide")[0])
+    image = page["content"]["pageElements"][-1]
+    assert image["size"]["width"]["magnitude"] == 2000000
+    assert image["transform"]["scaleX"] == 1
+    refused = image_request("s07_bad_art", "art.png", 2000000, 1000000)
+    body, error = slides.call("update_presentation", presentationId=POSTER, requests=[refused])
+    assert error and "createImage: The image URL (art.png)" in body
+
+
+def test_created_slides_get_an_empty_speaker_notes_box(slides: Server, drive: Server):
+    requests = [
+        {"createSlide": {"objectId": "s08_slide", "insertionIndex": 7}},
+        {"createShape": shape_request("s08_line", "s08_slide")},
+        {"insertText": {"objectId": "s08_line", "text": "Ship on Fridays"}},
+    ]
+    assert not slides.call("update_presentation", presentationId=POSTER, requests=requests)[1]
+    page = json.loads(slides.call("read_slide_page", presentationId=POSTER, pageId="s08_slide")[0])
+    notes = page["content"]["slideProperties"]["notesPage"]
+    speaker = notes["notesProperties"]["speakerNotesObjectId"]
+    box = next(e for e in notes["pageElements"] if e["objectId"] == speaker)
+
+    assert notes["objectId"] == "s08_slide:notes"
+    assert speaker.startswith("SLIDES_API") and "text" not in box["shape"]
+    edit = [{"insertText": {"objectId": speaker, "text": "We shipped 212 times last quarter."}}]
+    assert not slides.call("update_presentation", presentationId=POSTER, requests=edit)[1]
+    meta = json.loads(drive.call("get_file_metadata", fileId=POSTER)[0])
+    assert "# 8 of 9\n\nShip on Fridays\n\nWe shipped 212 times" in meta["contentSnippet"]
+    text = json.loads(drive.call("read_file_content", fileId=POSTER)[0])["fileContent"]
+    assert "212" not in text
+
+
+def shape_request(object_id: str, page: str) -> dict:
+    """A text box filling the slide's bottom band."""
+    return {
+        "objectId": object_id,
+        "shapeType": "TEXT_BOX",
+        "elementProperties": {
+            "pageObjectId": page,
+            "size": {
+                "width": {"magnitude": 8229600, "unit": "EMU"},
+                "height": {"magnitude": 685800, "unit": "EMU"},
+            },
+            "transform": {"scaleX": 1, "scaleY": 1, "translateY": 4206240, "unit": "EMU"},
+        },
+    }

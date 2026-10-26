@@ -2,14 +2,15 @@
 
 Usage: server.py <Google_Slides|Google_Drive> <state-dir> [<thumbnail-port>]
 
-The cassette (see RECORDING.md) is a synthetic 10-slide deck plus a 3-slide template. Each
-file lives in a folder of <state-dir>: the onboarding deck in <state-dir> itself (setup.sh copies
-it there), every other file in <state-dir>/files/<file-id>/, seeded from the cassette on first
-use. Both servers read the same folders, so the Slides server's edits show up in Drive reads.
-Drive `copy_file` copies a deck under a new ID and `create_file` makes a blank stock deck.
-`update_presentation` applies text edits (insertText, deleteText, replaceAllText), object
-creates, duplicates and deletes, transforms, shape properties and slide moves, then rewrites the
-folder's deck.json and deck.txt; every other request is validated and logged but changes nothing.
+The cassette (see RECORDING.md) is a synthetic 10-slide deck, a 3-slide template and an 8-slide
+poster deck of hand-drawn images. Each file lives in a folder of <state-dir>: the onboarding deck
+in <state-dir> itself (setup.sh copies it there), every other file in <state-dir>/files/<file-id>/,
+seeded from the cassette on first use. Both servers read the same folders, so the Slides server's
+edits show up in Drive reads. Drive `copy_file` copies a deck under a new ID and `create_file`
+makes a blank stock deck. `update_presentation` applies text edits (insertText, deleteText,
+replaceAllText), shape, image and slide creates, duplicates and deletes, transforms, shape
+properties and slide moves, then rewrites the folder's deck.json and deck.txt; every other request
+is validated and logged but changes nothing.
 Batches are atomic. Each `tools/call` appends one JSON line, server, tool and arguments, to
 <state-dir>/calls.log.
 
@@ -33,11 +34,10 @@ CASSETTE = Path(__file__).parent
 TOOLS = json.loads((CASSETTE / "tools.json").read_text(encoding="utf-8"))
 ONBOARDING = "acme-onboarding-fixture"
 TEMPLATE = "acme-template-fixture"
-RECORDINGS = {ONBOARDING: CASSETTE, TEMPLATE: CASSETTE / "template"}
+POSTER = "acme-poster-fixture"
+RECORDINGS = {ONBOARDING: CASSETTE, TEMPLATE: CASSETTE / "template", POSTER: CASSETTE / "poster"}
 PRESENTATION = "application/vnd.google-apps.presentation"
-THUMBNAIL_PATH = re.compile(
-    r"/docsdf/(acme-onboarding-fixture|acme-template-fixture)-(p-\d\d)=s800"
-)
+THUMBNAIL_PATH = re.compile(rf"/docsdf/({'|'.join(map(re.escape, RECORDINGS))})-(p-\d\d)=s800")
 SKIPPED_PLACEHOLDERS = {"SLIDE_NUMBER", "FOOTER", "DATE_AND_TIME"}
 SNIPPET_LIMITS = {"BRIEF": 1000, "MEDIUM": 2500, "DETAILED": 5000}
 ERROR_PREFIX = (
@@ -366,8 +366,73 @@ def create_shape(deck: dict, request: dict) -> dict:
     return {"createShape": {"objectId": object_id}}
 
 
+def create_image(deck: dict, request: dict) -> dict:
+    """createImage: the image keeps its aspect ratio, fitted and centered in the requested size.
+
+    The live API stores the picture's own size as the base and carries the requested size in the
+    scale. The fake can't fetch the URL, so an image already in the deck under that URL (as its
+    contentUrl or sourceUrl) lends its base size; any other URL takes the requested size.
+    """
+    url = request.get("url")
+    if not isinstance(url, str) or not re.match(r"https?://", url):
+        raise BadRequest(f"The image URL ({url}) is not a valid URL.")
+    properties = request.get("elementProperties", {})
+    page, _ = find(deck, properties.get("pageObjectId", ""))
+    object_id = new_id(deck, request.get("objectId"))
+    size = properties.get("size", {})
+    wanted = [emu(size.get(axis)) for axis in ("width", "height")]
+    known = image_at(deck, url)
+    if known:
+        base = [known["size"][axis]["magnitude"] for axis in ("width", "height")]
+    else:
+        base = [magnitude or 3000000 for magnitude in wanted]
+    fits = [want / have for want, have in zip(wanted, base, strict=True) if want]
+    scale = min(fits, default=1)
+    transform = dict(properties.get("transform", {"scaleX": 1, "scaleY": 1, "unit": "EMU"}))
+    keys = (("scaleX", "translateX"), ("scaleY", "translateY"))
+    for (scale_key, move_key), want, have in zip(keys, wanted, base, strict=True):
+        given = transform.get(scale_key, 1)
+        slack = (want - have * scale) / 2 if want else 0
+        transform[move_key] = round(transform.get(move_key, 0) + slack * given, 4)
+        transform[scale_key] = round(given * scale, 4)
+    hosted = f"https://docs.google.com/slides-images-rt/{deck['presentationId']}-{object_id}=s2048"
+    image = {"contentUrl": hosted, "sourceUrl": url}
+    if known and "imageProperties" in known["image"]:
+        image["imageProperties"] = copy.deepcopy(known["image"]["imageProperties"])
+    page.setdefault("pageElements", []).append(
+        {
+            "image": image,
+            "objectId": object_id,
+            "size": {
+                axis: {"magnitude": value, "unit": "EMU"}
+                for axis, value in zip(("width", "height"), base, strict=True)
+            },
+            "transform": transform,
+        }
+    )
+    return {"createImage": {"objectId": object_id}}
+
+
+def image_at(deck: dict, url: str) -> dict | None:
+    """The deck's image element whose contentUrl or sourceUrl is `url`, if any."""
+    for slide in deck["slides"]:
+        for element, _ in walk(slide.get("pageElements", [])):
+            image = element.get("image", {})
+            if url in (image.get("contentUrl"), image.get("sourceUrl")):
+                return element
+    return None
+
+
+def emu(dimension: dict | None) -> float | None:
+    """A Dimension in EMU, or None when it is missing."""
+    if not dimension or "magnitude" not in dimension:
+        return None
+    return dimension["magnitude"] * (12700 if dimension.get("unit") == "PT" else 1)
+
+
 def create_slide(deck: dict, request: dict) -> dict:
-    """createSlide: a slide on the named layout, with the layout's text placeholders."""
+    """createSlide: a slide on the named layout, with the layout's text placeholders and an empty
+    notes page."""
     object_id = new_id(deck, request.get("objectId"))
     layout = slide_layout(deck, request.get("slideLayoutReference"))
     slide = {"objectId": object_id, "pageElements": [], "pageProperties": {}, "slideProperties": {}}
@@ -397,9 +462,33 @@ def create_slide(deck: dict, request: dict) -> dict:
                     "transform": copy.deepcopy(element["transform"]),
                 }
             )
+    notes = next(filter(None, map(notes_of, deck["slides"])), None)
+    if notes:
+        slide["slideProperties"]["notesPage"] = blank_notes(deck, object_id, notes)
     index = request.get("insertionIndex", len(deck["slides"]))
     deck["slides"].insert(index, slide)
     return {"createSlide": {"objectId": object_id}}
+
+
+def notes_of(slide: dict) -> dict | None:
+    """The slide's notes page, if it has one."""
+    return slide.get("slideProperties", {}).get("notesPage")
+
+
+def blank_notes(deck: dict, slide_id: str, model: dict) -> dict:
+    """A copy of another slide's notes page with fresh IDs and no text, as the API gives a new
+    slide: `<slide>:notes` holding a slide image and an empty speaker notes box."""
+    notes = copy.deepcopy(model)
+    notes["objectId"] = f"{slide_id}:notes"
+    batch = f"SLIDES_API{uuid.uuid4().int % 10**9}"
+    speaker = notes["notesProperties"]["speakerNotesObjectId"]
+    for number, element in enumerate(notes.get("pageElements", [])):
+        fresh = new_id(deck, f"{batch}_{number}")
+        if element["objectId"] == speaker:
+            notes["notesProperties"]["speakerNotesObjectId"] = fresh
+        element["objectId"] = fresh
+        element.get("shape", {}).pop("text", None)
+    return notes
 
 
 def slide_layout(deck: dict, reference: dict | None) -> dict | None:
@@ -548,6 +637,7 @@ APPLY = {
     "deleteText": delete_text,
     "replaceAllText": replace_all_text,
     "createShape": create_shape,
+    "createImage": create_image,
     "createSlide": create_slide,
     "duplicateObject": duplicate_object,
     "deleteObject": delete_object,
@@ -596,12 +686,12 @@ def paragraphs(shape: dict) -> list[tuple[str, bool]]:
 
 
 def file_content(deck: dict) -> str:
-    """Drive `read_file_content` text: shapes in order, speaker notes left out."""
+    """Drive `read_file_content` text: shapes in order, images and speaker notes left out."""
     slides = []
     for slide in deck["slides"]:
         body = ""
         for element, _ in walk(slide.get("pageElements", [])):
-            if "elementGroup" in element:
+            if "elementGroup" in element or "image" in element:
                 continue
             shape = element.get("shape")
             if shape is None or "text" not in shape:

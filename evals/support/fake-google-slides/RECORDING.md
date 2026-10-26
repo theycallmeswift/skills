@@ -32,3 +32,17 @@
 - A `create_file` presentation is the stock deck: master `simple-light-2`, eleven layouts `p2`…`p12`, and one TITLE slide `p` with empty placeholders `i0`, `i1`.
 - `updatePageProperties` with `fields: colorScheme` was sent the twelve settable colors (fewer not tried); reads return sixteen, adding the `TEXT1`, `BACKGROUND1`, `TEXT2` and `BACKGROUND2` aliases.
 - `get_file_metadata`'s `contentSnippet` includes master text (the "ACME" logo) after each slide's text; `read_file_content` leaves it out.
+
+## Poster deck (`poster/`)
+
+- Recorded 2026-10-26 from the live connectors against a synthetic 8-slide, 16:9 poster talk, "Acme poster talk (eval fixture)" (invented content), for `new-slides-illustrated-deck`. Built with Drive `create_file`, then one Slides `update_presentation` batch on the stock theme: `s01_slide` (TITLE layout: "How Acme builds software", "Engineering all-hands"); `s02_slide`…`s07_slide` (BLANK), each a hand-drawn image `sNN_art` of 8 x 4.2 in at (1, 0.3) in, 60% of the slide, over one centered line `sNN_line` in Patrick Hand 40pt; and `art_drawer` (BLANK, `isSkipped: true`), titled "Art drawer" (`art_title`, 28pt) and holding six unused 2.8 x 1.47 in images, `art_ship`, `art_pager`, `art_write`, `art_measure`, `art_talk` and `art_fix`. Every image has alt text naming what it shows.
+- The images are `poster/art/*.png`: black stick-figure line drawings, 1600x840, drawn with PIL for this fixture. `createImage` fetched them from raw.githubusercontent.com at commit `9d5bec5`, and each image's `sourceUrl` keeps that URL.
+- Same layout as the onboarding deck: `deck.json` (`read_presentation`, no mask, 155 KB), `pages/p-NN.json` (built from `deck.json` the same way; the live `read_slide_page` for `s01_slide` and `art_drawer` matched on every field compared, notes IDs, transforms and text styles included), `deck.txt` (`read_file_content`), `meta.json` (`get_file_metadata`), `thumbs/p-NN.json` + `p-NN.png` (MEDIUM, 800x450).
+- Scrub map: presentation and file ID `acme-poster-fixture`, parent `fixture-parent-folder`, `ouid` `000000000000000000000`, owner `owner@example.com`, revision `poster-revision-0001`, created `2026-01-05T09:00:00.000Z`, modified and viewed `2026-01-05T10:30:00.000Z`, thumbnail URL `https://lh7-us.googleusercontent.com/docsdf/acme-poster-fixture-p-NN=s800`, image `contentUrl` `https://docs.google.com/slides-images-rt/acme-poster-fixture-<objectId>=s2048` (live, a signed URL with a `key` parameter that changes on every read). Notes IDs (`SLIDES_API…`) left as recorded.
+
+### Poster quirks
+
+- `createImage` stores the picture's own size as the base, 25 EMU per pixel (1600x840 becomes 40000 x 21000 EMU), and carries the requested size in a uniform scale: 182.88 for the 8 in slides, 64.008 for the drawer. Its reply is `{"createImage": {"objectId": ...}}`.
+- `read_file_content` leaves images out entirely; a shape with no text still shows as an empty line. `get_file_metadata`'s `contentSnippet` leaves out alt text.
+- Every slide made by `createSlide`, BLANK ones included, comes with a notes page `<slide>:notes` holding a slide image and an empty speaker notes box, both with generated `SLIDES_API…` IDs.
+- Right after the write, `get_file_metadata` returned a stale `contentSnippet` ("# 1 of 1"), `fileSize` and `modifiedTime`; a read about a minute later, recorded here, had caught up.
