@@ -1,14 +1,14 @@
 # Writing the report
 
-How an MLH report reads: skimmable, credible, and honest without reading like an audit. These rules override a doc tool's default style where they differ (emoji in headings, the short version, a Methodology section).
+How an MLH report reads: skimmable, credible, and honest without reading like an audit. These rules override a doc tool's default style where they differ (emoji in headings, an executive summary, a Methodology section).
 
 ## Top of the doc
 
 1. Title that names the subject and the question or headline finding (`MLH × Snowflake: How Next-Gen & Professional Devs Build with Data Platforms`). It passes the same tests as an H2: no claim, metaphor or hype the body can't carry. Byline: as-of date · author.
 2. The notice line for the audience, and the intro for partner and public reports (see [Boilerplate](#boilerplate)).
-3. An `Executive summary` H2 (with an emoji) over the verdict, short version and any stat strip, so the summary shows in the doc's outline.
-4. **Verdict:** two or three short sentences: the finding the reader's decision hangs on (even when it's a loss), the miss, and what it means. The miss is about the subject, never about how MLH measures it. Readers only believe a win after they've seen the miss.
-5. **The short version:** 5–7 bullets, each with a bold label and one number. For internal reports, group them as what went right, what went wrong, and what changes.
+3. An `Executive summary` H2 (with an emoji) holding the next three items with no labels of their own, so the summary shows in the doc's outline.
+4. The verdict, as the first paragraph: two or three short sentences: the finding the reader's decision hangs on (even when it's a loss), the miss, and what it means. The miss is about the subject, never about how MLH measures it. Readers only believe a win after they've seen the miss.
+5. 5–7 bullets, each with a bold label and one number. For internal reports, group them as what went right, what went wrong, and what changes.
 6. Optional stat strip: 4–6 headline numbers when the story is a scoreboard.
 
 ## Headings carry the story
@@ -47,7 +47,7 @@ How an MLH report reads: skimmable, credible, and honest without reading like an
 - Annotate in the chart where it saves a paragraph ("up from 39% in Jul", "excl. sponsored events").
 - Caption: `Source: [dataset], [period], [population filter] [n=…, per segment when split]. Q: "[exact wording]" ([answer mode]). [rule or exclusion]`.
 - End the lead-in sentence with a colon and keep it next to its chart.
-- Each dataset appears once, as a chart or a table, not both. The verdict, short version and headings repeat key numbers on purpose.
+- Each dataset appears once, as a chart or a table, not both. The executive summary and headings repeat key numbers on purpose.
 - Screenshot or render every visual after writing it: fix overlaps, and check that the title's claim is visible in the marks and agrees with its H2. If you can't render, check layout from the chart's data and code, and say so in the delivery notes.
 
 ## Tone by audience
