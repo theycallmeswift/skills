@@ -64,7 +64,7 @@ Don't add a separate reach or "about MLH" section; the intro carries it.
 
 ## Boilerplate
 
-Reuse as written, swapping the bracketed parts. The intro's reach figures are brand claims: directional, owned by MLH, and fine in the intro as written. Keep them out of findings, charts and stat strips, and don't "correct" them against the warehouse. Every other figure gets re-traced like any number.
+Reuse as written, swapping the bracketed parts. The first two sentences stay fixed; the "data below comes from" sentence names the sources this report actually uses, keeping the brand figure for any of census, hackathons or DEV it does use. The intro's reach figures are brand claims: directional, owned by MLH, and fine in the intro as written. Keep them out of findings, charts and stat strips, and don't "correct" them against the warehouse. Every other figure gets re-traced like any number.
 
 **Intro** (italic, no heading, under the byline). Public reports use the first paragraph only:
 
