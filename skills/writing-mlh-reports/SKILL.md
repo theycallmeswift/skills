@@ -13,7 +13,7 @@ You coordinate; subagents do the reading. Keep raw data out of your own context:
 
 Read anything the user attached before anything else. Attachments are usually the real brief, and they often show the subject is not what the one-line ask implies (a "developer report" for a talent-program partner is really a program-outcomes report).
 
-Settle these, asking in one round about whatever you can't infer:
+Settle these. Infer what the ask, attachments and sources already say, and write each inference into the brief as a stated assumption. Ask only what blocks the work, one question at a time; when nothing blocks, go straight to gathering, and the user corrects assumptions at the gate.
 
 - **Audience:** who reads it (a partner, the MLH team, leadership, investors, the public) and what they may see.
 - **Goal:** what the reader should know, feel or decide afterward. Every section must serve it.
@@ -72,7 +72,7 @@ Then show the user:
 - the title and claim-first H2s in reading order, each with its evidence, planned visual and sources; flag any H2 whose number hangs on an open conflict
 - the conflicts
 
-Order sections by strength for this reader, not by data source or the brief's question order. Ask the conflicts one at a time (structured choice UI where available), headline-changing ones first: what you found, the options, your pick and why. Batch the rest in one message as "taking my recommended picks unless you object". Also raise anything the default population rules in sources.md would drop that the subject cares about.
+Order sections by strength for this reader, not by data source or the brief's question order. End the gate message with exactly one question: the headline-changing conflict that matters most (what you found, the options, your pick and why), with "or tell me what to change in the outline" as the way to approve or redirect it. Ask the remaining headline conflicts the same way, one per message (structured choice UI where available). List the rest as "taking my recommended picks unless you object". Also raise anything the default population rules in sources.md would drop that the subject cares about.
 
 Log every decision in `brief.md`. Once the user approves, create the doc under the approved title (some doc tools can't rename it later) with a pending block per section, and share the link so the user can watch it fill.
 
