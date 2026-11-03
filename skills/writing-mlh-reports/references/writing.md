@@ -5,7 +5,7 @@ How an MLH report reads: skimmable, credible, and honest without reading like an
 ## Top of the doc
 
 1. Title that names the subject and the question or headline finding (`MLH × Snowflake: How Next-Gen & Professional Devs Build with Data Platforms`). It passes the same tests as an H2: no claim, metaphor or hype the body can't carry. Byline: as-of date · author.
-2. The notice line for the audience, and the intro for partner and public reports (see [Boilerplate](#boilerplate)).
+2. The notice line for the audience, then the intro for every report a non-MLH reader sees: partner, investor and public (see [Boilerplate](#boilerplate)).
 3. An `Executive summary` H2 (with an emoji) holding the next three items with no labels of their own, so the summary shows in the doc's outline.
 4. The verdict, as the first paragraph: two or three short sentences: the finding the reader's decision hangs on (even when it's a loss), the miss, and what it means. The miss is about the subject, never about how MLH measures it. Readers only believe a win after they've seen the miss.
 5. 5–7 bullets, each with a bold label and one number. For internal reports, group them as what went right, what went wrong, and what changes.
@@ -67,17 +67,17 @@ Don't add a separate reach or "about MLH" section; the intro carries it.
 
 Reuse as written, swapping the bracketed parts. The first two sentences stay fixed; the "data below comes from" sentence names the sources this report actually uses, keeping the brand figure for any of census, hackathons or DEV it does use. The intro's reach figures are brand claims: directional, owned by MLH, and fine in the intro as written. Keep them out of findings, charts and stat strips, and don't "correct" them against the warehouse. Every other figure gets re-traced like any number.
 
-**Intro** (italic, no heading, under the byline). Public reports use the first paragraph only:
+**Intro** (italic, no heading, under the notice line). Investor and public reports use the first paragraph only:
 
 > Major League Hacking (MLH) is the world's largest independent developer community. Over the last 13 years, we've helped 15% of software engineers get their start, and now we're creating the home for the next billion software creators. The data below comes from our quarterly developer census, submissions from 1,500+ hackathons a year, and the 3.5M developers on DEV (dev.to). Together, it shows which [SUBJECT] next-gen devs and working professionals actually pick up.
 >
 > We're sharing this data so your team has an independent, ground-level read on how developers use [PARTNER] and its competitors, including where [PARTNER] trails. Each chart notes its source and sample; full methodology is at the end.
 
-**Notice lines:**
+**Notice lines** (bold italic, right under the byline):
 
 - Partner: ***This report is shared confidentially for [PARTNER]'s internal use and is not for publication.***
-- MLH internal: `Internal to MLH. Not for sharing outside the team.`
-- Investor: `Confidential. Prepared for MLH investors; not for further distribution.`
+- MLH internal: ***Internal to MLH. Not for sharing outside the team.***
+- Investor: ***Confidential. Prepared for MLH investors; not for further distribution.***
 - Public: none.
 
 **Brand claims** (intro only, directional):
