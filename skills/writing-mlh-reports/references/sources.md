@@ -33,7 +33,7 @@ Decks (check speaker notes and figures that only appear in chart images), raw su
 
 ## Finance
 
-Revenue truth, best first: closed books (QuickBooks; no connector, so ask, or use a management P&L the user supplies, labeled pro forma) > the Deferred Revenue Schedule sheet (`1ZO8WF7gP0Pc7UP7mmcEJhdf9L5r06akbM2uUgElG3qc`, the official schedule the books follow) > ad-hoc exports > Slack. In the schedule, months after the current one are scheduled, not recognized. Total is net of Discounts, and product rows don't sum to Events. The Bookings and Upcoming Renewals tabs are stale. Recognized revenue, bookings and CARR are different numbers: pick one per claim.
+Revenue truth, best first: closed books (QuickBooks; no connector, so ask, or use a management P&L the user supplies, labeled pro forma) > the Deferred Revenue Schedule sheet (`1ZO8WF7gP0Pc7UP7mmcEJhdf9L5r06akbM2uUgElG3qc`, the official schedule the books follow) > ad-hoc exports > Slack. In the schedule, months after the current one are scheduled, not recognized. Total is net of Discounts, and product rows don't sum to Events. The Bookings and Upcoming Renewals tabs are stale. Recognized revenue, bookings and CARR are different numbers: pick one per claim. Cash, burn and runway come from the books' balance sheet: ask for them.
 
 ## Slack, email, meetings
 

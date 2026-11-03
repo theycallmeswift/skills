@@ -29,9 +29,9 @@ Then set the audience rules for this report: tone, whether recommendations are a
 
 | Audience | Tone | Recommendations | Never include |
 |---|---|---|---|
-| Partner | Independent, data-led, never a pitch | No: findings and what to track | Other partners' data, pricing, deal terms or contracted targets (incl. "% of goal"), budgets, renewal status, internal staffing |
+| Partner | Independent, data-led, never a pitch | No: findings and what to track | Other partners' data or MLH activity (never say a named competitor sponsored or ran anything), pricing, deal terms or contracted targets (incl. "% of goal"), budgets, renewal status, internal staffing |
 | MLH internal | Candid, positive where earned | Yes: specific and bold | Individuals' personal data |
-| Investor | Confident, evidence-led, no hype | Yes: what's next | Partner deal terms, individuals' data or pay, cap-table detail |
+| Investor | Confident, evidence-led, no hype | Yes: what's next | Partner deal terms (incl. contract end dates), individuals' data, anyone's pay even as an aggregate line, cap-table detail |
 | Public | Polished | Light | Anything confidential; any demographic or location group under 10 people |
 
 Start `brief.md` in the working folder: audience, goal, spine, period, audience rules, a data cutoff date every query filters on (live tables keep changing), and every decision the user makes from here on. Every subagent reads it.
@@ -64,15 +64,17 @@ Gaps in MLH's own data pipeline are not findings about the subject. Build findin
 
 ## 4. Gate: outline and conflicts together
 
-One gate before any drafting. Show the user:
+One gate before any drafting. First, a fresh subagent briefed as the target reader (or you, rereading as them) reads your draft outline and `reconcile.md`, then names the finding their decision hangs on and what they'd doubt. Without this, the critic finds the real lead after the draft is built. Lead with that finding, even when it's a loss.
 
-- the one-line arc, now backed by data
-- claim-first H2s in reading order, each with its evidence, planned visual and sources; flag any H2 whose number hangs on an open conflict
+Then show the user:
+
+- the one-line arc, now backed by data, opening with that lead
+- the title and claim-first H2s in reading order, each with its evidence, planned visual and sources; flag any H2 whose number hangs on an open conflict
 - the conflicts
 
-Order sections by the story, not by data source. Ask the conflicts one at a time (structured choice UI where available), headline-changing ones first: what you found, the options, your pick and why. Batch the rest in one message as "taking my recommended picks unless you object". Also raise anything the default population rules in sources.md would drop that the subject cares about.
+Order sections by strength for this reader, not by data source or the brief's question order. Ask the conflicts one at a time (structured choice UI where available), headline-changing ones first: what you found, the options, your pick and why. Batch the rest in one message as "taking my recommended picks unless you object". Also raise anything the default population rules in sources.md would drop that the subject cares about.
 
-Log every decision in `brief.md`. Once the user approves, create the doc with a pending block per section and share the link, so the user can watch it fill.
+Log every decision in `brief.md`. Once the user approves, create the doc under the approved title (some doc tools can't rename it later) with a pending block per section, and share the link so the user can watch it fill.
 
 ## 5. Plan and draft
 
@@ -80,13 +82,15 @@ An analyst subagent reads `brief.md`, `reconcile.md` and `research/`, then write
 
 Draft one section per call, prose then visuals, following [references/writing.md](references/writing.md). Read it before the first section. It also holds the maintained intro and notice lines.
 
+The doc holds only what its reader may see. Placeholders, unverified claims and sensitive items the user hasn't cleared go in `delivery-notes.md` as open items, never in the doc.
+
 ## 6. Review
 
 Once the structure is locked:
 
-1. **Fact-checker** (fresh subagent): traces every number to `research/` or an opened URL, checks segment labels and question wording, and applies clear fixes.
+1. **Fact-checker** (fresh subagent): traces every number, including each chart's data rows and caption, to `research/` or an opened URL; checks segment labels, question wording and every decision logged in `brief.md`; and applies clear fixes. It checks the intro word for word against writing.md's Boilerplate and leaves its brand claims alone.
 2. **Critic** (fresh subagent, briefed as the target reader): what would they doubt, skip, or forward? What is the strongest finding, and is it leading? Lists judgment calls; edits nothing.
-3. **Editor** (one subagent, one pass): applies the critique, voice and skimmability. Numbers stay unchanged.
+3. **Editor** (one subagent, one pass): applies the critique, voice and skimmability. It adds or changes a figure only from `reconcile.md` or `research/`, and lists each one in the delivery notes for re-check.
 
 Only one agent edits the doc at a time. Route the user's comments through the active editor.
 
@@ -94,7 +98,7 @@ Only one agent edits the doc at a time. Route the user's comments through the ac
 
 Send the doc link, then:
 
-- **Open items:** small samples, provisional periods, unverified figures, anything the user must confirm.
+- **Open items** (from `delivery-notes.md`): small samples, provisional periods, unverified figures, held-back sensitive items, figures the editor added, anything the user must confirm.
 - **QA list:** source figures (decks, dashboards) that didn't reproduce.
 - **Email draft** to the external readers, last, once the doc is final: the link, three balanced findings, and the notice line.
 
