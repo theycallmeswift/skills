@@ -63,11 +63,11 @@ Don't add a separate reach or "about MLH" section; the intro carries it.
 
 ## Boilerplate
 
-Reuse as written, swapping the bracketed parts, and re-check every figure against its source each time.
+Reuse as written, swapping the bracketed parts. Re-trace every figure to its source like any other number. A fact marked unverified stays out until someone traces it.
 
 **Intro** (italic, no heading, under the byline). Public reports use the first paragraph only:
 
-> Major League Hacking (MLH) is the world's largest independent developer community. Over the last 13 years, we've helped 15% of software engineers get their start, and now we're creating the home for the next billion software creators. The data below comes from our quarterly developer census, submissions from 1,500+ hackathons a year, and the 3.5M developers on DEV (dev.to). Together, it shows which [SUBJECT] next-gen devs and working professionals actually pick up.
+> Major League Hacking (MLH) is the world's largest independent developer community. Over the last 13 years, we've helped developers get their start at [N, traced] events, and now we're creating the home for the next billion software creators. The data below comes from our quarterly developer census, project submissions from our hackathons, and the developer community on DEV (dev.to). Together, it shows which [SUBJECT] next-gen devs and working professionals actually pick up.
 >
 > We're sharing this data so your team has an independent, ground-level read on how developers use [PARTNER] and its competitors, including where [PARTNER] trails. Each chart notes its source and sample; full methodology is at the end.
 
@@ -78,4 +78,11 @@ Reuse as written, swapping the bracketed parts, and re-check every figure agains
 - Investor: `Confidential. Prepared for MLH investors; not for further distribution.`
 - Public: none.
 
-**Reach facts** for the intro or a stat strip (as of Nov 2026): 15% of software engineers got their start with MLH; 1 in 3 CS grads joins the MLH network; 1.5k+ hackathons and events a year; 3.5M DEV users and 10M monthly uniques; 56% of alumni put MLH-learned tech into production at work (Oct 2026 census); 45% discover dev tools at hackathons vs 12% through ads.
+**Reach facts** (as of Nov 2026), each with its source:
+
+- 56% of census respondents have introduced or started using a technology they learned at a hackathon at work. Season Census, Oct 2026, attention-check passers, n=3,366. Q: "After learning a technology at a hackathon, have you ever introduced or started using it at work?" (QID196 + QID1220045937 + QID1220503426). Never say "alumni", "MLH-learned" or "into production".
+- 1.5k+ events a year, all formats (Core, 2026: 1,898 events, about 470 of them Hacktoberfest). Don't call them hackathons.
+- 1 in 3 US CS graduates joins the MLH network. Hackcon 2025 keynote. Unverified.
+- 3.5M registered DEV members. DEV team, Mar 2026. Unverified.
+- 45% discover dev tools at hackathons vs 12% through ads. Season Census; wave and item unknown. Unverified.
+- Dropped: "15% of software engineers got their start with MLH" (no source; a Hackcon deck says 10% of US engineers, also untraced) and "10M monthly DEV uniques" (no source; Mar 2026 figure is 6.8M average, sampled).
