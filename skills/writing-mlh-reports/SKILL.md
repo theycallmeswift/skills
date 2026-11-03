@@ -76,7 +76,7 @@ Gaps in MLH's own data pipeline are not findings about the subject. Build findin
 
 ## 6. Draft
 
-Draft one section per call, prose then visuals, following [references/writing.md](references/writing.md). Read it before the first section. Partner and public reports open with the maintained intro in [references/boilerplate.md](references/boilerplate.md); re-check its figures each time.
+Draft one section per call, prose then visuals, following [references/writing.md](references/writing.md). Read it before the first section. It also holds the maintained intro and notice lines.
 
 ## 7. Review
 

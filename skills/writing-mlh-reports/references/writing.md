@@ -5,7 +5,7 @@ How an MLH report reads: skimmable, credible, and honest without reading like an
 ## Top of the doc
 
 1. Title that names the subject and the question (`MLH × Snowflake: How Next-Gen & Professional Devs Build with Data Platforms`). Byline: as-of date · author.
-2. The notice line for the audience (see `boilerplate.md`), plus the intro for partner and public reports.
+2. The notice line for the audience, and the intro for partner and public reports (see [Boilerplate](#boilerplate)).
 3. **Verdict:** one or two sentences with the win, the miss, and what it means. Readers only believe a win after they've seen the miss.
 4. **The short version:** 5–7 bullets, each with a bold label and one number. For internal reports, group them as what went right, what went wrong, and what changes.
 5. Optional stat strip: 4–6 headline numbers when the story is a scoreboard.
@@ -60,3 +60,22 @@ How an MLH report reads: skimmable, credible, and honest without reading like an
 **Methodology & sources** (last H2): one H3 per source with the period, population and filters, and exclusions. Add "Counts and samples" when sources gave different counts, and "Unverified items" for figures relayed second-hand. Then links to every external source cited.
 
 Don't add a separate reach or "about MLH" section; the intro carries it.
+
+## Boilerplate
+
+Reuse as written, swapping the bracketed parts, and re-check every figure against its source each time.
+
+**Intro** (italic, no heading, under the byline). Public reports use the first paragraph only:
+
+> Major League Hacking (MLH) is the world's largest independent developer community. Over the last 13 years, we've helped 15% of software engineers get their start, and now we're creating the home for the next billion software creators. The data below comes from our quarterly developer census, submissions from 1,500+ hackathons a year, and the 3.5M developers on DEV (dev.to). Together, it shows which [SUBJECT] next-gen devs and working professionals actually pick up.
+>
+> We're sharing this data so your team has an independent, ground-level read on how developers use [PARTNER] and its competitors, including where [PARTNER] trails. Each chart notes its source and sample; full methodology is at the end.
+
+**Notice lines:**
+
+- Partner: ***This report is shared confidentially for [PARTNER]'s internal use and is not for publication.***
+- MLH internal: `Internal to MLH. Not for sharing outside the team.`
+- Investor: `Confidential. Prepared for MLH investors; not for further distribution.`
+- Public: none.
+
+**Reach facts** for the intro or a stat strip (as of Nov 2026): 15% of software engineers got their start with MLH; 1 in 3 CS grads joins the MLH network; 1.5k+ hackathons and events a year; 3.5M DEV users and 10M monthly uniques; 56% of alumni put MLH-learned tech into production at work (Oct 2026 census); 45% discover dev tools at hackathons vs 12% through ads.
