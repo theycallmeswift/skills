@@ -1,6 +1,6 @@
 # Writing the report
 
-How an MLH report reads: skimmable, credible, and honest without reading like an audit.
+How an MLH report reads: skimmable, credible, and honest without reading like an audit. These rules override a doc tool's default style where they differ (emoji in headings, a Methodology section).
 
 ## Top of the doc
 
@@ -23,7 +23,7 @@ How an MLH report reads: skimmable, credible, and honest without reading like an
 - "We" means MLH. In partner reports, "you" means the partner.
 - Say "next-gen devs", never "students". Say "professionals" or "working professionals".
 - Plain language: say what the number means, not "breadth" or "depth".
-- Integers in titles, H2s and the verdict. Use one decimal only where you compare close values. Show small groups as counts ("13 of 15 mentors").
+- Integers in titles, H2s and the verdict. Use one decimal only where you compare close values; when rounding would hide a near-tie, call it a tie in words. Show small groups as counts ("13 of 15 mentors").
 - Every win gets a comparator: target vs actual, this year vs last, or the same question asked of a baseline group.
 
 ## Credibility, not audit
@@ -38,14 +38,14 @@ How an MLH report reads: skimmable, credible, and honest without reading like an
 
 ## Visuals
 
-- At least one per H2. Tables for comparisons and plans; a chart for any set of five or more values; drawn timelines for sequences.
+- At least one per H2. A chart when the shape matters (a trend, a ranking of five or more); a table when the reader looks up exact values or plans; a drawn timeline for sequences.
 - Chart title states the finding and its number. Bars start at zero, with values on the marks.
-- The subject gets the doc's first categorical color everywhere; the main comparator one fixed second hue; everything else muted.
+- The subject gets the doc's first categorical color everywhere; the main comparator one fixed second hue; everything else muted. With no single subject (a trend across vendors), give each series one fixed color across every chart.
 - Show segment columns (all / next-gen / pro) when the split matters.
 - Annotate in the chart where it saves a paragraph ("up from 39% in Jul", "excl. sponsored events").
 - Caption: `Source: [dataset], [period], [population filter] [n=…, per segment when split]. Q: "[exact wording]" ([answer mode]). [rule or exclusion]`.
 - End the lead-in sentence with a colon and keep it next to its chart.
-- Each number appears once, in a chart or a table, not both.
+- Each dataset appears once, as a chart or a table, not both. The verdict, short version and headings repeat key numbers on purpose.
 - Screenshot or render every visual after writing it, and fix overlaps.
 
 ## Tone by audience
