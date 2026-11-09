@@ -14,16 +14,17 @@ These rules override a doc tool's default style where they differ (emoji in head
 
 - H2s are claims with a number and one emoji matching the finding's sign (no 🏆 or 🤝 on a loss, a tie or a vendor). H2 #1 carries the verdict's lead; the headings alone tell the story.
 - Pair win and loss in one H2 when both are true ("Claude leads on trust, but Gemini wins hackathon projects 📊"): visible candour earns trust for the rest.
-- Sentences under 25 words, paragraphs of 3 sentences or fewer. "We" is MLH; in partner reports "you" is the partner. Say "next-gen devs", never "students".
+- Sentences under 25 words, paragraphs of 3 sentences or fewer. "We" is MLH; in partner reports "you" is the partner. Say "next-gen devs", never "students". Use the reader's category nouns, never a source tab's label.
 - Name the population measured ("census respondents", "League hackathon projects"), never "developers", "hackers" or "the community"; give the next-gen share of "all" once.
-- Integers in title, H2s and verdict; one decimal only to compare close values, and call a near-tie a tie in words. Round once, from the raw figure. Small groups as counts ("13 of 15 mentors"), no multiples ("4 → 32 posts", not "nearly tripled").
-- Every win gets a comparator: target, last year, or the same question asked of a baseline group.
+- Integers in title, H2s and verdict; one decimal only to compare close values, and call a near-tie a tie in words. Round once, from the raw figure. Small groups as counts ("13 of 15 mentors"), no multiples ("4 → 32 posts", not "nearly tripled"). Groups under 30 and pooled cells stay out of the title, verdict and H2s.
+- Every win gets a comparator: target, last year, or the same question asked of a baseline group. Every count gets its "out of", and every call-out (a country, a segment) says why it matters.
 
 ## Honest, not an audit
 
 - Caveats go in Methodology. One goes in the body, once, beside its number, only if it changes the reader's decision, they'd hit it anyway, or a skeptic would raise it against a headline (a missing competitor, a reworded question, a confound the reader paid for).
 - No causal claim the data can't carry, in title, verdict, headings and tables too. "Because", "drove", "the gap is X" and "what it changed" are causal; a belief is "we believe…" with its evidence.
-- An adjustment that moves a headline number, or revises a figure the reader already received, gets one plain sentence beside it.
+- An adjustment that moves a headline number, or revises a figure the reader already received, gets one plain sentence beside it. If no source says why it was adjusted, ask its owner through the delivery notes.
+- A compromised item (primed by its own examples, reworded between waves, or one of two items on the same topic) is dropped, not caveated in the body.
 - Describe each series' actual direction: no low-to-peak framing, no "flat" for a fall, no "now matches" for a lost lead. Mark provisional periods on the chart too.
 - Compare like with like (wording, options, population, definition). Anything else gets one directional sentence, never a heading, and is never summed or stacked with the headline.
 
@@ -43,7 +44,7 @@ These rules override a doc tool's default style where they differ (emoji in head
 
 ## End of the doc
 
-**Methodology & sources** (last H2): one H3 per source with period, population, filters and exclusions; "Counts and samples" when sources' counts differ; "Unverified items" for second-hand figures, except in public reports; links to every external source. No separate "about MLH" section: the intro carries it.
+**Methodology & sources** (last H2): one H3 per source with period, population, filters and exclusions; "Counts and samples" when sources' counts differ; "Unverified items" for second-hand figures, except in public reports; links to every external source. No side sections: the intro carries MLH, and general insights fold into the H2 they support unless the user asks for their own section.
 
 ## Boilerplate
 

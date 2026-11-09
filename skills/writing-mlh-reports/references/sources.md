@@ -13,12 +13,14 @@ Read its `core-data-model` resource (for DEV, `dev-queries` and `dev-limitations
 - Multi-QID items: display-logic branches split one question across QIDs; combine them, join on `answers->>'question_id'` (not `provider_field_id`), and count answers per QID per wave before planning a trend (some fields are empty). `DisplayLogic` defines the base.
 - Multi-select "None of the above" is never stored (empty array): the denominator is everyone shown the item; say so in the caption.
 - Segments: next-gen = Student (full- or part-time) on employment status; professional = employed (incl. self-employed) and not a student; others count only in "all". ~500–600 professionals per wave vs ~2,800 next-gen.
+- Examples in an item's wording prime its answers: if the top answers are the listed examples, or the examples changed between waves, don't rank or trend it.
 - No item asks it? Say "no item", not a proxy. Unnesting all responses with `jsonb_array_elements` times out: filter per `survey_id` with `@>` or `@?`.
 
 **Hackathons**
 - League hackathons = `programs.name = 'League'` and `events.event_format = 'hackathon'` (not `series`), test events dropped. Hack Days, GHW and Hacktoberfest are separate programs.
 - Count distinct projects on `EventSubmission` rows (`ChallengeSubmission` rows in `project_submissions` double it). Reach prize challenges via `project_submissions.challenge_id` (`event_challenges` is incomplete).
-- `built_with` is sometimes one comma-joined string: split and trim. Show a technology with and without events where its vendor had a prize.
+- `built_with` is sometimes one comma-joined string: split and trim. Match brands on word boundaries (`anthropic` hits "Philanthropic" prize tracks). A 2026-09-21 re-import appended "AI tools used" answers to `built_with`, inflating Q3 2026 vendor shares (Claude 68% raw vs ~25% cleaned): exclude them. Show a technology with and without events where its vendor had a prize.
+- From 2026 projects cap at two members: don't trend team size across it.
 - `projects.ai_tools` exists only from Oct 2026 loads: don't trend it. Label partly loaded quarters provisional. Confirm in the warehouse before saying a partner sponsored nothing. `companies.name` embeds contract periods: never copy it into reader text.
 
 **Participation**
@@ -27,7 +29,7 @@ Read its `core-data-model` resource (for DEV, `dev-queries` and `dev-limitations
 
 **People and programs**
 - `user_profiles.gender` and `race_or_ethnicity` are multilingual free text; `country_of_residence` is missing for most 2026 participants. Use census items and event addresses.
-- Join applicants on email (program IDs ≠ user IDs). Admissions route across tracks: "admitted to X" ≠ "applied for X". Fellowship's only live stage is `crm_stage_name`; `fellowship_enrollments` has no 2026 cohorts and disagrees with CRM (57 vs 130 for 2025). Confirm counts with the program team.
+- Join applicants on email (program IDs ≠ user IDs). Admissions route across tracks: "admitted to X" ≠ "applied for X". Fellowship's only live stage is `crm_stage_name`; `fellowship_enrollments` has no 2026 cohorts and disagrees with CRM (57 vs 130 for 2025). Confirm counts with the program team. Program outcomes mostly live outside the warehouse: Typeform (n varies per item), Drive tracking sheets and the sheet behind each deck.
 
 ## DEV warehouse (dev.to)
 
