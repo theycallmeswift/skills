@@ -11,7 +11,7 @@ Read its `core-data-model` resource (for DEV, `dev-queries` and `dev-limitations
 - Attention check: "Just checking in! … Please click 'Strongly disagree'" (QID1219624549; QID1219198910 in Jan 2026), pass = code 8. Count passers only; the ~half who drop out before it are excluded too.
 - Decoding: answers store Qualtrics RecodeValues, but `survey_value_mappings` is keyed on choice IDs and mislabels without error. Read labels from `surveys.description->'result'->'Questions'->QID->'RecodeValues'` per question and wave: codes are reused (37 = Claude Desktop in Jan 2026, Claude Code after). Every stored code needs a label; trend only options offered under the same label in both waves.
 - Multi-QID items: display-logic branches split one question across QIDs; combine them, join on `answers->>'question_id'` (not `provider_field_id`), and count answers per QID per wave before planning a trend (some fields are empty). `DisplayLogic` defines the base.
-- Multi-select "None of the above" is never stored (empty array): the denominator is everyone shown the item; say so in the caption.
+- Multi-select "None of the above" is never stored (empty array): the denominator is everyone shown the item; say so in its footnote.
 - Segments: next-gen = Student (full- or part-time) on employment status; professional = employed (incl. self-employed) and not a student; others count only in "all". ~500–600 professionals per wave vs ~2,800 next-gen.
 - Examples in an item's wording prime its answers: if the top answers are the listed examples, or the examples changed between waves, don't rank or trend it.
 - No item asks it? Say "no item", not a proxy. Unnesting all responses with `jsonb_array_elements` times out: filter per `survey_id` with `@>` or `@?`.

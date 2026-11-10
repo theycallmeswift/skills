@@ -55,7 +55,7 @@ An analyst subagent writes `plan.md` from `brief.md`, `reconcile.md` and `resear
 
 Fresh subagents, one editing the doc at a time (route the user's comments through it):
 
-1. **Fact-checker:** traces every number, including chart rows and captions, to `research/` or an opened URL; checks segment labels, question wording and each decision in `brief.md`; leaves the intro's brand claims alone; searches for leftover placeholders and `brief.md`'s never-include items. Applies clear fixes.
+1. **Fact-checker:** traces every number, including chart rows and footnotes, to `research/` or an opened URL; checks segment labels, question wording and each decision in `brief.md`; leaves the intro's brand claims alone; searches for leftover placeholders and `brief.md`'s never-include items. Applies clear fixes.
 2. **Critic,** briefed as the target reader: what they'd doubt, skip or forward, and whether the strongest finding leads. Lists judgment calls; edits nothing. A doubt about evidence sends you back to step 3, not to the prose.
 3. **Editor,** one pass: applies the critique, voice and skimmability, then rereads the title, verdict and H2s against the body's caveats. Adds or changes a figure only from `reconcile.md` or `research/`, listing each in the delivery notes for re-check.
 

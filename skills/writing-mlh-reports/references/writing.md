@@ -33,7 +33,7 @@ These rules override a doc tool's default style where they differ (emoji in head
 
 - One per H2 (a table counts) unless the section is one or two facts. Chart when shape matters, table for exact lookups, timeline for sequences. Each dataset appears once.
 - Chart title states the finding and its number. Bars start at zero, values on the marks. Colors stay fixed across charts: subject first, main comparator second, the rest muted (no single subject: one color per series).
-- Caption: `Source: [dataset], [period], [population filter] [n=…, per segment when split]. Q: "[exact wording]" ([answer mode]). [rule or exclusion]`.
+- Sources are numbered footnotes, never lines under a chart: a marker (¹) on the sentence or chart title that carries the figure, and the note under **Sources** at the end of the doc: `[dataset], [period], [population filter] [n=…, per segment when split]. Q: "[exact wording]" ([answer mode]). [rule or exclusion]`.
 - Render every visual: fix overlaps, and check the title's claim shows in the marks and agrees with its H2. Can't render? Check layout from data and code, and say so in the delivery notes.
 
 ## Tone by audience
@@ -45,7 +45,7 @@ These rules override a doc tool's default style where they differ (emoji in head
 
 ## End of the doc
 
-**Methodology & sources** (last H2): one H3 per source with period, population, filters and exclusions; "Counts and samples" when sources' counts differ; "Unverified items" for second-hand figures, except in public reports; links to every external source. No side sections: the intro carries MLH, and general insights fold into the H2 they support unless the user asks for their own section.
+**Methodology & sources** (last H2): the numbered **Sources** footnotes, then one H3 per source with period, population, filters and exclusions; "Counts and samples" when sources' counts differ; "Unverified items" for second-hand figures, except in public reports; links to every external source. No side sections: the intro carries MLH, and general insights fold into the H2 they support unless the user asks for their own section.
 
 ## Boilerplate
 
