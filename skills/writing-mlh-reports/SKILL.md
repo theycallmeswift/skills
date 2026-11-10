@@ -17,13 +17,13 @@ Turn MLH ecosystem data into a shareable doc one named reader can act on. It's a
 | 6. Review | Fact-checker, critic, editor, in turn | The doc, `research/` | Fixes in the doc | The critic doubts the evidence: back to step 3 |
 | 7. Deliver | You, then the user | The doc, `delivery-notes.md` | Link, open items, email draft | Never sent without the user |
 
-You coordinate; subagents keep raw data out of your context. Without subagents, finish one source's `research/<source>.md` before opening the next.
+Fix feedback where it lives: a wrong figure in `reconcile.md`, a wrong subject or lead in `brief.md` and back through the gate, a judgment call in the doc. You coordinate; subagents keep raw data out of your context. Without subagents, finish one source's `research/<source>.md` before opening the next.
 
 ## 1. Scope
 
 Read attachments first: they are usually the real brief and often change the subject (a "developer report" for a talent-program partner is really program outcomes). A pasted template is only a format hint: any options you offer include the subject the attachments name. Then settle the audience; the goal (what the reader should know or decide); the spine (the comparison that carries it: competitors, the field, last year or target); the period (a program's "this year" is its cohort year); and which systems hold the data (ask). Record inferences as assumptions the user corrects at the gate; ask only a blocking question, one at a time.
 
-**Check the premise:** the certification, partnership or program is still active, no existing report already covers this (offer to revise it), and you know what this reader was already told (search email and channels). Tell the user at once if the premise is broken; figures already sent go into the reconcile table.
+**Check the premise:** the certification, partnership or program is still active, no existing report already covers this (offer to revise it, or a new version if it's been shared), and you know what this reader was already told (search email and channels). Tell the user at once if the premise is broken; figures already sent go into the reconcile table.
 
 Write the audience's row and its notice line ([writing.md](references/writing.md#boilerplate)) into the brief:
 
@@ -38,7 +38,7 @@ Write the audience's row and its notice line ([writing.md](references/writing.md
 
 ## 2. Gather
 
-Test each connector with one query and send all re-auth links at once; Slack, decks and memory never stand in for a warehouse that's down. One subagent per source writes `research/<source>.md` with every figure, its exact source and, for survey items, the exact wording, and returns ≤300 words. Re-trace every reused figure to raw data, the user's own included: decks, Slack, memory and figures already sent all drift.
+Test each connector with one query and send all re-auth links at once; Slack, decks and memory never stand in for a warehouse that's down. One subagent per source writes `research/<source>.md` with every figure, its exact source and, for survey items and scores, the exact wording and pass threshold, and returns ≤300 words. Re-trace every reused figure to raw data, the user's own included: decks, Slack, memory and figures already sent all drift.
 
 ## 3. Reconcile and find the story
 
