@@ -1,6 +1,6 @@
 ---
 name: writing-mlh-reports
-description: "Use when the user wants a shareable report, write-up or data story built from the MLH ecosystem (Major League Hacking, DEV/dev.to, MLH programs and partners): partner developer reports, program or fellowship outcomes, event recaps, impact or B-Corp reports, investor updates, trend reports, internal retros. Covers asks like \"generate a Q3 developer report for GitHub\", \"write up how the PE Fellowship did this year\", \"make our 2026 impact report\", \"pull together an investor growth update\", \"what are devs doing with coding agents? write it up for DEV\". Use it even when the ask names no format: a report from MLH data is this skill. Don't use for a single number or quick query answered in chat, a slide deck (google-slides), a one-line fix to an existing report, or documents with no MLH data behind them."
+description: "Use when the user wants a shareable report, write-up or data story built from the MLH ecosystem (Major League Hacking, DEV/dev.to, MLH programs and partners): partner developer reports, program or fellowship outcomes, event recaps, impact or B-Corp reports, investor updates, trend reports, internal retros. Covers asks like \"generate a Q3 developer report for GitHub\", \"write up how the PE Fellowship did this year\", \"make our 2026 impact report\", \"pull together an investor growth update\", \"what are devs doing with coding agents? write it up for DEV\". Use it even when the ask names no format: a report from MLH data is this skill. Don't use for a single number or quick query answered in chat, a slide deck (google-slides), a proposal or pitch to a buyer, a one-line fix to an existing report, or documents with no MLH data behind them."
 ---
 
 # Writing MLH reports
@@ -65,7 +65,7 @@ An analyst subagent writes `plan.md`: ranked insights per H2 and 4–7 visual sp
 
 Fresh subagents, one editing the doc at a time:
 
-1. **Fact-checker:** traces every number, chart rows and footnotes included, to `research/`; checks segment labels, question wording and the decisions in `brief.md`; leaves the intro's brand claims alone; hunts leftover placeholders and never-include items. Applies clear fixes.
+1. **Fact-checker:** traces every number, chart rows and footnotes included, to `research/`, and checks that dates, windows and counts can co-exist; checks segment labels, question wording and the decisions in `brief.md`; leaves the intro's brand claims alone; hunts leftover placeholders and never-include items. Applies clear fixes.
 2. **Critic,** briefed as the target reader: what they'd doubt, skip or forward, and whether the strongest finding leads. Edits nothing.
 3. **Editor,** one pass: applies the critique and tightens voice; the title and H2s claim no more than the body supports. New figures only from `reconcile.md`, flagged in the delivery notes.
 

@@ -15,6 +15,7 @@ These rules override a doc tool's default style where they differ.
 - H2s are claims with a number and one emoji matching the finding's sign (no 🏆 or 🤝 on a loss, a tie or a vendor). H2 #1 carries the verdict's lead; the headings alone tell the story.
 - Under each H2, short H3s (3–6 words) and a bold lead-in per paragraph, so the headings and bold text alone carry the section.
 - Pair win and loss in one H2 when both are true ("Claude leads on trust, but Gemini wins hackathon projects 📊").
+- Write with confidence: claim first, strongest number first, active verbs, no hedges, no hype, no em dashes, no "not X but Y", no reflexive lists of three. State each fact once.
 - Sentences under 25 words, paragraphs of 3 sentences or fewer. "We" is MLH; in partner reports "you" is the partner. Say "next-gen devs", never "students", and use the reader's category nouns ("coding harness"), never a source tab's label. Use the reader's category nouns, never a source tab's label.
 - Name the population measured ("census respondents", "League hackathon projects"), never "developers" or "the community"; give the next-gen share of "all" once.
 - Integers in title, H2s and verdict; one decimal only to compare close values, and call a near-tie a tie. Small groups as counts ("13 of 15 mentors"), no multiples ("4 → 32 posts", not "nearly tripled"). Don't call out a small n: mark a figure from fewer than 100 people "directional" once, beside it, with its n in the footnote. Keep groups under 30 out of the title, verdict and H2s.
