@@ -1,6 +1,6 @@
-# Globex SRE Fellowship final mock interview rubric
+# Kestrel SRE Fellowship final mock interview rubric
 
-Scored 1-5 by two Globex engineers on incident response, systems design and communication.
+Scored 1-5 by two Kestrel engineers on incident response, systems design and communication.
 
 - **Pass** (score 3.5 or above): "likely ready for an intern offer."
 - **Fail** (below 3.5): not yet at the intern bar.
