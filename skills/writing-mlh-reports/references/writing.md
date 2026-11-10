@@ -4,7 +4,7 @@ These rules override a doc tool's default style where they differ (emoji in head
 
 ## Top of the doc
 
-1. **Title** naming the subject and the question or headline finding (`MLH × Snowflake: How Next-Gen & Professional Devs Build with Data Platforms`); no claim the body can't carry. Byline: as-of date · author.
+1. **Title** stating the headline finding; no claim the body can't carry. Partner and trend reports lead on the reader's market, as a trade outlet would run it with MLH's name removed (`Devs Trust Claude and Pay Anthropic, but Build with Gemini`): MLH is the source, never the subject, and it reads as less biased. Byline: as-of date · author.
 2. **Notice line**, then the **intro** for any report a non-MLH reader sees (see [Boilerplate](#boilerplate)).
 3. **`Executive summary` H2** (with an emoji). Under it, with no labels of their own:
    - **Verdict paragraph,** two or three short sentences: the finding the reader's decision hangs on (even a loss), the miss, and what it means. The miss is about the subject, never about MLH's measurement. Readers believe a win only after they've seen the miss.
@@ -13,6 +13,7 @@ These rules override a doc tool's default style where they differ (emoji in head
 ## Headings and sentences
 
 - H2s are claims with a number and one emoji matching the finding's sign (no 🏆 or 🤝 on a loss, a tie or a vendor). H2 #1 carries the verdict's lead; the headings alone tell the story.
+- Under each H2, short H3s (3–6 words) and a bold lead-in per paragraph, so the headings and bold text alone carry the section.
 - Pair win and loss in one H2 when both are true ("Claude leads on trust, but Gemini wins hackathon projects 📊"): visible candour earns trust for the rest.
 - Sentences under 25 words, paragraphs of 3 sentences or fewer. "We" is MLH; in partner reports "you" is the partner. Say "next-gen devs", never "students". Use the reader's category nouns, never a source tab's label.
 - Name the population measured ("census respondents", "League hackathon projects"), never "developers", "hackers" or "the community"; give the next-gen share of "all" once.
