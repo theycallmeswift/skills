@@ -17,7 +17,7 @@ These rules override a doc tool's default style where they differ (emoji in head
 - Pair win and loss in one H2 when both are true ("Claude leads on trust, but Gemini wins hackathon projects 📊"): visible candour earns trust for the rest.
 - Sentences under 25 words, paragraphs of 3 sentences or fewer. "We" is MLH; in partner reports "you" is the partner. Say "next-gen devs", never "students". Use the reader's category nouns, never a source tab's label.
 - Name the population measured ("census respondents", "League hackathon projects"), never "developers", "hackers" or "the community"; give the next-gen share of "all" once.
-- Integers in title, H2s and verdict; one decimal only to compare close values, and call a near-tie a tie in words. Round once, from the raw figure. Small groups as counts ("13 of 15 mentors"), no multiples ("4 → 32 posts", not "nearly tripled"). Groups under 30 and pooled cells stay out of the title, verdict and H2s.
+- Integers in title, H2s and verdict; one decimal only to compare close values, and call a near-tie a tie in words. Round once, from the raw figure. Small groups as counts ("13 of 15 mentors"), no multiples ("4 → 32 posts", not "nearly tripled"). Don't call out a small n in the text: mark a figure from fewer than 100 people "directional" once, beside it, and put its n in the footnote. Groups under 30 and pooled cells stay out of the title, verdict and H2s.
 - Every win gets a comparator: target, last year, or the same question asked of a baseline group. Every count gets its "out of", and every call-out (a country, a segment) says why it matters.
 
 ## Honest, not an audit

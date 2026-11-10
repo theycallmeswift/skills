@@ -5,7 +5,19 @@ description: "Use when the user wants a shareable report, write-up or data story
 
 # Writing MLH reports
 
-Turn MLH ecosystem data into a shareable doc that one named reader can act on. Success: the headings alone carry the point, every number traces to a source, and nothing in it is wrong for that reader to see. Failed drafts pick the wrong subject or lead on a figure that doesn't reproduce, so steps 1, 3 and 4 carry the weight.
+Turn MLH ecosystem data into a shareable doc that one named reader can act on. Most are sales tools: they must be defensible (every claim survives a skeptic), not academically rigorous. Success: the headings alone carry the point, every number traces to a source, and nothing in it is wrong for that reader to see. Failed drafts pick the wrong subject or lead on a figure that doesn't reproduce, so steps 1, 3 and 4 carry the weight.
+
+| Step | Owner | Reads | Writes | Stop the line when |
+|---|---|---|---|---|
+| 1. Scope | You | The ask, attachments, what the reader was told | `brief.md` | The premise is broken or a question blocks |
+| 2. Gather | One subagent per source | `brief.md`, [sources.md](references/sources.md) | `research/<source>.md` | A source the goal needs hasn't answered: no substitutes |
+| 3. Reconcile | You | `research/` | `reconcile.md` | A figure that could lead doesn't reproduce |
+| 4. Gate | Reader-critic, then the user | Outline, `reconcile.md` | Approved outline in `brief.md` | The user hasn't approved |
+| 5. Draft | Analyst, then you | `brief.md`, `reconcile.md`, `research/` | `plan.md`, the doc, `delivery-notes.md` | A figure isn't in `reconcile.md` |
+| 6. Review | Fact-checker, critic, editor, in turn | The doc, `research/` | Fixes in the doc | The critic doubts the evidence: back to step 3 |
+| 7. Deliver | You, then the user | The doc, `delivery-notes.md` | Link, open items, email draft | Never sent without the user |
+
+Fix feedback where it lives: a wrong figure in `reconcile.md`, a wrong subject or lead in `brief.md` and back through the gate, a judgment about this report in the doc.
 
 You coordinate; subagents keep raw data out of your context. Without subagents, go one source at a time: raw output to `research/raw/`, and finish `research/<source>.md` before opening the next.
 
@@ -28,7 +40,7 @@ Write the audience's row and its notice line ([writing.md](references/writing.md
 
 ## 2. Gather
 
-Preflight each connector with one test query and send every re-auth link at once. Gathering isn't done until every source the goal needs has answered: Slack, decks and memory are no substitute for a warehouse that's down. Read [sources.md](references/sources.md) before briefing, and use any other system the goal needs. One subagent per source, in parallel, writes `research/<source>.md` with every figure and its exact source (query, file/tab/range, URL or permalink; exact wording, examples and pass thresholds for survey items and scores) and returns 300 words or fewer. Re-trace every reused figure to raw data, the user's own included: decks, Slack, memory, figures already sent to the reader and writing.md's boilerplate all drift.
+Preflight each connector with one test query and send every re-auth link at once; Slack, decks and memory never stand in for a warehouse that's down. Read sources.md before briefing, and use any other system the goal needs. One subagent per source, in parallel, writes `research/<source>.md` with every figure and its exact source (query, file/tab/range, URL or permalink; exact wording, examples and pass thresholds for survey items and scores) and returns 300 words or fewer. Re-trace every reused figure to raw data, the user's own included: decks, Slack, memory, figures already sent to the reader and writing.md's boilerplate all drift.
 
 ## 3. Reconcile and find the story
 
@@ -56,7 +68,7 @@ An analyst subagent writes `plan.md` from `brief.md`, `reconcile.md` and `resear
 Fresh subagents, one editing the doc at a time (route the user's comments through it):
 
 1. **Fact-checker:** traces every number, including chart rows and footnotes, to `research/` or an opened URL; checks segment labels, question wording and each decision in `brief.md`; leaves the intro's brand claims alone; searches for leftover placeholders and `brief.md`'s never-include items. Applies clear fixes.
-2. **Critic,** briefed as the target reader: what they'd doubt, skip or forward, and whether the strongest finding leads. Lists judgment calls; edits nothing. A doubt about evidence sends you back to step 3, not to the prose.
+2. **Critic,** briefed as the target reader: what they'd doubt, skip or forward, and whether the strongest finding leads. Lists judgment calls; edits nothing.
 3. **Editor,** one pass: applies the critique, voice and skimmability, then rereads the title, verdict and H2s against the body's caveats. Adds or changes a figure only from `reconcile.md` or `research/`, listing each in the delivery notes for re-check.
 
 ## 7. Deliver
