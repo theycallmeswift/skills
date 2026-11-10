@@ -4,8 +4,6 @@ Traps that silently produce wrong numbers, as of Nov 2026. If one stops matching
 
 ## MLH Core warehouse
 
-Read its `core-data-model` resource (for DEV, `dev-queries` and `dev-limitations`) when available.
-
 **Season Census**
 - Waves: seasons run July–June (S2025 Q3 = Jan 2026, Q4 = Apr 2026; S2026 Q1 = Jul 2026, Q2 = Oct 2026). Label waves by month. S2025 Q1–Q2 aren't loaded, so there's no calendar-2025 baseline.
 - Attention check: "Just checking in! … Please click 'Strongly disagree'" (QID1219624549; QID1219198910 in Jan 2026), pass = code 8. Count passers only; the ~half who drop out before it are excluded too.

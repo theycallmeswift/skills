@@ -1,51 +1,51 @@
 # Writing the report
 
-These rules override a doc tool's default style where they differ (emoji in headings, an executive summary, a Methodology section, a short version).
+These rules override a doc tool's default style where they differ.
 
 ## Top of the doc
 
-1. **Title** stating the headline finding; no claim the body can't carry. Partner and trend reports lead on the reader's market, as a trade outlet would run it with MLH's name removed (`Devs Trust Claude and Pay Anthropic, but Build with Gemini`): MLH is the source, never the subject, and it reads as less biased. Byline: as-of date · author.
+1. **Title** stating the headline finding; no claim the body can't carry. Partner and trend reports lead on the reader's market, as a trade outlet would run it (`Devs Trust Claude and Pay Anthropic, but Build with Gemini`): MLH is the source, never the subject. Byline: as-of date · author.
 2. **Notice line**, then the **intro** for any report a non-MLH reader sees (see [Boilerplate](#boilerplate)).
 3. **`Executive summary` H2** (with an emoji). Under it, with no labels of their own:
-   - **Verdict paragraph,** two or three short sentences: the finding the reader's decision hangs on (even a loss), the miss, and what it means. The miss is about the subject, never about MLH's measurement. Readers believe a win only after they've seen the miss.
+   - **Verdict paragraph,** two or three short sentences: the finding the reader's decision hangs on (even a loss), the miss, and what it means. The miss is about the subject, never MLH's measurement.
    - **5–7 bullets,** each with a bold label and one number. Internal reports group them as went right / went wrong / changes.
 
 ## Headings and sentences
 
 - H2s are claims with a number and one emoji matching the finding's sign (no 🏆 or 🤝 on a loss, a tie or a vendor). H2 #1 carries the verdict's lead; the headings alone tell the story.
 - Under each H2, short H3s (3–6 words) and a bold lead-in per paragraph, so the headings and bold text alone carry the section.
-- Pair win and loss in one H2 when both are true ("Claude leads on trust, but Gemini wins hackathon projects 📊"): visible candour earns trust for the rest.
+- Pair win and loss in one H2 when both are true ("Claude leads on trust, but Gemini wins hackathon projects 📊").
 - Sentences under 25 words, paragraphs of 3 sentences or fewer. "We" is MLH; in partner reports "you" is the partner. Say "next-gen devs", never "students". Use the reader's category nouns, never a source tab's label.
-- Name the population measured ("census respondents", "League hackathon projects"), never "developers", "hackers" or "the community"; give the next-gen share of "all" once.
-- Integers in title, H2s and verdict; one decimal only to compare close values, and call a near-tie a tie in words. Round once, from the raw figure. Small groups as counts ("13 of 15 mentors"), no multiples ("4 → 32 posts", not "nearly tripled"). Don't call out a small n in the text: mark a figure from fewer than 100 people "directional" once, beside it, and put its n in the footnote. Groups under 30 and pooled cells stay out of the title, verdict and H2s.
-- Every win gets a comparator: target, last year, or the same question asked of a baseline group. Every count gets its "out of", and every call-out (a country, a segment) says why it matters.
+- Name the population measured ("census respondents", "League hackathon projects"), never "developers" or "the community"; give the next-gen share of "all" once.
+- Integers in title, H2s and verdict; one decimal only to compare close values, and call a near-tie a tie. Small groups as counts ("13 of 15 mentors"), no multiples ("4 → 32 posts", not "nearly tripled"). Don't call out a small n: mark a figure from fewer than 100 people "directional" once, beside it, with its n in the footnote. Keep groups under 30 out of the title, verdict and H2s.
+- Every win gets a comparator and every count its "out of".
 
-## Honest, not an audit
+## Defensible, not an audit
 
-- Caveats go in Methodology. One goes in the body, once, beside its number, only if it changes the reader's decision, they'd hit it anyway, or a skeptic would raise it against a headline (a missing competitor, a reworded question, a confound the reader paid for).
-- No causal claim the data can't carry, in title, verdict, headings and tables too. "Because", "drove", "the gap is X" and "what it changed" are causal; a belief is "we believe…" with its evidence.
-- An adjustment that moves a headline number, or revises a figure the reader already received, gets one plain sentence beside it. If no source says why it was adjusted, ask its owner through the delivery notes.
-- A compromised item (primed by its own examples, reworded between waves, or one of two items on the same topic) is dropped, not caveated in the body.
-- Describe each series' actual direction: no low-to-peak framing, no "flat" for a fall, no "now matches" for a lost lead. Mark provisional periods on the chart too.
-- Compare like with like (wording, options, population, definition). Anything else gets one directional sentence, never a heading, and is never summed or stacked with the headline.
+- Caveats go in Methodology. One goes in the body, once, beside its number, only if a skeptic would raise it against a headline (a missing competitor, a reworded question, a confound the reader paid for).
+- No causal claim the data can't carry, in headings and tables too. "Because", "drove" and "what it changed" are causal; a belief is "we believe…" with its evidence.
+- An adjustment that moves a headline, or revises a figure the reader already received, gets one plain sentence beside it.
+- Drop a compromised item (primed by its own examples, or reworded between waves) rather than caveat it.
+- Describe each series' actual direction: no low-to-peak framing, no "flat" for a fall, no "now matches" for a lost lead. Mark provisional periods on the chart.
+- Compare like with like (wording, population, definition). Anything else gets one directional sentence, never a heading, and is never summed with the headline.
 
 ## Visuals
 
-- One per H2 (a table counts) unless the section is one or two facts. Chart when shape matters, table for exact lookups, timeline for sequences. Each dataset appears once.
-- Chart title states the finding and its number. Bars start at zero, values on the marks. Colors stay fixed across charts: subject first, main comparator second, the rest muted (no single subject: one color per series).
-- Sources are numbered footnotes, never lines under a chart: a marker (¹) on the sentence or chart title that carries the figure, and the note under **Sources** at the end of the doc: `[dataset], [period], [population filter] [n=…, per segment when split]. Q: "[exact wording]" ([answer mode]). [rule or exclusion]`.
-- Render every visual: fix overlaps, and check the title's claim shows in the marks and agrees with its H2. Can't render? Check layout from data and code, and say so in the delivery notes.
+- One per H2 (a table counts) unless the section is one or two facts. Each dataset appears once.
+- Chart title states the finding and its number. Bars start at zero, values on the marks. Colors stay fixed across charts: subject first, main comparator second, the rest muted.
+- Sources are numbered footnotes, never lines under a chart: a marker (¹) on the sentence or chart title, and the note under **Sources** at the end: `[dataset], [period], [population] [n=…]. Q: "[exact wording]" ([single or multi-select]).`
+- Render every visual and check its marks show the title's claim. Can't render? Say so in the delivery notes.
 
 ## Tone by audience
 
 - **Partner:** state competitor leads plainly, in headings and charts too. No "let's", proposals, upsell or "your opportunity". Activity the partner paid MLH for (sponsored events, its DEV content) is never its win: name the confound in the same sentence.
-- **Internal:** scoreboard, causes (own misses in the heading), then targets (this year / last year / proposed) and dated next steps.
+- **Internal:** scoreboard, causes (own misses in the heading), then targets and dated next steps.
 - **Investor:** trajectory and comparator first. Cover revenue on one stated definition, margin, profit or burn, cash and runway, and concentration; a missing one is a top open item. Name each risk with its response.
 - **Public:** no internal names, file names or tooling.
 
 ## End of the doc
 
-**Methodology & sources** (last H2): the numbered **Sources** footnotes, then one H3 per source with period, population, filters and exclusions; "Counts and samples" when sources' counts differ; "Unverified items" for second-hand figures, except in public reports; links to every external source. No side sections: the intro carries MLH, and general insights fold into the H2 they support unless the user asks for their own section.
+**Methodology & sources** (last H2): the numbered **Sources**, then a short note per source on population and filters, carrying the caveats kept out of the body, and links to every external source. No other side sections: the intro carries MLH, and general insights fold into the H2 they support.
 
 ## Boilerplate
 
