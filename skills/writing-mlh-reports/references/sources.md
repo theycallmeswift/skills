@@ -5,8 +5,8 @@ Traps that silently produce wrong numbers, as of Nov 2026. If one stops matching
 ## MLH Core warehouse
 
 **Season Census**
-- Waves: seasons run July–June (S2025 Q3 = Jan 2026, Q4 = Apr 2026; S2026 Q1 = Jul 2026, Q2 = Oct 2026). Label waves by month. S2025 Q1–Q2 aren't loaded, so there's no calendar-2025 baseline.
-- Attention check: "Just checking in! … Please click 'Strongly disagree'" (QID1219624549; QID1219198910 in Jan 2026), pass = code 8. Count passers only; the ~half who drop out before it are excluded too.
+- Waves: seasons run July–June (S2025 Q1 = Jul 2025, Q3 = Jan 2026, Q4 = Apr 2026; S2026 Q1 = Jul 2026, Q2 = Oct 2026). Label waves by month. Jul 2025 was loaded Nov 4, 2026 with some reworded items; check which waves exist before planning a trend.
+- Attention check: "Just checking in! … Please click 'Strongly disagree'" (QID1219624549; QID1219198910 in Jan 2026), pass = code 8 (11 in Jul 2025): read the code per wave. Count passers only; the ~half who drop out before it are excluded too.
 - Decoding: answers store Qualtrics RecodeValues, but `survey_value_mappings` is keyed on choice IDs and mislabels without error. Read labels from `surveys.description->'result'->'Questions'->QID->'RecodeValues'` per question and wave: codes are reused (37 = Claude Desktop in Jan 2026, Claude Code after). Every stored code needs a label; trend only options offered under the same label in both waves.
 - Multi-QID items: display-logic branches split one question across QIDs; combine them, join on `answers->>'question_id'` (not `provider_field_id`), and count answers per QID per wave before planning a trend (some fields are empty). `DisplayLogic` defines the base.
 - Multi-select "None of the above" is never stored (empty array): the denominator is everyone shown the item; say so in its footnote.
@@ -17,13 +17,13 @@ Traps that silently produce wrong numbers, as of Nov 2026. If one stops matching
 **Hackathons**
 - League hackathons = `programs.name = 'League'` and `events.event_format = 'hackathon'` (not `series`), test events dropped. Hack Days, GHW and Hacktoberfest are separate programs.
 - Count distinct projects on `EventSubmission` rows (`ChallengeSubmission` rows in `project_submissions` double it). Reach prize challenges via `project_submissions.challenge_id` (`event_challenges` is incomplete).
-- `built_with` is sometimes one comma-joined string: split and trim. Match brands on word boundaries (`anthropic` hits "Philanthropic" prize tracks). A 2026-09-21 re-import appended "AI tools used" answers to `built_with`, inflating Q3 2026 vendor shares (Claude 68% raw vs ~25% cleaned): exclude them. Show a technology with and without events where its vendor had a prize.
+- `built_with` is sometimes one comma-joined string: split and trim. Match brands on word boundaries (`anthropic` hits "Philanthropic" prize tracks). Loads from 2026-10-16 on (events from the week of Sep 21) appended "AI tools used" answers to `built_with`, inflating Q3 and Q4 2026 vendor shares (Claude 68% raw vs ~25% cleaned): strip them. Show a technology with and without events where its vendor had a prize (in partner reports, "excluding sponsored events", never naming a competitor as sponsor).
 - From 2026 projects cap at two members: don't trend team size across it.
 - `projects.ai_tools` exists only from Oct 2026 loads: don't trend it. Label partly loaded quarters provisional. Confirm in the warehouse before saying a partner sponsored nothing. `companies.name` embeds contract periods: never copy it into reader text.
 
 **Participation**
 - Many 2025 externally hosted League events lack `participations` rows (165 of 223 have them; 2026: 212 of 220), inflating YoY growth. Compare only events with rows in both years, or use `events.check_ins_count` for both, and say which.
-- Hacktoberfest (from Oct 2026; `events.name ILIKE '%hacktoberfest%'`) auto-checks-in digital attendees: ~470 events, ~100k people, half of 2026 participants, and the Oct 2026 Core sign-up spike (274k vs ~60k/month). Report digital and in-person separately; show 2026 headlines with and without it.
+- Hacktoberfest 2026 (`events.name ILIKE '%hacktoberfest%'`): ~470 Fests listed but 381 held (≥1 check-in). Of ~99k people checked in anywhere, ~74k were only auto-checked into Global Hack Week, most from a 4-day promo wave (Oct 11–14); this drives the Oct 2026 Core sign-up spike (274k vs ~60k/month). Report in-person, active online and auto-check-ins separately. Past years' totals are DigitalOcean's registrations: compare registrations to registrations.
 
 **People and programs**
 - `user_profiles.gender` and `race_or_ethnicity` are multilingual free text; `country_of_residence` is missing for most 2026 participants. Use census items and event addresses.

@@ -38,7 +38,7 @@ These rules override a doc tool's default style where they differ.
 
 ## Tone by audience
 
-- **Partner:** state competitor leads plainly, in headings and charts too. No "let's", proposals, upsell or "your opportunity". Activity the partner paid MLH for (sponsored events, its DEV content) is never its win: name the confound in the same sentence.
+- **Partner:** state competitor leads plainly, in headings and charts too. No "let's", proposals, upsell or "your opportunity". Activity the partner paid MLH for (sponsored events, its DEV content) is never its win: name the confound in the same sentence. In a recap of a program the partner paid MLH to run, that program is the subject.
 - **Internal:** scoreboard, causes (own misses in the heading), then targets and dated next steps.
 - **Investor:** trajectory and comparator first. Cover revenue on one stated definition, margin, profit or burn, cash and runway, and concentration; a missing one is a top open item. Name each risk with its response.
 - **Public:** no internal names, file names or tooling.
@@ -68,5 +68,5 @@ Reuse as written, swapping bracketed parts; the "data below comes from" sentence
 **Reach facts** for findings (as of Nov 2026):
 
 - 56% of census respondents have introduced or started using a technology they learned at a hackathon at work (Season Census, Oct 2026, attention-check passers, n=3,366; Q: "After learning a technology at a hackathon, have you ever introduced or started using it at work?"). Never "alumni", "MLH-learned" or "into production".
-- 1,898 events in 2026 across all formats, about 470 of them Hacktoberfest; about 306 a year are hackathon-format.
+- 1,898 events in 2026 across all formats, about 470 of them listed Hacktoberfest Fests (381 held); about 306 a year are hackathon-format.
 - Unverified until traced: 1 in 3 US CS graduates joins MLH (Hackcon 2025 keynote); 45% discover dev tools at hackathons vs 12% via ads (wave unknown); 10M monthly DEV uniques (Mar 2026 shows 6.8M, sampled).
