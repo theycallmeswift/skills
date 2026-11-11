@@ -1,0 +1,4 @@
+scope,period,orbit_projects,all_ai_api_projects,orbit_share_pct
+all_events,2026Q3,790,2200,36
+excluding_3_events_with_orbit_prize_challenges,2026Q3,520,1930,27
+# Orbit ran prize challenges at 3 Q3 events; those events account for 270 of its 790 projects and 270 of the 2,200 total
