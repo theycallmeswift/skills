@@ -1,0 +1,28 @@
+:root {
+  --bg: #0D1117;
+  --surface: #161B22;
+  --fg: #E6EDF3;
+  --muted: #8D96A0;
+  --accent: #58A6FF;
+  --ok: #3FB950;
+  --fail: #F85149;
+  --queued: #D29922;
+  --row-pad: 8px;
+}
+
+body { background: var(--bg); color: var(--fg); font: 14px/1.5 system-ui, sans-serif; }
+
+.run-table { width: 100%; border-collapse: collapse; }
+.run-table td { padding: var(--row-pad) 12px; border-bottom: 1px solid var(--surface); }
+
+.status {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.status-passed { color: var(--ok); }
+.status-failed { color: var(--fail); }
+.status-queued { color: var(--queued); }
+
+.run-link { color: var(--accent); }

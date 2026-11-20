@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Sift preview</title>
+  <link rel="stylesheet" href="../web/app.css">
+  <style>
+    /* Preview-only: try a two-column phone layout. */
+    @media (max-width: 600px) {
+      .dashboard { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+  </style>
+</head>
+<body>
+  <div class="dashboard">
+    <div class="row" data-state="pass"><span class="dot"></span><span class="name">api/test_auth.py::test_login</span></div>
+    <div class="row" data-state="queued"><span class="dot"></span><span class="name">web/test_cart.py::test_checkout</span></div>
+  </div>
+</body>
+</html>

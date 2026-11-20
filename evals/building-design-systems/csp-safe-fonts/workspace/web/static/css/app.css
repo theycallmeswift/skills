@@ -1,0 +1,52 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap");
+
+:root {
+  --tally-green: #0F766E;
+  --warm-white: #FBFAF7;
+  --text: #1C1917;
+  --text-soft: #57534E;
+  --line: #E7E5E4;
+  --red: #B91C1C;
+  --amber-bg: #FEF3C7;
+  --amber-text: #92400E;
+}
+
+body {
+  background: var(--warm-white);
+  color: var(--text);
+  font: 15px/1.5 "Inter", system-ui, sans-serif;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 36px;
+  padding: 0 14px;
+  border-radius: 6px;
+  border: 1px solid var(--line);
+  background: #fff;
+  color: var(--text);
+  font-weight: 600;
+}
+.btn-primary { background: var(--tally-green); border-color: var(--tally-green); color: #fff; }
+.btn-danger { background: var(--red); border-color: var(--red); color: #fff; }
+.btn:disabled { opacity: .5; cursor: not-allowed; }
+
+.badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+}
+.badge-approved { background: #CCFBF1; color: #115E59; }
+.badge-pending { background: var(--amber-bg); color: var(--amber-text); }
+.badge-rejected { background: #FEE2E2; color: var(--red); }
+
+.icon-check {
+  width: 16px;
+  height: 16px;
+  background: currentColor;
+  mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><path d='M3 8l3 3 7-7' stroke='black' stroke-width='2' fill='none'/></svg>");
+}
