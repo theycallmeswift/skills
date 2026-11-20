@@ -1,0 +1,262 @@
+{
+ "data": [
+  {
+   "id": "alpha/vision-pro",
+   "canonical_slug": "alpha/vision-pro",
+   "name": "Alpha: Vision Pro",
+   "created": 1790000000,
+   "context_length": 200000,
+   "architecture": {
+    "modality": "text+image->text",
+    "input_modalities": [
+     "text",
+     "image"
+    ],
+    "output_modalities": [
+     "text"
+    ],
+    "tokenizer": "Other",
+    "instruct_type": null
+   },
+   "pricing": {
+    "prompt": "0.000003",
+    "completion": "0.000015"
+   },
+   "top_provider": {
+    "context_length": 200000,
+    "max_completion_tokens": 64000,
+    "is_moderated": false
+   },
+   "per_request_limits": null,
+   "supported_parameters": [
+    "max_tokens",
+    "reasoning",
+    "include_reasoning"
+   ],
+   "endpoints": [
+    "/api/v1/chat/completions"
+   ]
+  },
+  {
+   "id": "beta/sight-2",
+   "canonical_slug": "beta/sight-2",
+   "name": "Beta: Sight 2",
+   "created": 1790000000,
+   "context_length": 200000,
+   "architecture": {
+    "modality": "text+image->text",
+    "input_modalities": [
+     "text",
+     "image"
+    ],
+    "output_modalities": [
+     "text"
+    ],
+    "tokenizer": "Other",
+    "instruct_type": null
+   },
+   "pricing": {
+    "prompt": "0.000002",
+    "completion": "0.00001"
+   },
+   "top_provider": {
+    "context_length": 200000,
+    "max_completion_tokens": 64000,
+    "is_moderated": false
+   },
+   "per_request_limits": null,
+   "supported_parameters": [
+    "max_tokens",
+    "reasoning",
+    "include_reasoning"
+   ],
+   "endpoints": [
+    "/api/v1/chat/completions"
+   ]
+  },
+  {
+   "id": "gamma/lens-large",
+   "canonical_slug": "gamma/lens-large",
+   "name": "Gamma: Lens Large",
+   "created": 1790000000,
+   "context_length": 200000,
+   "architecture": {
+    "modality": "text+image->text",
+    "input_modalities": [
+     "text",
+     "image"
+    ],
+    "output_modalities": [
+     "text"
+    ],
+    "tokenizer": "Other",
+    "instruct_type": null
+   },
+   "pricing": {
+    "prompt": "0.0000015",
+    "completion": "0.000006"
+   },
+   "top_provider": {
+    "context_length": 200000,
+    "max_completion_tokens": 64000,
+    "is_moderated": false
+   },
+   "per_request_limits": null,
+   "supported_parameters": [
+    "max_tokens",
+    "reasoning",
+    "include_reasoning"
+   ],
+   "endpoints": [
+    "/api/v1/chat/completions"
+   ]
+  },
+  {
+   "id": "delta/view-max",
+   "canonical_slug": "delta/view-max",
+   "name": "Delta: View Max",
+   "created": 1790000000,
+   "context_length": 200000,
+   "architecture": {
+    "modality": "text+image->text",
+    "input_modalities": [
+     "text",
+     "image"
+    ],
+    "output_modalities": [
+     "text"
+    ],
+    "tokenizer": "Other",
+    "instruct_type": null
+   },
+   "pricing": {
+    "prompt": "0.000005",
+    "completion": "0.000025"
+   },
+   "top_provider": {
+    "context_length": 200000,
+    "max_completion_tokens": 64000,
+    "is_moderated": false
+   },
+   "per_request_limits": null,
+   "supported_parameters": [
+    "max_tokens",
+    "reasoning",
+    "include_reasoning"
+   ],
+   "endpoints": [
+    "/api/v1/chat/completions"
+   ]
+  },
+  {
+   "id": "epsilon/pixel-1",
+   "canonical_slug": "epsilon/pixel-1",
+   "name": "Epsilon: Pixel 1",
+   "created": 1790000000,
+   "context_length": 200000,
+   "architecture": {
+    "modality": "text+image->text",
+    "input_modalities": [
+     "text",
+     "image"
+    ],
+    "output_modalities": [
+     "text"
+    ],
+    "tokenizer": "Other",
+    "instruct_type": null
+   },
+   "pricing": {
+    "prompt": "0.0000008",
+    "completion": "0.0000032"
+   },
+   "top_provider": {
+    "context_length": 200000,
+    "max_completion_tokens": 64000,
+    "is_moderated": false
+   },
+   "per_request_limits": null,
+   "supported_parameters": [
+    "max_tokens",
+    "reasoning",
+    "include_reasoning"
+   ],
+   "endpoints": [
+    "/api/v1/chat/completions"
+   ]
+  },
+  {
+   "id": "epsilon/pixel-1-mini",
+   "canonical_slug": "epsilon/pixel-1-mini",
+   "name": "Epsilon: Pixel 1 Mini",
+   "created": 1790000000,
+   "context_length": 200000,
+   "architecture": {
+    "modality": "text+image->text",
+    "input_modalities": [
+     "text",
+     "image"
+    ],
+    "output_modalities": [
+     "text"
+    ],
+    "tokenizer": "Other",
+    "instruct_type": null
+   },
+   "pricing": {
+    "prompt": "0.0000002",
+    "completion": "0.0000008"
+   },
+   "top_provider": {
+    "context_length": 200000,
+    "max_completion_tokens": 64000,
+    "is_moderated": false
+   },
+   "per_request_limits": null,
+   "supported_parameters": [
+    "max_tokens",
+    "reasoning",
+    "include_reasoning"
+   ],
+   "endpoints": [
+    "/api/v1/chat/completions"
+   ]
+  },
+  {
+   "id": "zeta/text-only",
+   "canonical_slug": "zeta/text-only",
+   "name": "Zeta: Text Only",
+   "created": 1790000000,
+   "context_length": 200000,
+   "architecture": {
+    "modality": "text->text",
+    "input_modalities": [
+     "text"
+    ],
+    "output_modalities": [
+     "text"
+    ],
+    "tokenizer": "Other",
+    "instruct_type": null
+   },
+   "pricing": {
+    "prompt": "0.000001",
+    "completion": "0.000002"
+   },
+   "top_provider": {
+    "context_length": 200000,
+    "max_completion_tokens": 64000,
+    "is_moderated": false
+   },
+   "per_request_limits": null,
+   "supported_parameters": [
+    "max_tokens",
+    "reasoning",
+    "include_reasoning"
+   ],
+   "endpoints": [
+    "/api/v1/chat/completions"
+   ]
+  }
+ ]
+}

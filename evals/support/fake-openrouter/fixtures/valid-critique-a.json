@@ -1,0 +1,64 @@
+{
+ "summary": "Pulse's dark dashboard is clear at a glance but its muted text is too faint and the deploy table is dense.",
+ "scores": [
+  {
+   "criterion": "Hierarchy",
+   "score": 4,
+   "note": "Deploy status leads; the metric strip competes with it."
+  },
+  {
+   "criterion": "Contrast and legibility",
+   "score": 3,
+   "note": "Muted text on the card surface is borderline."
+  },
+  {
+   "criterion": "Brand fit",
+   "score": 4,
+   "note": "Matches the Pulse tokens apart from the accent."
+  }
+ ],
+ "issues": [
+  {
+   "id": "I1",
+   "element": "Muted label text on stat cards",
+   "cell": "C2",
+   "frame": "dashboard-dark",
+   "problem": "Label text #7a8190 on card #1b1f27 reads faint.",
+   "why": "Small labels carry the metric names; low contrast slows scanning.",
+   "fix": "Lift the muted text token to #9aa3b2.",
+   "severity": "high",
+   "confidence": "high",
+   "evidence": "Computed ratio about 3.9:1, under the 4.5:1 AA bar for small text."
+  },
+  {
+   "id": "I2",
+   "element": "Deploy table row height",
+   "cell": "E5",
+   "frame": "dashboard-dark",
+   "problem": "Rows are 28px tall with 12px text.",
+   "why": "Dense rows make the status pill hard to hit and to scan.",
+   "fix": "Raise row height to 36px and keep 13px text.",
+   "severity": "medium",
+   "confidence": "medium",
+   "evidence": "Row pitch is visibly tighter than the card padding above it."
+  },
+  {
+   "id": "I3",
+   "element": "Empty state on Incidents",
+   "cell": "B7",
+   "frame": "incidents-empty",
+   "problem": "The empty state has no action.",
+   "why": "The user does not know how to create the first incident.",
+   "fix": "Add a primary button 'Declare incident' under the copy.",
+   "severity": "low",
+   "confidence": "high",
+   "evidence": "Only an illustration and one line of copy are present."
+  }
+ ],
+ "answers": [
+  {
+   "question": "Does the empty state explain what to do next?",
+   "answer": "Partly: it names the problem but gives no action."
+  }
+ ]
+}

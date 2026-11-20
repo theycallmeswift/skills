@@ -7,6 +7,7 @@ dependencies = []
 
 [dependency-groups]
 dev = [
+    "pillow>=11",
     "pytest>=8",
     "pytest-xdist>=3",
     "ruff>=0.6",
@@ -48,7 +49,7 @@ markers = ["e2e: calls a real external service; opt in with `make test:e2e`"]
 # sys.path at runtime, and ty needs the same search paths to resolve them.
 [tool.ty.environment]
 root = ["."]
-extra-paths = ["tests", "skills/delegating-to-codex/scripts", "skills/to-spec/scripts"]
+extra-paths = ["tests", "skills/delegating-to-codex/scripts", "skills/to-spec/scripts", "skills/critiquing-designs/scripts"]
 
 [tool.ty.src]
 # Eval workspaces are fixture code the agent edits during a run, not code we maintain.
