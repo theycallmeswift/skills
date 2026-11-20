@@ -1,0 +1,81 @@
+{
+  "model": "gamma/lens-large",
+  "run": 1,
+  "ok": true,
+  "error": null,
+  "status": 200,
+  "raw_text": "{\n \"summary\": \"Good density; cells are small and the nav hides labels.\",\n \"scores\": [\n  {\n   \"criterion\": \"Task clarity and hierarchy\",\n   \"score\": 3,\n   \"note\": \"Failures don't stand out.\"\n  },\n  {\n   \"criterion\": \"Accessibility\",\n   \"score\": 2,\n   \"note\": \"Muted text and colour-only status.\"\n  },\n  {\n   \"criterion\": \"Brand fit\",\n   \"score\": 4,\n   \"note\": \"On tokens.\"\n  }\n ],\n \"issues\": [\n  {\n   \"id\": \"I1\",\n   \"element\": \"Timestamps and subtitle (--text-muted)\",\n   \"cell\": \"G3\",\n   \"frame\": \"test-matrix\",\n   \"problem\": \"Muted text #8B93A1 on the white page #FFFFFF is 3.09:1, under the 4.5:1 AA bar for 12-13px text.\",\n   \"why\": \"The last-run times are how people judge whether a failure is current.\",\n   \"fix\": \"--text-muted #8B93A1 -> #5F6673 (5.78:1 on #FFFFFF).\",\n   \"severity\": \"high\",\n   \"confidence\": \"high\",\n   \"evidence\": \"Tokens: --text-muted #8B93A1, --page #FFFFFF; WCAG 2.2 ratio 3.09:1.\"\n  },\n  {\n   \"id\": \"I2\",\n   \"element\": \"Matrix cells\",\n   \"cell\": \"C3\",\n   \"frame\": \"test-matrix\",\n   \"problem\": \"Cells are 16x20px: small hover targets for the per-run tooltip.\",\n   \"why\": \"Hunting for one run's tooltip is slow on a trackpad.\",\n   \"fix\": \"Matrix cells 16px -> 24px wide, keep 4px gaps.\",\n   \"severity\": \"low\",\n   \"confidence\": \"medium\",\n   \"evidence\": \"Tokens: matrix cells 16x20px.\"\n  },\n  {\n   \"id\": \"I3\",\n   \"element\": \"Left navigation\",\n   \"cell\": \"A2\",\n   \"frame\": \"test-matrix\",\n   \"problem\": \"The icon-only nav hides where each icon goes; new team members can't tell the pages apart.\",\n   \"why\": \"Navigation by guessing slows the people the page serves.\",\n   \"fix\": \"Show labels by default: expand the nav to 220px with icon + label.\",\n   \"severity\": \"medium\",\n   \"confidence\": \"high\",\n   \"evidence\": \"Five unlabelled grey squares in column A.\"\n  }\n ],\n \"answers\": [\n  {\n   \"question\": \"Can someone find today's failing suites in five seconds?\",\n   \"answer\": \"Not quite: the four red cells are findable but small.\"\n  },\n  {\n   \"question\": \"Does the note band read as part of the page header?\",\n   \"answer\": \"Barely; the band is too close to white.\"\n  }\n ]\n}",
+  "parsed": {
+    "summary": "Good density; cells are small and the nav hides labels.",
+    "scores": [
+      {
+        "criterion": "Task clarity and hierarchy",
+        "score": 3,
+        "note": "Failures don't stand out."
+      },
+      {
+        "criterion": "Accessibility",
+        "score": 2,
+        "note": "Muted text and colour-only status."
+      },
+      {
+        "criterion": "Brand fit",
+        "score": 4,
+        "note": "On tokens."
+      }
+    ],
+    "issues": [
+      {
+        "id": "I1",
+        "element": "Timestamps and subtitle (--text-muted)",
+        "cell": "G3",
+        "frame": "test-matrix",
+        "problem": "Muted text #8B93A1 on the white page #FFFFFF is 3.09:1, under the 4.5:1 AA bar for 12-13px text.",
+        "why": "The last-run times are how people judge whether a failure is current.",
+        "fix": "--text-muted #8B93A1 -> #5F6673 (5.78:1 on #FFFFFF).",
+        "severity": "high",
+        "confidence": "high",
+        "evidence": "Tokens: --text-muted #8B93A1, --page #FFFFFF; WCAG 2.2 ratio 3.09:1."
+      },
+      {
+        "id": "I2",
+        "element": "Matrix cells",
+        "cell": "C3",
+        "frame": "test-matrix",
+        "problem": "Cells are 16x20px: small hover targets for the per-run tooltip.",
+        "why": "Hunting for one run's tooltip is slow on a trackpad.",
+        "fix": "Matrix cells 16px -> 24px wide, keep 4px gaps.",
+        "severity": "low",
+        "confidence": "medium",
+        "evidence": "Tokens: matrix cells 16x20px."
+      },
+      {
+        "id": "I3",
+        "element": "Left navigation",
+        "cell": "A2",
+        "frame": "test-matrix",
+        "problem": "The icon-only nav hides where each icon goes; new team members can't tell the pages apart.",
+        "why": "Navigation by guessing slows the people the page serves.",
+        "fix": "Show labels by default: expand the nav to 220px with icon + label.",
+        "severity": "medium",
+        "confidence": "high",
+        "evidence": "Five unlabelled grey squares in column A."
+      }
+    ],
+    "answers": [
+      {
+        "question": "Can someone find today's failing suites in five seconds?",
+        "answer": "Not quite: the four red cells are findable but small."
+      },
+      {
+        "question": "Does the note band read as part of the page header?",
+        "answer": "Barely; the band is too close to white."
+      }
+    ]
+  },
+  "cost_usd": 0.11,
+  "prompt_tokens": 39379,
+  "completion_tokens": 5627,
+  "seconds": 233.5,
+  "finish_reason": "stop"
+}

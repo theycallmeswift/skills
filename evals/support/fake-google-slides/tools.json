@@ -233,5 +233,83 @@
       ],
       "type": "object"
     }
+  },
+  {
+    "server": "Google_Drive",
+    "name": "copy_file",
+    "description": "Call this tool to copy an existing File in Google Drive.\nThe tool allows specifying a new title and a parent folder for the copy.\nIf the title is not specified, the copy title will be 'Copy of {original title}'.\nIf the parent folder is not specified, the copy will be created in the same folder as the original file, unless the requesting user does not have write access to that folder, in which case the copy will be created in the user's root folder.Returns the newly created File object upon successful copying.\n",
+    "inputSchema": {
+      "description": "Request to copy a file.",
+      "properties": {
+        "fileId": {
+          "description": "Required. The ID of the file to copy.",
+          "type": "string"
+        },
+        "parentId": {
+          "description": "The parent id of the newly created file. If empty, the file will be created with the same parent as the original file.",
+          "type": "string"
+        },
+        "title": {
+          "description": "The title of the newly created file. If empty, the title will be 'Copy of {original file title}'.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "fileId"
+      ],
+      "type": "object"
+    }
+  },
+  {
+    "server": "Google_Drive",
+    "name": "create_file",
+    "description": "Call this tool to create or upload a File to Google Drive.\n\nIf uploading content, prefer `textContent` for text content. For non-UTF8 contents, use the `base64Content` field and base64 encode the data to set on that field.\n\nReturns a single File object upon successful creation.\n\nThe following Google first-party mime types can be created without providing content:\n\n - `application/vnd.google-apps.document` \n - `application/vnd.google-apps.spreadsheet` \n - `application/vnd.google-apps.presentation` \n\nFolders can be created by setting the mime type to `application/vnd.google-apps.folder`.\n\nWhen uploading content, the `contentMimeType` field is required and should match the type of the content being uploaded.\n\nBy default, supported content will be converted to Google first-party mime types.\n\nTo disable conversions for first-party mime types, set `disableConversionToGoogleType` to true.\n",
+    "inputSchema": {
+      "description": "Request to upload a file.",
+      "properties": {
+        "base64Content": {
+          "description": "Optional. The base64 encoded content to upload. It's an error to set this and `textContent`.",
+          "type": "string"
+        },
+        "content": {
+          "deprecated": true,
+          "description": "Deprecated: Use `base64Content` or `textContent` instead. The content of the file encoded as base64. The content field should always be base64 encoded regardless of the mime type of the file.",
+          "type": "string"
+        },
+        "contentMimeType": {
+          "description": "The mime type of the content being uploaded. Required when any type of content is provided.",
+          "type": "string"
+        },
+        "disableConversionToGoogleType": {
+          "description": "Set to true to retain the passed in content mime type and not convert to a Google type. For example, without this a `text/plain` content mime type will be converted to to `application/vnd.google-apps.document`. Has no effect for types that do not have a Google equivalent.",
+          "type": "boolean"
+        },
+        "inheritedPermissionsDisabled": {
+          "description": "Set to true to disable inherited permissions on the created folder, restricting access to only users with direct permissions on the folder.",
+          "type": "boolean"
+        },
+        "mimeType": {
+          "deprecated": true,
+          "description": "Deprecated: DO NOT USE!! Set `contentMimeType` instead.",
+          "type": "string"
+        },
+        "parentId": {
+          "description": "The parent id of the file.",
+          "type": "string"
+        },
+        "textContent": {
+          "description": "Optional. The (UTF-8) text content to upload. It's an error to set this and `base64Content`.",
+          "type": "string"
+        },
+        "title": {
+          "description": "Required. The title of the file.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "title"
+      ],
+      "type": "object"
+    }
   }
 ]

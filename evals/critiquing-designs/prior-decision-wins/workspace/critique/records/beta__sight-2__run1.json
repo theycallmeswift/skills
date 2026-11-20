@@ -1,0 +1,81 @@
+{
+  "model": "beta/sight-2",
+  "run": 1,
+  "ok": true,
+  "error": null,
+  "status": 200,
+  "raw_text": "{\n \"summary\": \"The matrix encodes pass/fail only in hue, and the header count reads as healthy.\",\n \"scores\": [\n  {\n   \"criterion\": \"Task clarity and hierarchy\",\n   \"score\": 3,\n   \"note\": \"Failures don't stand out.\"\n  },\n  {\n   \"criterion\": \"Accessibility\",\n   \"score\": 2,\n   \"note\": \"Muted text and colour-only status.\"\n  },\n  {\n   \"criterion\": \"Brand fit\",\n   \"score\": 4,\n   \"note\": \"On tokens.\"\n  }\n ],\n \"issues\": [\n  {\n   \"id\": \"I1\",\n   \"element\": \"Matrix cells (pass/fail)\",\n   \"cell\": \"C3\",\n   \"frame\": \"test-matrix\",\n   \"problem\": \"Cells differ only in hue (#12B76A pass, #D92D20 fail). Without a glyph, deuteranopes can't tell them apart.\",\n   \"why\": \"A missed failure ships a broken release.\",\n   \"fix\": \"Restore short text markers in the cells (a check for pass, an x for fail). Markers can shorten at narrow widths but must never disappear.\",\n   \"severity\": \"high\",\n   \"confidence\": \"high\",\n   \"evidence\": \"Cells carry no text, icon or pattern; only fill colour changes.\"\n  },\n  {\n   \"id\": \"I2\",\n   \"element\": \"Run summary \\\"27/31 passed\\\"\",\n   \"cell\": \"G1\",\n   \"frame\": \"test-matrix\",\n   \"problem\": \"\\\"27/31 passed\\\" frames the run as a success; the 4 failures are what people need first.\",\n   \"why\": \"The summary is what people check before a release.\",\n   \"fix\": \"Lead with failures: \\\"4 failed - 27 passed\\\", with the failure count in --danger #B42318.\",\n   \"severity\": \"medium\",\n   \"confidence\": \"high\",\n   \"evidence\": \"Header reads \\\"27/31 passed\\\" while 4 red cells sit in the matrix.\"\n  },\n  {\n   \"id\": \"I3\",\n   \"element\": \"Suite labels\",\n   \"cell\": \"B3\",\n   \"frame\": \"test-matrix\",\n   \"problem\": \"Suite labels are 13px regular, the same weight as the timestamps, so rows have no anchor.\",\n   \"why\": \"Scanning by suite name is the main way people read the matrix.\",\n   \"fix\": \"Suite labels 13px/400 -> 13px/600.\",\n   \"severity\": \"low\",\n   \"confidence\": \"medium\",\n   \"evidence\": \"Labels and timestamps share size and weight.\"\n  }\n ],\n \"answers\": [\n  {\n   \"question\": \"Can someone find today's failing suites in five seconds?\",\n   \"answer\": \"No: colour alone and a pass-first summary hide them.\"\n  },\n  {\n   \"question\": \"Does the note band read as part of the page header?\",\n   \"answer\": \"Mostly; it could use a little more separation.\"\n  }\n ]\n}",
+  "parsed": {
+    "summary": "The matrix encodes pass/fail only in hue, and the header count reads as healthy.",
+    "scores": [
+      {
+        "criterion": "Task clarity and hierarchy",
+        "score": 3,
+        "note": "Failures don't stand out."
+      },
+      {
+        "criterion": "Accessibility",
+        "score": 2,
+        "note": "Muted text and colour-only status."
+      },
+      {
+        "criterion": "Brand fit",
+        "score": 4,
+        "note": "On tokens."
+      }
+    ],
+    "issues": [
+      {
+        "id": "I1",
+        "element": "Matrix cells (pass/fail)",
+        "cell": "C3",
+        "frame": "test-matrix",
+        "problem": "Cells differ only in hue (#12B76A pass, #D92D20 fail). Without a glyph, deuteranopes can't tell them apart.",
+        "why": "A missed failure ships a broken release.",
+        "fix": "Restore short text markers in the cells (a check for pass, an x for fail). Markers can shorten at narrow widths but must never disappear.",
+        "severity": "high",
+        "confidence": "high",
+        "evidence": "Cells carry no text, icon or pattern; only fill colour changes."
+      },
+      {
+        "id": "I2",
+        "element": "Run summary \"27/31 passed\"",
+        "cell": "G1",
+        "frame": "test-matrix",
+        "problem": "\"27/31 passed\" frames the run as a success; the 4 failures are what people need first.",
+        "why": "The summary is what people check before a release.",
+        "fix": "Lead with failures: \"4 failed - 27 passed\", with the failure count in --danger #B42318.",
+        "severity": "medium",
+        "confidence": "high",
+        "evidence": "Header reads \"27/31 passed\" while 4 red cells sit in the matrix."
+      },
+      {
+        "id": "I3",
+        "element": "Suite labels",
+        "cell": "B3",
+        "frame": "test-matrix",
+        "problem": "Suite labels are 13px regular, the same weight as the timestamps, so rows have no anchor.",
+        "why": "Scanning by suite name is the main way people read the matrix.",
+        "fix": "Suite labels 13px/400 -> 13px/600.",
+        "severity": "low",
+        "confidence": "medium",
+        "evidence": "Labels and timestamps share size and weight."
+      }
+    ],
+    "answers": [
+      {
+        "question": "Can someone find today's failing suites in five seconds?",
+        "answer": "No: colour alone and a pass-first summary hide them."
+      },
+      {
+        "question": "Does the note band read as part of the page header?",
+        "answer": "Mostly; it could use a little more separation."
+      }
+    ]
+  },
+  "cost_usd": 0.17,
+  "prompt_tokens": 39010,
+  "completion_tokens": 6530,
+  "seconds": 118.8,
+  "finish_reason": "stop"
+}

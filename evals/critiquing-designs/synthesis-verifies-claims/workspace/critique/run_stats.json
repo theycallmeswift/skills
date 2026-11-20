@@ -1,0 +1,10 @@
+{
+  "total_cost_usd": 1.78,
+  "seconds": 659.2,
+  "runs": 8,
+  "parsed_runs": 7,
+  "failed": [],
+  "unparsed": [
+    "delta/view-max#2"
+  ]
+}

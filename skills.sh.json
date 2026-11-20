@@ -44,7 +44,19 @@
     {
       "title": "Presentations",
       "skills": [
-        "redesigning-google-slides"
+        "google-slides"
+      ]
+    },
+    {
+      "title": "Reports",
+      "skills": [
+        "writing-mlh-reports"
+      ]
+    },
+    {
+      "title": "Design",
+      "skills": [
+        "critiquing-designs"
       ]
     }
   ]

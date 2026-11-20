@@ -1,0 +1,44 @@
+# One block of targets per package; the root targets run them all.
+PACKAGES := <id> <id>
+
+.PHONY: install test lint format lint-docs \
+	$(PACKAGES:%=install-%) $(PACKAGES:%=test-%) $(PACKAGES:%=lint-%) $(PACKAGES:%=format-%)
+
+install: $(PACKAGES:%=install-%)
+test: $(PACKAGES:%=test-%)
+lint: $(PACKAGES:%=lint-%) lint-docs
+format: $(PACKAGES:%=format-%)
+
+lint-docs:
+	npx --yes markdownlint-cli2@0.23.3
+
+# <id>: Python package in <dir>, a uv workspace member.
+# pytest exits 5 when it collects no tests.
+install-<id>:
+	uv sync --all-packages
+
+test-<id>:
+	cd <dir> && { uv run pytest || [ $$? -eq 5 ]; }
+
+lint-<id>:
+	uv run ruff check <dir>
+	uv run ruff format --check <dir>
+	uv run ty check <dir>
+
+format-<id>:
+	uv run ruff check --fix <dir>
+	uv run ruff format <dir>
+
+# <id>: JavaScript or TypeScript package in <dir>.
+# npm ci needs a lockfile; until one is committed, install from package.json.
+install-<id>:
+	if [ -f <dir>/package-lock.json ]; then npm ci --prefix <dir>; else npm install --prefix <dir>; fi
+
+test-<id>:
+	npm test --prefix <dir>
+
+lint-<id>:
+	npx --yes @biomejs/biome check <paths>
+
+format-<id>:
+	npx --yes @biomejs/biome check --write <paths>

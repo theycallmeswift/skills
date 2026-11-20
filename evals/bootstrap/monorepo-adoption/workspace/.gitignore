@@ -1,0 +1,5 @@
+node_modules/
+.venv/
+__pycache__/
+# Source lists hold partner feed URLs; each machine keeps its own copy.
+pipeline/data/

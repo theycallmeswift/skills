@@ -1,12 +1,13 @@
 [project]
 name = "mechaswift"
-version = "0.1.0"
+version = "0.3.0"
 description = "MechaSwift — Swift's agent brain. Skills, tools, and prompts for Claude Code and Hermes."
 requires-python = ">=3.11"
 dependencies = []
 
 [dependency-groups]
 dev = [
+    "pillow>=11",
     "pytest>=8",
     "pytest-xdist>=3",
     "ruff>=0.6",
@@ -48,7 +49,7 @@ markers = ["e2e: calls a real external service; opt in with `make test:e2e`"]
 # sys.path at runtime, and ty needs the same search paths to resolve them.
 [tool.ty.environment]
 root = ["."]
-extra-paths = ["tests", "skills/delegating-to-codex/scripts", "skills/to-spec/scripts"]
+extra-paths = ["tests", "skills/delegating-to-codex/scripts", "skills/to-spec/scripts", "skills/critiquing-designs/scripts"]
 
 [tool.ty.src]
 # Eval workspaces are fixture code the agent edits during a run, not code we maintain.
@@ -71,9 +72,25 @@ eval_paths = ["evals"]
 
 # baseline runs the agent bare; trial loads the whole plugin from the staged repo, so output
 # evals measure what the plugin taught and routing evals compete each description with its peers.
+# UV_PROJECT_ENVIRONMENT keeps a guest's uv venv out of /workspace: its python symlink dangles
+# once the workdir is copied out for grading, and fact collection crashes on it.
 [tool.benchspec.sets.default]
 harness = "claude-code"
 model = "sonnet"
+env = { UV_PROJECT_ENVIRONMENT = "/tmp/benchspec-uv-venv" }
+baseline = "baseline"
+arms = [
+  { name = "baseline" },
+  { name = "trial", harness_args = ["--plugin-dir", "/project"] },
+]
+
+# Same arms, with the agent on OpenRouter: for hosts with OPENROUTER_API_KEY but no Anthropic
+# credential. Run with `--set openrouter --binder-provider openrouter`.
+[tool.benchspec.sets.openrouter]
+harness = "claude-code"
+provider = "openrouter"
+model = "anthropic/claude-sonnet-5.5"
+env = { UV_PROJECT_ENVIRONMENT = "/tmp/benchspec-uv-venv" }
 baseline = "baseline"
 arms = [
   { name = "baseline" },

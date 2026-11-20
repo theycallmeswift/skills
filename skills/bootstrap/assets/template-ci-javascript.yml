@@ -1,0 +1,73 @@
+name: CI
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # One job, so each run bills one rounded-up minute rather than one per job.
+  # Branch protection requires it by name. A pull request that changes only
+  # documentation (files under docs/, or the root README.md, AGENTS.md, or
+  # CLAUDE.md) runs lint, which checks the Markdown, and skips the tests. Drop
+  # a path from the pattern once a test reads it. Renames count both paths, so
+  # moving a file into docs/ still changes where it came from. Pushes to main
+  # run everything. When CI needs a second job, rename this one and add a
+  # `CI passed` job that needs every other job, so branch protection still
+  # requires a single check.
+  ci:
+    name: CI passed
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          # On a pull request the checkout is the PR merged into its base, so
+          # HEAD^1 is the base.
+          fetch-depth: 2
+          persist-credentials: false
+
+      - name: Check whether only documentation changed
+        id: classify
+        env:
+          EVENT: ${{ github.event_name }}
+        run: |
+          docs_only=false
+          if [ "$EVENT" = pull_request ]; then
+            changed=$(git diff --name-only --no-renames HEAD^1 HEAD)
+            printf 'Changed files:\n%s\n' "$changed"
+            if [ -n "$changed" ] &&
+              ! grep -qvE '^(docs/|(README|AGENTS|CLAUDE)\.md$)' <<<"$changed"; then
+              docs_only=true
+            fi
+          fi
+          echo "docs_only=$docs_only" | tee -a "$GITHUB_OUTPUT"
+
+      - name: Set up Node
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .node-version
+
+      # npm ci needs a lockfile; until one is committed, install from package.json.
+      - name: Install dependencies
+        run: if [ -f package-lock.json ]; then npm ci; else npm install; fi
+
+      # Runs the tools directly: the package has no lint script of its own yet.
+      - name: Lint
+        run: |
+          npx --yes @biomejs/biome check <paths>
+          npx --yes markdownlint-cli2@0.23.3
+
+      # Runs after a lint failure too, so one push reports both.
+      - name: Test
+        if: ${{ !cancelled() && steps.classify.outputs.docs_only != 'true' }}
+        run: npm test

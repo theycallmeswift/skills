@@ -1,0 +1,10 @@
+item,wording,population,n,answer,pct
+trust,"How much do you trust the output of these AI APIs? (% high trust)",all respondents,3366,Nimbus AI,48
+trust,"How much do you trust the output of these AI APIs? (% high trust)",all respondents,3366,Orbit,39
+built_with,"Which AI APIs did you build with? (e.g. Orbit API, Vector DB)",all respondents,3366,Orbit API,44
+built_with,"Which AI APIs did you build with? (e.g. Orbit API, Vector DB)",all respondents,3366,Vector DB,41
+built_with,"Which AI APIs did you build with? (e.g. Orbit API, Vector DB)",all respondents,3366,Nimbus AI,12
+trust_by_segment,"How much do you trust the output of these AI APIs? (% high trust)",next-gen devs,2410,Nimbus AI,46
+trust_by_segment,"How much do you trust the output of these AI APIs? (% high trust)",next-gen devs,2410,Orbit,38
+trust_by_segment,"How much do you trust the output of these AI APIs? (% high trust)",working professionals,40,Nimbus AI,63
+trust_by_segment,"How much do you trust the output of these AI APIs? (% high trust)",working professionals,40,Orbit,35

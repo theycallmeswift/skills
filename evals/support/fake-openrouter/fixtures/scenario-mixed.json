@@ -1,0 +1,10 @@
+{
+  "credits": {"total_credits": 25.0, "total_usage": 3.0},
+  "replies": {
+    "alpha/vision-pro": [{"content_file": "valid-critique-a.json"}, {"content_file": "valid-critique-b.json"}],
+    "beta/sight-2": [{"invalid_json_file": "invalid-json-with-findings.txt"}, {"content_file": "valid-critique-a.json"}],
+    "gamma/lens-large": [{"empty": true}, {"empty": true}, {"content_file": "valid-critique-b.json"}],
+    "delta/view-max": [{"reset": true}, {"reset": true}, {"content_file": "valid-critique-a.json"}],
+    "epsilon/pixel-1": [{"status": 402}]
+  }
+}

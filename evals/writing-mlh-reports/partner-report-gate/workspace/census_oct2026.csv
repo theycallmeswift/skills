@@ -1,0 +1,201 @@
+respondent_id,passed_attention_check,used_acme_last_12mo,employment_status
+1001,yes,no,student
+1002,yes,yes,student
+1003,yes,no,student
+1004,no,no,student
+1005,yes,no,student
+1006,yes,no,student
+1007,yes,no,student
+1008,no,yes,employed full-time
+1009,yes,yes,student
+1010,yes,no,student
+1011,yes,no,student
+1012,yes,no,student
+1013,yes,yes,student
+1014,yes,no,employed full-time
+1015,yes,no,employed full-time
+1016,yes,yes,employed full-time
+1017,yes,no,student
+1018,yes,no,student
+1019,yes,no,student
+1020,no,no,student
+1021,yes,no,student
+1022,yes,no,student
+1023,yes,no,student
+1024,yes,yes,student
+1025,yes,no,student
+1026,yes,no,student
+1027,yes,no,student
+1028,yes,no,employed full-time
+1029,no,no,student
+1030,no,yes,student
+1031,yes,no,student
+1032,no,no,employed full-time
+1033,yes,no,student
+1034,no,no,student
+1035,no,no,employed full-time
+1036,yes,no,student
+1037,no,no,employed full-time
+1038,no,no,student
+1039,yes,no,student
+1040,yes,no,employed full-time
+1041,yes,no,student
+1042,no,no,student
+1043,yes,yes,student
+1044,yes,no,employed full-time
+1045,yes,no,student
+1046,yes,no,student
+1047,yes,no,employed full-time
+1048,no,yes,employed full-time
+1049,yes,no,student
+1050,yes,no,student
+1051,yes,no,employed full-time
+1052,no,no,employed full-time
+1053,yes,no,employed full-time
+1054,no,no,employed full-time
+1055,no,yes,student
+1056,yes,no,employed full-time
+1057,no,no,student
+1058,yes,no,student
+1059,yes,no,employed full-time
+1060,yes,no,student
+1061,no,yes,employed full-time
+1062,yes,no,student
+1063,no,yes,employed full-time
+1064,yes,no,employed full-time
+1065,yes,no,employed full-time
+1066,yes,no,employed full-time
+1067,no,yes,employed full-time
+1068,yes,yes,student
+1069,yes,no,student
+1070,yes,no,student
+1071,yes,no,student
+1072,no,no,employed full-time
+1073,yes,no,student
+1074,yes,no,student
+1075,yes,no,employed full-time
+1076,yes,no,employed full-time
+1077,yes,no,employed full-time
+1078,no,no,employed full-time
+1079,yes,no,student
+1080,yes,no,student
+1081,yes,no,employed full-time
+1082,yes,yes,student
+1083,yes,no,student
+1084,yes,no,student
+1085,yes,no,student
+1086,yes,no,student
+1087,no,no,student
+1088,no,no,employed full-time
+1089,yes,no,employed full-time
+1090,yes,yes,employed full-time
+1091,yes,no,student
+1092,no,no,student
+1093,yes,no,student
+1094,yes,no,student
+1095,no,yes,student
+1096,no,yes,student
+1097,yes,yes,student
+1098,yes,no,student
+1099,no,no,employed full-time
+1100,yes,no,student
+1101,no,no,student
+1102,yes,no,student
+1103,yes,no,student
+1104,no,yes,student
+1105,yes,no,student
+1106,yes,no,student
+1107,no,no,employed full-time
+1108,yes,no,student
+1109,yes,no,employed full-time
+1110,yes,no,student
+1111,yes,no,student
+1112,yes,no,student
+1113,yes,yes,student
+1114,no,no,employed full-time
+1115,yes,no,employed full-time
+1116,yes,yes,employed full-time
+1117,yes,no,employed full-time
+1118,yes,no,student
+1119,yes,yes,student
+1120,yes,no,student
+1121,yes,no,student
+1122,no,yes,student
+1123,no,no,student
+1124,yes,no,student
+1125,no,yes,employed full-time
+1126,no,no,student
+1127,no,no,employed full-time
+1128,yes,no,employed full-time
+1129,yes,no,student
+1130,yes,no,student
+1131,yes,yes,student
+1132,yes,no,student
+1133,no,yes,employed full-time
+1134,yes,no,employed full-time
+1135,yes,no,student
+1136,yes,no,student
+1137,yes,no,student
+1138,yes,no,employed full-time
+1139,yes,no,student
+1140,yes,no,student
+1141,yes,no,student
+1142,yes,no,employed full-time
+1143,yes,no,student
+1144,no,no,student
+1145,no,no,student
+1146,yes,yes,student
+1147,yes,no,student
+1148,no,no,student
+1149,yes,no,employed full-time
+1150,yes,no,student
+1151,no,yes,student
+1152,yes,no,student
+1153,yes,no,student
+1154,yes,no,student
+1155,yes,no,employed full-time
+1156,yes,no,student
+1157,yes,no,student
+1158,yes,no,student
+1159,yes,no,student
+1160,yes,no,student
+1161,no,no,employed full-time
+1162,yes,no,student
+1163,yes,no,student
+1164,yes,no,student
+1165,yes,yes,employed full-time
+1166,yes,no,student
+1167,no,no,employed full-time
+1168,no,no,employed full-time
+1169,no,no,employed full-time
+1170,yes,no,employed full-time
+1171,no,no,employed full-time
+1172,no,no,student
+1173,no,yes,student
+1174,no,yes,employed full-time
+1175,yes,no,student
+1176,yes,no,employed full-time
+1177,yes,no,student
+1178,yes,yes,employed full-time
+1179,yes,no,student
+1180,yes,no,student
+1181,yes,yes,employed full-time
+1182,yes,no,student
+1183,yes,yes,student
+1184,yes,no,employed full-time
+1185,yes,no,employed full-time
+1186,yes,yes,student
+1187,yes,yes,student
+1188,yes,no,student
+1189,yes,no,student
+1190,yes,yes,student
+1191,yes,no,student
+1192,yes,no,student
+1193,yes,yes,student
+1194,yes,no,student
+1195,yes,yes,student
+1196,yes,yes,student
+1197,no,yes,student
+1198,yes,no,student
+1199,yes,no,student
+1200,yes,no,student
