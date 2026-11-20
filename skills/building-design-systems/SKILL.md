@@ -14,15 +14,20 @@ Build a design system a coding agent can build UI from, out of the brand the rep
 - **Fix contrast:** steps 4 and 8.
 - **Reconcile docs with CSS:** step 8 first, then fix what it reports.
 
-## Scripts
+## Workspace root
 
-In this skill's `scripts/` directory; stdlib only. Run them with `python3` from the project root, passing paths. If `python3` is missing, install it rather than computing by hand:
+Paths are relative to the workspace root:
 
-- `tokens_to_css.py docs/design/foundations/tokens.json` writes `tokens.css` beside it.
-- `contrast_table.py docs/design/foundations/tokens.json` writes `contrast.md` beside it; exits 1 if any pair misses its target.
-- `check_refs.py docs/design --css <each shipped CSS file>` lists token names and hex values that docs and CSS disagree on; exits 1 on any.
+- Interactive session: the current project directory.
+- Eval or scripted invocation: the root the prompt names; honor `PROJECT_ROOT` in the env for any script invocation.
 
-Templates are in `assets/`: `tokens.example.json` (the token format the scripts read), `readme-template.md`, `component-template.md`.
+The skill's files live under `skills/building-design-systems/`. Run its scripts with `python3` from the workspace root (stdlib only; if `python3` is missing, install it rather than computing by hand):
+
+- `python3 skills/building-design-systems/scripts/tokens_to_css.py docs/design/foundations/tokens.json` writes `tokens.css` beside it.
+- `python3 skills/building-design-systems/scripts/contrast_table.py docs/design/foundations/tokens.json` writes `contrast.md` beside it; exits 1 if any pair misses its target.
+- `python3 skills/building-design-systems/scripts/check_refs.py docs/design --css <each shipped CSS file> [--preview <each preview or mockup file>]` lists where docs and CSS disagree: token names, hex values, per-theme values in doc tables, states the CSS never draws, fixed versus minimum heights, and preview-only rules. Exits 1 on any.
+
+Templates are in `skills/building-design-systems/assets/`: `tokens.example.json` (the token format the scripts read), `readme-template.md`, `component-template.md`.
 
 ## 1. Inventory brand sources
 
@@ -32,7 +37,7 @@ No source for a brand colour, font or logo: ask. Never invent one.
 
 ## 2. Tokens by role
 
-Copy the shape of `assets/tokens.example.json` to `docs/design/foundations/tokens.json`:
+Copy the shape of `tokens.example.json` to `docs/design/foundations/tokens.json`:
 
 - `brand`: the fixed palette from step 1, each with `value`, `source`, `usage`. Separate from UI roles.
 - `color`: UI roles (`bg`, `surface`, `fg`, `muted`, `accent`, `on-accent`, `danger`, `status-*`), a value per theme. A role may reference a brand colour as `{brand.<name>}`.
@@ -97,7 +102,7 @@ Add this line to the References section of `AGENTS.md` (or `CLAUDE.md` when that
 
 ## 8. Verify
 
-Regenerate `tokens.css` and `contrast.md`, then run `check_refs.py` against every CSS file that ships. It catches names and hex values only. Then read each component's state table, sizes and layout rules against the CSS by hand: a state the CSS never draws, "fixed" where the CSS says `min-height`, or a layout that exists only in a preview file is a mismatch too.
+Regenerate `tokens.css` and `contrast.md`, then run `check_refs.py` against every CSS file that ships, with any preview or mockup HTML as `--preview`. Then read each component's wording rules (truncation, wrapping, do/don't) against the CSS by hand; the script doesn't parse prose.
 
 Final message: what was sourced (and from where), what you asked or assumed, every conflict found and how it was resolved, and what is still open.
 

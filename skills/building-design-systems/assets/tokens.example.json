@@ -23,6 +23,8 @@
     "fg": { "dark": "#E6EAF2", "light": "#141C2B", "usage": "Body text and icons." },
     "muted": { "dark": "#9AA4B5", "light": "#5B6474", "usage": "Secondary text: timestamps, hints, captions." },
     "accent": { "dark": "{brand.signal}", "light": "#C2410C", "usage": "Primary actions, links and the focus ring." },
+    "accent-hover": { "dark": "#F58A4F", "light": "#9A3412", "usage": "Accent fills and links under the pointer." },
+    "on-accent": { "dark": "{brand.ink}", "light": "#FFFFFF", "usage": "Labels and icons on accent fills." },
     "danger": { "dark": "#F87171", "light": "#B91C1C", "usage": "Destructive actions and error text." },
     "status-ok": { "dark": "#4ADE80", "light": "#15803D", "usage": "Passed checks and healthy states." }
   },
@@ -54,6 +56,8 @@
     { "fg": "muted", "bg": "bg", "kind": "text" },
     { "fg": "muted", "bg": "surface", "kind": "text" },
     { "fg": "accent", "bg": "bg", "kind": "text" },
+    { "fg": "on-accent", "bg": "accent", "kind": "text" },
+    { "fg": "on-accent", "bg": "accent-hover", "kind": "text" },
     { "fg": "danger", "bg": "surface", "kind": "text" },
     { "fg": "status-ok", "bg": "surface", "kind": "mark" }
   ]

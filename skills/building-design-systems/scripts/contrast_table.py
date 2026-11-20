@@ -8,7 +8,7 @@ Usage:
 Pairings come from the `pairings` list in tokens.json: `{"fg": "muted", "bg": "surface",
 "kind": "text"}`, where fg and bg name a colour role or `brand.<name>`. Targets sit above the
 WCAG floors so rounding can't tip a pair into failure: text 4.6:1 (floor 4.5), marks 3.2:1
-(floor 3.0). A pairing may set its own `target`.
+(floor 3.0). A pairing may set a higher `target`, never one below its floor.
 
 Exit codes: 0 every pair meets its target; 1 one or more pairs fail (table still written);
 2 bad input.
@@ -26,6 +26,8 @@ from tokens_to_css import TokenError, color_for, load_tokens
 
 HEX_RE = re.compile(r"^#?([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$")
 TARGETS = {"text": 4.6, "mark": 3.2}
+# A pairing may raise its own target but never drop below the WCAG AA floor for its kind.
+FLOORS = {"text": 4.5, "mark": 3.0}
 SRGB_LINEAR_THRESHOLD = 0.04045
 
 
@@ -84,9 +86,14 @@ def evaluate(tokens: dict[str, Any]) -> list[dict[str, Any]]:
     rows = []
     for pairing in pairings:
         kind = pairing.get("kind", "text")
-        if kind not in TARGETS and "target" not in pairing:
-            raise TokenError(f"unknown pairing kind {kind!r}; use text or mark, or set target")
-        target = float(pairing.get("target", TARGETS.get(kind, 0)))
+        if kind not in TARGETS:
+            raise TokenError(f"unknown pairing kind {kind!r}; use text or mark")
+        target = float(pairing.get("target", TARGETS[kind]))
+        if target < FLOORS[kind]:
+            raise TokenError(
+                f"{pairing['fg']} on {pairing['bg']}: target {target} is below the WCAG floor "
+                f"of {FLOORS[kind]} for {kind}"
+            )
 
         cells = {}
         for theme in tokens["themes"]:

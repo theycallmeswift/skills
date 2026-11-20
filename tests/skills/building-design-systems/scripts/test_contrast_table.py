@@ -114,3 +114,19 @@ def test_unknown_role_is_bad_input(tmp_path: Path):
     source.write_text(json.dumps(tokens))
 
     assert contrast_table.main([str(source)]) == 2
+
+
+@pytest.mark.parametrize(("kind", "target"), [("text", 3.0), ("text", 4.49), ("mark", 2.5)])
+def test_pairing_target_below_the_wcag_floor_is_refused(kind, target):
+    tokens = json.loads(json.dumps(TOKENS))
+    tokens["pairings"] = [{"fg": "muted", "bg": "bg", "kind": kind, "target": target}]
+
+    with pytest.raises(contrast_table.TokenError, match="below the WCAG floor"):
+        contrast_table.evaluate(tokens)
+
+
+def test_pairing_may_raise_its_target():
+    tokens = json.loads(json.dumps(TOKENS))
+    tokens["pairings"] = [{"fg": "fg", "bg": "bg", "kind": "text", "target": 7.0}]
+
+    assert contrast_table.evaluate(tokens)[0]["target"] == 7.0
