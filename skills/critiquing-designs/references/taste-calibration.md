@@ -1,6 +1,6 @@
 # Taste calibration
 
-Read this before an aesthetic pass when the user hasn't named reference sites. It turns "make it look better" into reference images the models can grade against, using pictures the user reacts to rather than adjectives they have to invent.
+Read this before an aesthetic pass when the user hasn't named reference sites. It turns "make it look better" into reference images the models can grade against, from pictures the user reacts to instead of adjectives they must invent.
 
 ## 1. Pick candidates
 
@@ -8,7 +8,7 @@ Choose 8–10 sites or products the work could plausibly learn from: same catego
 
 ## 2. Screenshot them in dark mode
 
-Capture each at the same viewport width, on a comparable screen (a dashboard against a dashboard, not a marketing page), in dark mode so every candidate is judged in the same light. Use whatever browser or screenshot tool you have; if you have none, ask the user for the screenshots. Name files by candidate, e.g. `linear.png`.
+Capture each in dark mode at the same viewport width, on a comparable screen (a dashboard against a dashboard, not a marketing page). Use any browser or screenshot tool you have; if none, ask the user for the screenshots. Name files by candidate, e.g. `linear.png`.
 
 ## 3. Build the contact sheet
 

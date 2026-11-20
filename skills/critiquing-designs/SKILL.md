@@ -89,7 +89,7 @@ Pick 4–6 vision models (image input) from the top of OpenRouter's Design Arena
 python3 skills/critiquing-designs/scripts/run_critique.py OUT/rubric.md OUT/package OUT --models OUT/models.txt --runs 2 --cap <usd> --estimate-only
 ```
 
-It prints the models, `estimate`, `cap` and `balance` (credits left on the key), sized from the package contents. Exit 2 names an unknown slug or a model with null or negative pricing (such as `openrouter/auto`); replace it and rerun. Exit 3 means the estimate is over the cap or balance: cut models or runs, or raise the cap, then rerun.
+It prints the models, `estimate`, `cap` and `balance` (credits left on the key), sized from the package contents. Exit 2 names an unknown slug or a model with null or negative pricing (such as `openrouter/auto`); replace it and rerun. Exit 3: the estimate is over the cap or balance.
 
 **Stop: show the models, estimate, cap and balance, and get approval before running.** The key may be shared and the spend is real. Never run past the cap or the balance: if the estimate exceeds either, cut models or runs, or ask the user to raise the cap or top up.
 
@@ -115,7 +115,7 @@ Spot-check before trusting it: rerun `contrast.py` on two of its contrast number
 
 ## 7. Check prior decisions
 
-Check every surviving recommendation against every decision the user made in this session and in the repo, not just the rubric's list: decisions made after the rubric was written, or missed when it was, count too. Search the repo for them now (decision logs, design docs, ADRs, specs, comments in the design-system source); a rubric's settled list is often incomplete.
+Check every surviving recommendation against every decision the user made in this session and in the repo, not just the rubric's list: decisions made after the rubric was written, or missed when it was, count too. Search the repo for them now (decision logs, design docs, ADRs, specs, comments in the design-system source).
 
 - **Prior decisions win, even when every model agrees.** Unanimity among models is not new information the user lacked.
 - A recommendation that reverses or erodes a decision is never recommended. Drop it to Rejected, citing the decision.
@@ -151,8 +151,7 @@ If a pair fails AA, report it with the nearest passing value as a new row to app
 
 ## Gotchas
 
-- **Keep the raw text of invalid JSON.** Synthesis extracts its findings by hand, and run stats list unusable runs.
-- **About 8–12 false claims per pass is normal,** mostly "passing" colour values that fail WCAG and misread screenshots. Proposed fix colours fail too: recompute them.
+- **Proposed fix colours fail WCAG too:** recompute them.
 - **Models critique page artifacts:** grid lines, margin labels, captions and review notes like "Recommended". The rubric tells them not to; synthesis drops what slips through.
-- **Some models take 10+ minutes per call.** A shared key can run dry mid-run; the cap and `--only` reruns keep the spend bounded.
+- **A shared key can run dry mid-run.** The cap and `--only` reruns keep the spend bounded.
 - **Reasoning models can return empty replies** when hidden reasoning eats `max_tokens`. The runner sets 32000 and retries once; an empty record after that is a failed run, not a clean bill of health.

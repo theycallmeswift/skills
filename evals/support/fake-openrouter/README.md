@@ -30,9 +30,9 @@ add_fake_openrouter "$SCENARIO"
 It also makes the real `openrouter.ai` unreachable: the host's egress proxy can attach a real
 OpenRouter key to any request for that host, so a script that missed the base URL would spend real
 money. `setup.sh` maps `openrouter.ai` to `127.0.0.1` in `/etc/hosts` and adds it to
-`NO_PROXY`/`no_proxy` in the same places, so a proxy-aware client connects directly and is refused. The scenario prompt can also say
-"the key and base URL are in `./.env`" if an eval wants an explicit pointer; scripts accept
-`--base-url` too.
+`NO_PROXY`/`no_proxy` in the same places, so a proxy-aware client connects directly and is refused.
+A scenario prompt can also say "the key and base URL are in `./.env`"; scripts accept `--base-url`
+too.
 
 ## An agent on OpenRouter
 
@@ -96,8 +96,7 @@ the log; `make test` runs it.
 
 ## Re-record
 
-Replies are synthetic by design: a model critique is not worth recording, and a recording would
-carry real findings and costs. Only the `/models` shape follows the live API. To refresh it:
+Replies are synthetic by design; only the `/models` shape follows the live API. To refresh it:
 
 ```text
 Fetch https://openrouter.ai/api/v1/models (no key needed). Pick a vision model per vendor

@@ -5,9 +5,8 @@ Prepare screenshots for vision-model critique: fit, split tall pages, overlay a 
 Each image is shrunk to fit --max-width (never enlarged), cut into parts that fit
 --max-height, and each part gets a margin on every side holding column labels (A-H)
 above and below and row labels (1-8) left and right. Thin translucent lines divide the
-content into cols x rows cells; nothing else is drawn over the content. The limits cover the
-finished file: the margin is reserved inside them, so outputs are at most --max-width wide
-and --max-height tall.
+content into cols x rows cells; nothing else is drawn over the content. The margin is reserved
+inside the limits, so outputs are at most --max-width wide and --max-height tall.
 
 Usage:
     grid.py IMAGE [IMAGE ...] --out-dir DIR [--max-width 1280] [--max-height 2000]
