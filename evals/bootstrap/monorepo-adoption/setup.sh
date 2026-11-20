@@ -1,11 +1,15 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Provision the tools the gates call, identically on both arms. Network may be
-# closed; a missing tool is then the agent's to report, not the fixture's.
+# Provision uv for the Python gates, identically on both arms. Node stays out:
+# the judge reads every file under /workspace into one prompt, and npm would
+# fill it with node_modules. A missing tool is the agent's to report. Run this
+# eval with --env UV_PROJECT_ENVIRONMENT=/srv/relay-venv: a .venv under
+# /workspace holds a python symlink that dangles once the workdir is copied
+# out for grading, and fact collection crashes on it.
 export DEBIAN_FRONTEND=noninteractive
 apt-get update -qq >/dev/null || true
-apt-get install -y -qq git make curl ca-certificates nodejs npm >/dev/null || true
+apt-get install -y -qq git make curl ca-certificates >/dev/null || true
 if ! command -v git >/dev/null; then
   printf 'unexpected monorepo-adoption fixture: no git\n' >&2
   exit 1

@@ -73,7 +73,7 @@ Then add the dev tools:
 
 Run `<test>` and `<lint>` and fix what you wrote until both pass. If a tool is missing, say so; never report a gate that didn't run as passing.
 
-**Tests run anywhere.** With git, also run `<test>` in a clean checkout (`git worktree add` in a temp dir, then `<install>`). A test that fails only there reads git-ignored files or local secrets, though the docs you wrote say the gate needs none. Report each as a gap naming the file it needs. With several packages, keep that package's tests out of `<test>` and CI until they pass clean; with one, say CI's tests will fail until then.
+**Tests run anywhere.** With git, also run `<test>` in a clean checkout (`git worktree add` to a temp dir outside the repo, then `<install>`). A test that fails only there reads git-ignored files or local secrets, though the docs you wrote say the gate needs none. Report each as a gap naming the file it needs, and write that need where the docs claim none. With several packages, keep that package in `<test>` but drop its Test step from CI until its tests pass clean; with one, say CI's tests will fail until then.
 
 **Existing code that fails a gate** gets a baseline and a ramp, never a red first CI run:
 
