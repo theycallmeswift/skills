@@ -82,7 +82,7 @@ arms = [
 ]
 
 # Same arms, with the agent on OpenRouter: for hosts with OPENROUTER_API_KEY but no Anthropic
-# credential. Run with `--set openrouter --binder-provider openrouter` (see docs/development.md).
+# credential. Run with `--set openrouter --binder-provider openrouter`.
 [tool.benchspec.sets.openrouter]
 harness = "claude-code"
 provider = "openrouter"

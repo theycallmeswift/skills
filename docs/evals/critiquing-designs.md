@@ -1,6 +1,6 @@
 # critiquing-designs — eval record
 
-Recorded 2026-11-20 from `iteration_06` (the two key scenarios, `--count 3`) and `iteration_07` (the rest, 1 sample). Setup: benchspec 0.0.5, Docker sandbox, Claude Code 2.1.329 in the guest, `anthropic/claude-sonnet-5.5` on OpenRouter (the `openrouter` set; see `docs/development.md`), binder on OpenRouter. The baseline arm ran bare and the trial arm loaded the plugin via `--plugin-dir`. Every OpenRouter call the skill's runner made went to `evals/support/fake-openrouter`. Activation lines (`Skill … invoked`) are scoped off baseline and left out of these tallies.
+Recorded 2026-11-20 from `iteration_06` (the two key scenarios, `--count 3`) and `iteration_07` (the rest, 1 sample). Setup: benchspec 0.0.5, Docker sandbox, Claude Code 2.1.329 in the guest, `anthropic/claude-sonnet-5.5` on OpenRouter (the `openrouter` set in `pyproject.toml`), binder on OpenRouter. The baseline arm ran bare and the trial arm loaded the plugin via `--plugin-dir`. Every OpenRouter call the skill's runner made went to `evals/support/fake-openrouter`. Activation lines (`Skill … invoked`) are scoped off baseline and left out of these tallies.
 
 Re-run:
 
