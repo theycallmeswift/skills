@@ -290,15 +290,14 @@ def extract_json(text: str) -> dict | None:
     """Parse the critique object from reply text.
 
     Tolerates code fences, prose and <think> blocks. Tries every "{" in order and returns
-    the first object with an "issues" key, else the first object found.
+    the first object with an "issues" key. Any other object (a nested fragment of a
+    truncated reply, say) is not a critique, so the run stays unparsed and its raw text
+    goes to synthesis.
     """
     for candidate in (THINK_BLOCK.sub("", text), text):
-        objects = _json_objects(candidate)
-        for parsed in objects:
+        for parsed in _json_objects(candidate):
             if "issues" in parsed:
                 return parsed
-        if objects:
-            return objects[0]
     return None
 
 

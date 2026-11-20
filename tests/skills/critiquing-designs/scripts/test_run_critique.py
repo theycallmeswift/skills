@@ -664,9 +664,10 @@ def test_retries_only_once(workspace, fake):
     [
         ('Per {schema} here: {"issues": []}', {"issues": []}),
         ('<think>use {x} and {"issues": [9]}</think>{"issues": [1]}', {"issues": [1]}),
-        ('<think>use {x}</think>{"a": 1}', {"a": 1}),
+        ('<think>use {x}</think>{"a": 1}', None),
         ('{} then {"issues": [1]}', {"issues": [1]}),
-        ('{"a": 1} {"b": 2}', {"a": 1}),
+        ('{"a": 1} {"b": 2}', None),
+        ('{"issues": [{"criterion": "Contrast", "score": 2}', None),
         (
             '```json\n{"issues": [2], "nested": {"issues": 3}}\n```',
             {"issues": [2], "nested": {"issues": 3}},
