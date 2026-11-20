@@ -1,0 +1,14 @@
+{
+  "model": "delta/view-max",
+  "run": 2,
+  "ok": true,
+  "error": null,
+  "status": 200,
+  "raw_text": "```json\n{\n \"summary\": \"The matrix is dense but scannable; failing suites need a row-level signal and the muted text fails AA.\",\n \"scores\": [{\"criterion\": \"Task clarity and hierarchy\", \"score\": 3, \"note\": \"Failures don't stand out.\"}],\n \"issues\": [\n  {\"id\": \"I1\", \"element\": \"Suite rows\", \"cell\": \"B3\", \"frame\": \"test-matrix\", \"problem\": \"A failing suite only shows as one red cell among 31; the row itself never says it failed.\", \"why\": \"Finding the failing suites means scanning every cell.\", \"fix\": \"Add a failure count after the suite label, e.g. 'webhooks - 1 failed', in --danger #B42318.\", \"severity\": \"medium\", \"confidence\": \"high\", \"evidence\": \"Four rows carry a single red cell and no other signal.\"},\n  {\"id\": \"I2\", \"element\": \"Timestamps (--text-muted)\", \"cell\": \"G3\", \"frame\": \"test-matrix\", \"problem\": \"#8B93A1 on #FFFFFF is about 3.1:1, below AA for small text.\", \"why\": \"The times tell people whether a failure is current.\", \"fix\": \"--text-muted -> #5F6673.\", \"severity\": \"high\", \"confidence\": \"high\", \"evidence\": \"Token values from the tokens file.\"},\n  {\"id\": \"I3\", \"element\": \"Suite labels\", \"cell\": \"B3\", \"frame\": \"test-matrix\", \"problem\": \"Suite labels render in the browser's fallback font, not the brand face.\", \"why\": \"Off-system type makes the matrix look unfinished.\", \"fix\": \"font-family: \"Inter\", system-ui, sans-serif on .suite-label\", \"severity\": \"low\", \"confidence\": \"medium\", \"evidence\": \"Letterforms differ from the heading.\"}\n ],\n \"answers\": [{\"question\": \"Can someone find today's failing suites in five seconds?\", \"answer\": \"No: there is no per-row failure signal.\"}]\n}\n```",
+  "parsed": null,
+  "cost_usd": 0.4,
+  "prompt_tokens": 38243,
+  "completion_tokens": 6359,
+  "seconds": 655.0,
+  "finish_reason": "stop"
+}

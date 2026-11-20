@@ -1,0 +1,69 @@
+{
+  "model": "delta/view-max",
+  "run": 1,
+  "ok": true,
+  "error": null,
+  "status": 200,
+  "raw_text": "{\n \"summary\": \"Edge labels clutter the page; the nav should show labels.\",\n \"scores\": [\n  {\n   \"criterion\": \"Task clarity and hierarchy\",\n   \"score\": 3,\n   \"note\": \"Failures don't stand out.\"\n  },\n  {\n   \"criterion\": \"Accessibility\",\n   \"score\": 2,\n   \"note\": \"Muted text and colour-only status.\"\n  },\n  {\n   \"criterion\": \"Brand fit\",\n   \"score\": 4,\n   \"note\": \"On tokens.\"\n  }\n ],\n \"issues\": [\n  {\n   \"id\": \"I1\",\n   \"element\": \"Column letters A-H and row numbers 1-8 around the page edge\",\n   \"cell\": \"A1\",\n   \"frame\": \"test-matrix\",\n   \"problem\": \"The letters and numbers along every edge are low-contrast grey and crowd the header and the nav.\",\n   \"why\": \"They add clutter and compete with the suite labels.\",\n   \"fix\": \"Remove the edge letters and numbers, or darken them to #374151.\",\n   \"severity\": \"low\",\n   \"confidence\": \"medium\",\n   \"evidence\": \"Grey letters A-H run across the top edge, digits 1-8 down both sides.\"\n  },\n  {\n   \"id\": \"I2\",\n   \"element\": \"Left navigation\",\n   \"cell\": \"A2\",\n   \"frame\": \"test-matrix\",\n   \"problem\": \"The icon-only nav hides where each icon goes; new team members can't tell the pages apart.\",\n   \"why\": \"Navigation by guessing slows the people the page serves.\",\n   \"fix\": \"Show labels by default: expand the nav to 220px with icon + label.\",\n   \"severity\": \"medium\",\n   \"confidence\": \"high\",\n   \"evidence\": \"Five unlabelled grey squares in column A.\"\n  }\n ],\n \"answers\": [\n  {\n   \"question\": \"Can someone find today's failing suites in five seconds?\",\n   \"answer\": \"Not quite: the four red cells are findable but small.\"\n  },\n  {\n   \"question\": \"Does the note band read as part of the page header?\",\n   \"answer\": \"Barely; the band is too close to white.\"\n  }\n ]\n}",
+  "parsed": {
+    "summary": "Edge labels clutter the page; the nav should show labels.",
+    "scores": [
+      {
+        "criterion": "Task clarity and hierarchy",
+        "score": 3,
+        "note": "Failures don't stand out."
+      },
+      {
+        "criterion": "Accessibility",
+        "score": 2,
+        "note": "Muted text and colour-only status."
+      },
+      {
+        "criterion": "Brand fit",
+        "score": 4,
+        "note": "On tokens."
+      }
+    ],
+    "issues": [
+      {
+        "id": "I1",
+        "element": "Column letters A-H and row numbers 1-8 around the page edge",
+        "cell": "A1",
+        "frame": "test-matrix",
+        "problem": "The letters and numbers along every edge are low-contrast grey and crowd the header and the nav.",
+        "why": "They add clutter and compete with the suite labels.",
+        "fix": "Remove the edge letters and numbers, or darken them to #374151.",
+        "severity": "low",
+        "confidence": "medium",
+        "evidence": "Grey letters A-H run across the top edge, digits 1-8 down both sides."
+      },
+      {
+        "id": "I2",
+        "element": "Left navigation",
+        "cell": "A2",
+        "frame": "test-matrix",
+        "problem": "The icon-only nav hides where each icon goes; new team members can't tell the pages apart.",
+        "why": "Navigation by guessing slows the people the page serves.",
+        "fix": "Show labels by default: expand the nav to 220px with icon + label.",
+        "severity": "medium",
+        "confidence": "high",
+        "evidence": "Five unlabelled grey squares in column A."
+      }
+    ],
+    "answers": [
+      {
+        "question": "Can someone find today's failing suites in five seconds?",
+        "answer": "Not quite: the four red cells are findable but small."
+      },
+      {
+        "question": "Does the note band read as part of the page header?",
+        "answer": "Barely; the band is too close to white."
+      }
+    ]
+  },
+  "cost_usd": 0.39,
+  "prompt_tokens": 38112,
+  "completion_tokens": 4656,
+  "seconds": 611.3,
+  "finish_reason": "stop"
+}

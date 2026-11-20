@@ -1,0 +1,81 @@
+{
+  "model": "delta/view-max",
+  "run": 1,
+  "ok": true,
+  "error": null,
+  "status": 200,
+  "raw_text": "{\n \"summary\": \"Accessible status needs a non-colour cue; the summary hides the failing runs.\",\n \"scores\": [\n  {\n   \"criterion\": \"Task clarity and hierarchy\",\n   \"score\": 3,\n   \"note\": \"Failures don't stand out.\"\n  },\n  {\n   \"criterion\": \"Accessibility\",\n   \"score\": 2,\n   \"note\": \"Muted text and colour-only status.\"\n  },\n  {\n   \"criterion\": \"Brand fit\",\n   \"score\": 4,\n   \"note\": \"On tokens.\"\n  }\n ],\n \"issues\": [\n  {\n   \"id\": \"I1\",\n   \"element\": \"Matrix cells (pass/fail)\",\n   \"cell\": \"C3\",\n   \"frame\": \"test-matrix\",\n   \"problem\": \"Status is colour-only. Put a short marker back in each cell (check / x); it can shrink on narrow screens but shouldn't vanish.\",\n   \"why\": \"A missed failure ships a broken release.\",\n   \"fix\": \"Restore short text markers in the cells (a check for pass, an x for fail). Markers can shorten at narrow widths but must never disappear.\",\n   \"severity\": \"high\",\n   \"confidence\": \"high\",\n   \"evidence\": \"Cells carry no text, icon or pattern; only fill colour changes.\"\n  },\n  {\n   \"id\": \"I2\",\n   \"element\": \"Run summary \\\"27/31 passed\\\"\",\n   \"cell\": \"G1\",\n   \"frame\": \"test-matrix\",\n   \"problem\": \"Pass-first summary hides failures. Lead with the failure count.\",\n   \"why\": \"The summary is what people check before a release.\",\n   \"fix\": \"Lead with failures: \\\"4 failed - 27 passed\\\", with the failure count in --danger #B42318.\",\n   \"severity\": \"medium\",\n   \"confidence\": \"high\",\n   \"evidence\": \"Header reads \\\"27/31 passed\\\" while 4 red cells sit in the matrix.\"\n  },\n  {\n   \"id\": \"I3\",\n   \"element\": \"Timestamps and subtitle (--text-muted)\",\n   \"cell\": \"G3\",\n   \"frame\": \"test-matrix\",\n   \"problem\": \"Muted text #8B93A1 on the white page #FFFFFF is 3.09:1, under the 4.5:1 AA bar for 12-13px text.\",\n   \"why\": \"The last-run times are how people judge whether a failure is current.\",\n   \"fix\": \"--text-muted #8B93A1 -> #5F6673 (5.78:1 on #FFFFFF).\",\n   \"severity\": \"high\",\n   \"confidence\": \"high\",\n   \"evidence\": \"Tokens: --text-muted #8B93A1, --page #FFFFFF; WCAG 2.2 ratio 3.09:1.\"\n  }\n ],\n \"answers\": [\n  {\n   \"question\": \"Can someone find today's failing suites in five seconds?\",\n   \"answer\": \"No: colour alone and a pass-first summary hide them.\"\n  },\n  {\n   \"question\": \"Does the note band read as part of the page header?\",\n   \"answer\": \"Mostly; it could use a little more separation.\"\n  }\n ]\n}",
+  "parsed": {
+    "summary": "Accessible status needs a non-colour cue; the summary hides the failing runs.",
+    "scores": [
+      {
+        "criterion": "Task clarity and hierarchy",
+        "score": 3,
+        "note": "Failures don't stand out."
+      },
+      {
+        "criterion": "Accessibility",
+        "score": 2,
+        "note": "Muted text and colour-only status."
+      },
+      {
+        "criterion": "Brand fit",
+        "score": 4,
+        "note": "On tokens."
+      }
+    ],
+    "issues": [
+      {
+        "id": "I1",
+        "element": "Matrix cells (pass/fail)",
+        "cell": "C3",
+        "frame": "test-matrix",
+        "problem": "Status is colour-only. Put a short marker back in each cell (check / x); it can shrink on narrow screens but shouldn't vanish.",
+        "why": "A missed failure ships a broken release.",
+        "fix": "Restore short text markers in the cells (a check for pass, an x for fail). Markers can shorten at narrow widths but must never disappear.",
+        "severity": "high",
+        "confidence": "high",
+        "evidence": "Cells carry no text, icon or pattern; only fill colour changes."
+      },
+      {
+        "id": "I2",
+        "element": "Run summary \"27/31 passed\"",
+        "cell": "G1",
+        "frame": "test-matrix",
+        "problem": "Pass-first summary hides failures. Lead with the failure count.",
+        "why": "The summary is what people check before a release.",
+        "fix": "Lead with failures: \"4 failed - 27 passed\", with the failure count in --danger #B42318.",
+        "severity": "medium",
+        "confidence": "high",
+        "evidence": "Header reads \"27/31 passed\" while 4 red cells sit in the matrix."
+      },
+      {
+        "id": "I3",
+        "element": "Timestamps and subtitle (--text-muted)",
+        "cell": "G3",
+        "frame": "test-matrix",
+        "problem": "Muted text #8B93A1 on the white page #FFFFFF is 3.09:1, under the 4.5:1 AA bar for 12-13px text.",
+        "why": "The last-run times are how people judge whether a failure is current.",
+        "fix": "--text-muted #8B93A1 -> #5F6673 (5.78:1 on #FFFFFF).",
+        "severity": "high",
+        "confidence": "high",
+        "evidence": "Tokens: --text-muted #8B93A1, --page #FFFFFF; WCAG 2.2 ratio 3.09:1."
+      }
+    ],
+    "answers": [
+      {
+        "question": "Can someone find today's failing suites in five seconds?",
+        "answer": "No: colour alone and a pass-first summary hide them."
+      },
+      {
+        "question": "Does the note band read as part of the page header?",
+        "answer": "Mostly; it could use a little more separation."
+      }
+    ]
+  },
+  "cost_usd": 0.4,
+  "prompt_tokens": 38112,
+  "completion_tokens": 4656,
+  "seconds": 619.7,
+  "finish_reason": "stop"
+}

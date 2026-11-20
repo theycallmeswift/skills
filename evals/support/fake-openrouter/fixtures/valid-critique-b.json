@@ -1,0 +1,64 @@
+{
+ "summary": "Strong hierarchy and calm palette; the accent blue is overused and the table is dense.",
+ "scores": [
+  {
+   "criterion": "Hierarchy",
+   "score": 4,
+   "note": "Deploy status leads; the metric strip competes with it."
+  },
+  {
+   "criterion": "Contrast and legibility",
+   "score": 4,
+   "note": "Muted text on the card surface is borderline."
+  },
+  {
+   "criterion": "Brand fit",
+   "score": 3,
+   "note": "Matches the Pulse tokens apart from the accent."
+  }
+ ],
+ "issues": [
+  {
+   "id": "I1",
+   "element": "Muted label text on stat cards",
+   "cell": "C2",
+   "frame": "dashboard-dark",
+   "problem": "Muted labels are low contrast against the card.",
+   "why": "Hard to read at 11px.",
+   "fix": "Use #9aa3b2 for muted text.",
+   "severity": "high",
+   "confidence": "medium",
+   "evidence": "Visible when zoomed to 100%."
+  },
+  {
+   "id": "I2",
+   "element": "Accent blue on every interactive element",
+   "cell": "H1",
+   "frame": "dashboard-dark",
+   "problem": "Accent blue marks links, tabs, pills and buttons alike.",
+   "why": "When everything is accented nothing leads the eye.",
+   "fix": "Keep the accent for the primary action; use neutral for tabs.",
+   "severity": "medium",
+   "confidence": "medium",
+   "evidence": "Five distinct blue elements in the first viewport."
+  },
+  {
+   "id": "I3",
+   "element": "Deploy table row height",
+   "cell": "E5",
+   "frame": "dashboard-dark",
+   "problem": "Table rows feel cramped.",
+   "why": "Scanning cost rises with row count.",
+   "fix": "Increase row padding to 10px vertical.",
+   "severity": "low",
+   "confidence": "low",
+   "evidence": "Compare row pitch to the stat cards."
+  }
+ ],
+ "answers": [
+  {
+   "question": "Does the empty state explain what to do next?",
+   "answer": "Partly: it names the problem but gives no action."
+  }
+ ]
+}
