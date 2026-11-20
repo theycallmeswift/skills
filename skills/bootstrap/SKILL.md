@@ -36,7 +36,7 @@ Code no package covers, such as loose scripts with tests, is a gap.
 
 Core only: drop the lines naming `<install>` or `<test>`, and report the missing test gate.
 
-More than one package, or one outside the root: read [references/packages.md](references/packages.md) before writing, and use its rows in place of the language rows below.
+More than one package, or one outside the root: read [references/monorepos.md](references/monorepos.md) before writing, and use its rows in place of the language rows below.
 
 ## 2. Write what's missing
 

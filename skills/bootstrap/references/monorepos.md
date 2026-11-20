@@ -1,4 +1,4 @@
-# Several packages
+# Monorepos
 
 For a repo with more than one package, or one package outside the root. The
 root gets workspace files and a `Makefile` that call each package's own
