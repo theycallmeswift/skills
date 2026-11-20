@@ -96,6 +96,14 @@ The runner is [benchspec](https://pypi.org/project/benchspec/), a pytest plugin 
 
 `SKILL=<name>` narrows discovery to `evals/<name>`; `EVAL_ARGS="-k <scenario>"` narrows further.
 
+**No Anthropic credential?** With only `OPENROUTER_API_KEY`, use the `openrouter` set, which runs the same arms with the agent on OpenRouter. `make evals` can't pass the binder flag, so call benchspec directly:
+
+```bash
+uv run --group evals benchspec run --set openrouter --binder-provider openrouter --eval-paths evals/<name> -- --count 3 -n 4
+```
+
+The judge still runs on the host's `claude` login. Evals behind `fake-openrouter` stay safe: its `setup.sh` relays only the agent's own Messages calls to the real API and serves everything else from the scenario (see its README).
+
 **Authoring loop.** `make evals:lint` is free and static. `uv run --group evals benchspec analyze` asks the binder which assertions grade deterministically. `make evals SKILL=<name> EVAL_ARGS="--collect-only -q"` lists the cells without spawning anything — do this before any run broader than one eval, because every cell is a VM boot plus an agent call, and every punted assertion is a judge call. The format reference is `docs/writing-evals.md` in the benchspec repo; the design methodology (scenarios, discriminating assertions, RED → GREEN → REFACTOR) is `skills/writing-agent-skills/references/evaluating-skills.md`.
 
 **Recording results.** Runs write `tmp/evals/iteration_NN/benchmark.md` (git-ignored). When a skill lands or changes, copy that report to `docs/evals/<skill>.md` so the last measured baseline and delta travel with the repo.

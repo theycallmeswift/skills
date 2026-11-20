@@ -80,3 +80,15 @@ arms = [
   { name = "baseline" },
   { name = "trial", harness_args = ["--plugin-dir", "/project"] },
 ]
+
+# Same arms, with the agent on OpenRouter: for hosts with OPENROUTER_API_KEY but no Anthropic
+# credential. Run with `--set openrouter --binder-provider openrouter` (see docs/development.md).
+[tool.benchspec.sets.openrouter]
+harness = "claude-code"
+provider = "openrouter"
+model = "anthropic/claude-sonnet-5.5"
+baseline = "baseline"
+arms = [
+  { name = "baseline" },
+  { name = "trial", harness_args = ["--plugin-dir", "/project"] },
+]
