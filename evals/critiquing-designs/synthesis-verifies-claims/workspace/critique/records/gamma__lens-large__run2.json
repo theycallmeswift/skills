@@ -4,7 +4,7 @@
   "ok": true,
   "error": null,
   "status": 200,
-  "raw_text": 0.1,
+  "raw_text": "{\n \"summary\": \"Small cells and an unlabelled nav are the main problems.\",\n \"scores\": [\n  {\n   \"criterion\": \"Task clarity and hierarchy\",\n   \"score\": 3,\n   \"note\": \"Failures don't stand out.\"\n  },\n  {\n   \"criterion\": \"Accessibility\",\n   \"score\": 2,\n   \"note\": \"Muted text and colour-only status.\"\n  },\n  {\n   \"criterion\": \"Brand fit\",\n   \"score\": 4,\n   \"note\": \"On tokens.\"\n  }\n ],\n \"issues\": [\n  {\n   \"id\": \"I1\",\n   \"element\": \"Matrix cells\",\n   \"cell\": \"C3\",\n   \"frame\": \"test-matrix\",\n   \"problem\": \"Cells are 16x20px: small hover targets for the per-run tooltip.\",\n   \"why\": \"Hunting for one run's tooltip is slow on a trackpad.\",\n   \"fix\": \"Matrix cells 16px -> 24px wide, keep 4px gaps.\",\n   \"severity\": \"low\",\n   \"confidence\": \"medium\",\n   \"evidence\": \"Tokens: matrix cells 16x20px.\"\n  },\n  {\n   \"id\": \"I2\",\n   \"element\": \"Left navigation\",\n   \"cell\": \"A2\",\n   \"frame\": \"test-matrix\",\n   \"problem\": \"The icon-only nav hides where each icon goes; new team members can't tell the pages apart.\",\n   \"why\": \"Navigation by guessing slows the people the page serves.\",\n   \"fix\": \"Show labels by default: expand the nav to 220px with icon + label.\",\n   \"severity\": \"medium\",\n   \"confidence\": \"high\",\n   \"evidence\": \"Five unlabelled grey squares in column A.\"\n  }\n ],\n \"answers\": [\n  {\n   \"question\": \"Can someone find today's failing suites in five seconds?\",\n   \"answer\": \"Not quite: the four red cells are findable but small.\"\n  },\n  {\n   \"question\": \"Does the note band read as part of the page header?\",\n   \"answer\": \"Barely; the band is too close to white.\"\n  }\n ]\n}",
   "parsed": {
     "summary": "Small cells and an unlabelled nav are the main problems.",
     "scores": [
@@ -61,9 +61,9 @@
       }
     ]
   },
-  "cost_usd": 241.8,
-  "prompt_tokens": 38420,
-  "completion_tokens": 6120,
-  "seconds": 140.0,
+  "cost_usd": 0.1,
+  "prompt_tokens": 39510,
+  "completion_tokens": 4230,
+  "seconds": 241.8,
   "finish_reason": "stop"
 }

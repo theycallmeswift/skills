@@ -1,6 +1,6 @@
 ---
 name: critiquing-designs
-description: "Use when the user wants a design, mockups, UI screenshots or a design system critiqued by several AI models, or wants other models' opinions on visual design. Covers asks like \"have a few models critique these mockups\", \"run a multi-model design review\", \"run a design-system critique across models\", \"get GPT and Gemini to grade this dashboard\", \"do an aesthetic pass on the dashboard against reference sites\". Use it whenever more than one model should judge a design, even if the user names no models. Runs vision models through OpenRouter and needs OPENROUTER_API_KEY. Don't use for a quick opinion from the current model on a screenshot, code review of UI components, automated accessibility audits, or building a design system (building-design-systems)."
+description: "Use when the user wants a design, mockups, UI screenshots or a design system critiqued by several AI models, or wants other models' opinions on visual design, including turning a finished multi-model critique (its run records) into what to change. Covers asks like \"have a few models critique these mockups\", \"run a multi-model design review\", \"run a design-system critique across models\", \"get GPT and Gemini to grade this dashboard\", \"do an aesthetic pass on the dashboard against reference sites\", \"the model critique finished, what should we change?\". Use it whenever more than one model should judge a design, even if the user names no models. Runs vision models through OpenRouter and needs OPENROUTER_API_KEY. Don't use for a quick opinion from the current model on a screenshot, code review of UI components, automated accessibility audits, or building a design system (building-design-systems)."
 ---
 
 # Critiquing designs
@@ -115,11 +115,11 @@ Spot-check before trusting it: rerun `contrast.py` on two of its contrast number
 
 ## 7. Check prior decisions
 
-Check every surviving recommendation against every decision the user made in this session and in the repo, not just the rubric's list: decisions made after the rubric was written count too.
+Check every surviving recommendation against every decision the user made in this session and in the repo, not just the rubric's list: decisions made after the rubric was written, or missed when it was, count too. Search the repo for them now (decision logs, design docs, ADRs, specs, comments in the design-system source); a rubric's settled list is often incomplete.
 
 - **Prior decisions win, even when every model agrees.** Unanimity among models is not new information the user lacked.
 - A recommendation that reverses or erodes a decision is never recommended. Drop it to Rejected, citing the decision.
-- If the models give evidence the user may not have seen (a failed WCAG ratio, a concrete harm to who the work serves), raise it as a **Decide** row instead: the decision, the evidence, the options. Never apply or drop it silently.
+- If the models give evidence the user may not have seen (a failed WCAG ratio, a concrete harm to who the work serves), raise it as a **Decide** row instead: the decision, the evidence, the options, listed neutrally. Don't lean toward reversing the decision or a partial version of it; the user already weighed that. Never apply or drop it silently.
 
 ## 8. Decision page
 

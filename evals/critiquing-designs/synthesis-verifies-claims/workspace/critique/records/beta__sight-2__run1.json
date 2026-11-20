@@ -4,7 +4,7 @@
   "ok": true,
   "error": null,
   "status": 200,
-  "raw_text": 0.16,
+  "raw_text": "{\n \"summary\": \"Muted text fails AA; the icon-only nav hides destinations.\",\n \"scores\": [\n  {\n   \"criterion\": \"Task clarity and hierarchy\",\n   \"score\": 3,\n   \"note\": \"Failures don't stand out.\"\n  },\n  {\n   \"criterion\": \"Accessibility\",\n   \"score\": 2,\n   \"note\": \"Muted text and colour-only status.\"\n  },\n  {\n   \"criterion\": \"Brand fit\",\n   \"score\": 4,\n   \"note\": \"On tokens.\"\n  }\n ],\n \"issues\": [\n  {\n   \"id\": \"I1\",\n   \"element\": \"Timestamps and subtitle (--text-muted)\",\n   \"cell\": \"G3\",\n   \"frame\": \"test-matrix\",\n   \"problem\": \"Muted text #8B93A1 on the white page #FFFFFF is 3.09:1, under the 4.5:1 AA bar for 12-13px text.\",\n   \"why\": \"The last-run times are how people judge whether a failure is current.\",\n   \"fix\": \"--text-muted #8B93A1 -> #5F6673 (5.78:1 on #FFFFFF).\",\n   \"severity\": \"high\",\n   \"confidence\": \"high\",\n   \"evidence\": \"Tokens: --text-muted #8B93A1, --page #FFFFFF; WCAG 2.2 ratio 3.09:1.\"\n  },\n  {\n   \"id\": \"I2\",\n   \"element\": \"Left navigation\",\n   \"cell\": \"A2\",\n   \"frame\": \"test-matrix\",\n   \"problem\": \"The icon-only nav hides where each icon goes; new team members can't tell the pages apart.\",\n   \"why\": \"Navigation by guessing slows the people the page serves.\",\n   \"fix\": \"Show labels by default: expand the nav to 220px with icon + label.\",\n   \"severity\": \"medium\",\n   \"confidence\": \"high\",\n   \"evidence\": \"Five unlabelled grey squares in column A.\"\n  }\n ],\n \"answers\": [\n  {\n   \"question\": \"Can someone find today's failing suites in five seconds?\",\n   \"answer\": \"Not quite: the four red cells are findable but small.\"\n  },\n  {\n   \"question\": \"Does the note band read as part of the page header?\",\n   \"answer\": \"Barely; the band is too close to white.\"\n  }\n ]\n}",
   "parsed": {
     "summary": "Muted text fails AA; the icon-only nav hides destinations.",
     "scores": [
@@ -61,9 +61,9 @@
       }
     ]
   },
-  "cost_usd": 98.2,
-  "prompt_tokens": 38420,
-  "completion_tokens": 6120,
-  "seconds": 140.0,
+  "cost_usd": 0.16,
+  "prompt_tokens": 39010,
+  "completion_tokens": 6530,
+  "seconds": 98.2,
   "finish_reason": "stop"
 }

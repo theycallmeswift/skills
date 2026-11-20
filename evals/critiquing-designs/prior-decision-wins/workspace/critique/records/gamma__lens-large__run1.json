@@ -4,9 +4,9 @@
   "ok": true,
   "error": null,
   "status": 200,
-  "raw_text": 0.11,
+  "raw_text": "{\n \"summary\": \"Good density, but failures depend on red/green alone and the summary undersells them.\",\n \"scores\": [\n  {\n   \"criterion\": \"Task clarity and hierarchy\",\n   \"score\": 3,\n   \"note\": \"Failures don't stand out.\"\n  },\n  {\n   \"criterion\": \"Accessibility\",\n   \"score\": 2,\n   \"note\": \"Muted text and colour-only status.\"\n  },\n  {\n   \"criterion\": \"Brand fit\",\n   \"score\": 4,\n   \"note\": \"On tokens.\"\n  }\n ],\n \"issues\": [\n  {\n   \"id\": \"I1\",\n   \"element\": \"Matrix cells (pass/fail)\",\n   \"cell\": \"C3\",\n   \"frame\": \"test-matrix\",\n   \"problem\": \"The pass/fail distinction is carried entirely by red vs green fill; that fails WCAG 1.4.1 Use of Color.\",\n   \"why\": \"A missed failure ships a broken release.\",\n   \"fix\": \"Restore short text markers in the cells (a check for pass, an x for fail). Markers can shorten at narrow widths but must never disappear.\",\n   \"severity\": \"high\",\n   \"confidence\": \"high\",\n   \"evidence\": \"Cells carry no text, icon or pattern; only fill colour changes.\"\n  },\n  {\n   \"id\": \"I2\",\n   \"element\": \"Run summary \\\"27/31 passed\\\"\",\n   \"cell\": \"G1\",\n   \"frame\": \"test-matrix\",\n   \"problem\": \"The header count celebrates passes; a release manager skimming it misses that 4 runs failed.\",\n   \"why\": \"The summary is what people check before a release.\",\n   \"fix\": \"Lead with failures: \\\"4 failed - 27 passed\\\", with the failure count in --danger #B42318.\",\n   \"severity\": \"medium\",\n   \"confidence\": \"high\",\n   \"evidence\": \"Header reads \\\"27/31 passed\\\" while 4 red cells sit in the matrix.\"\n  },\n  {\n   \"id\": \"I3\",\n   \"element\": \"Matrix cells\",\n   \"cell\": \"C3\",\n   \"frame\": \"test-matrix\",\n   \"problem\": \"Cells are 16x20px: small hover targets for the per-run tooltip.\",\n   \"why\": \"Hunting for one run's tooltip is slow on a trackpad.\",\n   \"fix\": \"Matrix cells 16px -> 24px wide, keep 4px gaps.\",\n   \"severity\": \"low\",\n   \"confidence\": \"medium\",\n   \"evidence\": \"Tokens: matrix cells 16x20px.\"\n  }\n ],\n \"answers\": [\n  {\n   \"question\": \"Can someone find today's failing suites in five seconds?\",\n   \"answer\": \"No: colour alone and a pass-first summary hide them.\"\n  },\n  {\n   \"question\": \"Does the note band read as part of the page header?\",\n   \"answer\": \"Mostly; it could use a little more separation.\"\n  }\n ]\n}",
   "parsed": {
-    "summary": "Status rests on colour alone and the summary hides failures.",
+    "summary": "Good density, but failures depend on red/green alone and the summary undersells them.",
     "scores": [
       {
         "criterion": "Task clarity and hierarchy",
@@ -30,7 +30,7 @@
         "element": "Matrix cells (pass/fail)",
         "cell": "C3",
         "frame": "test-matrix",
-        "problem": "Pass and fail differ only by colour (#12B76A vs #D92D20); status rests on colour alone (WCAG 1.4.1) and red-green colour-blind users can't read it.",
+        "problem": "The pass/fail distinction is carried entirely by red vs green fill; that fails WCAG 1.4.1 Use of Color.",
         "why": "A missed failure ships a broken release.",
         "fix": "Restore short text markers in the cells (a check for pass, an x for fail). Markers can shorten at narrow widths but must never disappear.",
         "severity": "high",
@@ -42,7 +42,7 @@
         "element": "Run summary \"27/31 passed\"",
         "cell": "G1",
         "frame": "test-matrix",
-        "problem": "The summary leads with passes and hides the 4 failures; at a glance main reads as healthy.",
+        "problem": "The header count celebrates passes; a release manager skimming it misses that 4 runs failed.",
         "why": "The summary is what people check before a release.",
         "fix": "Lead with failures: \"4 failed - 27 passed\", with the failure count in --danger #B42318.",
         "severity": "medium",
@@ -73,9 +73,9 @@
       }
     ]
   },
-  "cost_usd": 237.0,
-  "prompt_tokens": 38420,
-  "completion_tokens": 6120,
-  "seconds": 140.0,
+  "cost_usd": 0.12,
+  "prompt_tokens": 39379,
+  "completion_tokens": 5627,
+  "seconds": 253.3,
   "finish_reason": "stop"
 }

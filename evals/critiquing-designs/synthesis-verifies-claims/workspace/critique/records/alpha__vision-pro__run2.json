@@ -4,7 +4,7 @@
   "ok": true,
   "error": null,
   "status": 200,
-  "raw_text": 0.23,
+  "raw_text": "{\n \"summary\": \"Readable matrix held back by faint muted text and noisy rules.\",\n \"scores\": [\n  {\n   \"criterion\": \"Task clarity and hierarchy\",\n   \"score\": 3,\n   \"note\": \"Failures don't stand out.\"\n  },\n  {\n   \"criterion\": \"Accessibility\",\n   \"score\": 2,\n   \"note\": \"Muted text and colour-only status.\"\n  },\n  {\n   \"criterion\": \"Brand fit\",\n   \"score\": 4,\n   \"note\": \"On tokens.\"\n  }\n ],\n \"issues\": [\n  {\n   \"id\": \"I1\",\n   \"element\": \"Timestamps and subtitle (--text-muted)\",\n   \"cell\": \"G3\",\n   \"frame\": \"test-matrix\",\n   \"problem\": \"Muted text #8B93A1 on the white page #FFFFFF is 3.09:1, under the 4.5:1 AA bar for 12-13px text.\",\n   \"why\": \"The last-run times are how people judge whether a failure is current.\",\n   \"fix\": \"--text-muted #8B93A1 -> #5F6673 (5.78:1 on #FFFFFF).\",\n   \"severity\": \"high\",\n   \"confidence\": \"high\",\n   \"evidence\": \"Tokens: --text-muted #8B93A1, --page #FFFFFF; WCAG 2.2 ratio 3.09:1.\"\n  },\n  {\n   \"id\": \"I2\",\n   \"element\": \"Thin grey rules across the matrix\",\n   \"cell\": \"B3\",\n   \"frame\": \"test-matrix\",\n   \"problem\": \"Thin grey horizontal and vertical lines cut through the suite rows and the matrix cells.\",\n   \"why\": \"They make the matrix look like a spreadsheet and hide the cell gaps.\",\n   \"fix\": \"Remove the rules; separate rows with 8px of whitespace instead.\",\n   \"severity\": \"low\",\n   \"confidence\": \"medium\",\n   \"evidence\": \"1px grey lines cross rows 3-7 and columns B-G.\"\n  }\n ],\n \"answers\": [\n  {\n   \"question\": \"Can someone find today's failing suites in five seconds?\",\n   \"answer\": \"Not quite: the four red cells are findable but small.\"\n  },\n  {\n   \"question\": \"Does the note band read as part of the page header?\",\n   \"answer\": \"Barely; the band is too close to white.\"\n  }\n ]\n}",
   "parsed": {
     "summary": "Readable matrix held back by faint muted text and noisy rules.",
     "scores": [
@@ -61,9 +61,9 @@
       }
     ]
   },
-  "cost_usd": 171.0,
-  "prompt_tokens": 38420,
-  "completion_tokens": 6120,
-  "seconds": 140.0,
+  "cost_usd": 0.23,
+  "prompt_tokens": 39839,
+  "completion_tokens": 5407,
+  "seconds": 171.0,
   "finish_reason": "stop"
 }
