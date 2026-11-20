@@ -29,15 +29,15 @@ jobs:
         if: github.event_name == 'pull_request'
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          fetch-depth: 0
+          # On a pull request the checkout is the PR merged into its base, so
+          # HEAD^1 is the base.
+          fetch-depth: 2
           persist-credentials: false
 
       - name: Check which packages changed
         id: classify
         env:
           EVENT: ${{ github.event_name }}
-          PR_BASE: ${{ github.event.pull_request.base.sha }}
-          PR_HEAD: ${{ github.event.pull_request.head.sha }}
         run: |
           # One entry per package: <id>=<regex of the paths it owns>. A package
           # at the repo root owns its own files by name, e.g.
@@ -48,7 +48,7 @@ jobs:
           shared='^(Makefile|pyproject\.toml|uv\.lock|package(-lock)?\.json|biome\.jsonc|\.github/workflows/)'
           changed=""
           if [ "$EVENT" = pull_request ]; then
-            changed=$(git diff --name-only --no-renames "$PR_BASE...$PR_HEAD")
+            changed=$(git diff --name-only --no-renames HEAD^1 HEAD)
             printf 'Changed files:\n%s\n' "$changed"
           fi
           for entry in "${packages[@]}"; do
@@ -71,7 +71,7 @@ jobs:
       - name: Set up Node
         uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
-          node-version: "26"
+          node-version-file: .node-version
 
       - name: Lint Markdown
         run: make lint-docs
@@ -94,7 +94,7 @@ jobs:
       - name: Set up Node
         uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
-          node-version: "26"
+          node-version-file: .node-version
 
       - name: Install dependencies
         run: make install-<id>
