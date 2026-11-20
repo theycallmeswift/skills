@@ -72,9 +72,12 @@ eval_paths = ["evals"]
 
 # baseline runs the agent bare; trial loads the whole plugin from the staged repo, so output
 # evals measure what the plugin taught and routing evals compete each description with its peers.
+# UV_PROJECT_ENVIRONMENT keeps a guest's uv venv out of /workspace: its python symlink dangles
+# once the workdir is copied out for grading, and fact collection crashes on it.
 [tool.benchspec.sets.default]
 harness = "claude-code"
 model = "sonnet"
+env = { UV_PROJECT_ENVIRONMENT = "/tmp/benchspec-uv-venv" }
 baseline = "baseline"
 arms = [
   { name = "baseline" },
@@ -87,6 +90,7 @@ arms = [
 harness = "claude-code"
 provider = "openrouter"
 model = "anthropic/claude-sonnet-5.5"
+env = { UV_PROJECT_ENVIRONMENT = "/tmp/benchspec-uv-venv" }
 baseline = "baseline"
 arms = [
   { name = "baseline" },

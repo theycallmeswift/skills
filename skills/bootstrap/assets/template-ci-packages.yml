@@ -1,0 +1,127 @@
+name: CI
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # Which packages a pull request touches. A package runs when a file under its
+  # directory changes, or a shared root file does (the Makefile, the workspace
+  # and lock files, this workflow). A PR that changes only documentation runs
+  # the docs lint and no package job. Pushes to main run every job.
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      # One line per package: <id>: ${{ steps.classify.outputs.<id> }}
+      <id>: ${{ steps.classify.outputs.<id> }}
+    steps:
+      - name: Check out the repository
+        if: github.event_name == 'pull_request'
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Check which packages changed
+        id: classify
+        env:
+          EVENT: ${{ github.event_name }}
+          PR_BASE: ${{ github.event.pull_request.base.sha }}
+          PR_HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          # One entry per package: <id>=<regex of the paths it owns>. A package
+          # at the repo root owns its own files by name, e.g.
+          # worker='^(src/|test/|package(-lock)?\.json$|biome\.jsonc$)'.
+          packages=(
+            "<id>=<path regex>"
+          )
+          shared='^(Makefile|pyproject\.toml|uv\.lock|package(-lock)?\.json|biome\.jsonc|\.github/workflows/)'
+          changed=""
+          if [ "$EVENT" = pull_request ]; then
+            changed=$(git diff --name-only --no-renames "$PR_BASE...$PR_HEAD")
+            printf 'Changed files:\n%s\n' "$changed"
+          fi
+          for entry in "${packages[@]}"; do
+            id="${entry%%=*}"
+            paths="${entry#*=}"
+            run=false
+            if [ "$EVENT" != pull_request ] ||
+              grep -qE "$paths|$shared" <<<"$changed"; then
+              run=true
+            fi
+            echo "$id=$run" | tee -a "$GITHUB_OUTPUT"
+          done
+
+  docs:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Set up Node
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: "26"
+
+      - name: Lint Markdown
+        run: make lint-docs
+
+  # One job per package; copy this block for each and set <id>. Keep the setup
+  # step its language needs: uv for Python, Node for JavaScript or TypeScript.
+  # A package whose tests can't pass in a clean checkout runs lint only until
+  # they can; drop its Test step and say why in a comment.
+  <id>:
+    needs: changes
+    if: needs.changes.outputs.<id> == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
+
+      - name: Set up Node
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: "26"
+
+      - name: Install dependencies
+        run: make install-<id>
+
+      - name: Lint
+        run: make lint-<id>
+
+      - name: Test
+        run: make test-<id>
+
+  # The one check branch protection requires. Package jobs skip when a PR
+  # doesn't touch them, and requiring each job by name breaks once a skipped
+  # job is a matrix, which reports under its unexpanded name. This job passes
+  # when every job passed or skipped, and fails on a failed or cancelled one.
+  ci-passed:
+    name: CI passed
+    if: always()
+    needs: [changes, docs, <id>]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check every job passed or skipped
+        env:
+          RESULTS: ${{ join(needs.*.result, ' ') }}
+        run: |
+          echo "Job results: $RESULTS"
+          for result in $RESULTS; do
+            if [ "$result" != success ] && [ "$result" != skipped ]; then
+              exit 1
+            fi
+          done
