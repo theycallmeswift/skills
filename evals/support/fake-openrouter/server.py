@@ -3,10 +3,16 @@
 
 Usage:
     server.py --scenario FILE --state DIR [--port 8787] [--host 127.0.0.1]
+        [--forward-agent https://openrouter.ai/api]
 
 Serves `GET /api/v1/credits`, `GET /api/v1/models` and `POST /api/v1/chat/completions`. A
 scenario JSON decides the balance, the model catalog and, per model, the replies handed out
 in order across requests. Every request is appended to `<state>/calls.log` as one JSON line.
+
+With --forward-agent, requests under `/agent/v1/messages` (the Anthropic Messages API an eval
+agent runs on) are relayed to that base URL through $HTTPS_PROXY, streaming the reply, and
+logged to `<state>/agent.log` instead. Nothing else is ever forwarded, so a script in the guest
+reaches real completions only through the agent's own messages endpoint.
 See README.md for the scenario format. Standard library only: it runs in the eval guest.
 
 Exit codes: 0 stopped by signal, 2 bad usage or unreadable scenario.
@@ -15,16 +21,33 @@ Exit codes: 0 stopped by signal, 2 bad usage or unreadable scenario.
 from __future__ import annotations
 
 import argparse
+import http.client
 import json
+import os
+import ssl
 import sys
 import threading
 import time
 from datetime import UTC, datetime
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
+from urllib.parse import urlsplit
 
 HERE = Path(__file__).resolve().parent
 API = "/api/v1"
+AGENT_PREFIX = "/agent"
+AGENT_MESSAGES = f"{AGENT_PREFIX}/v1/messages"
+AGENT_TIMEOUT_SECONDS = 900
+# Hop-by-hop or recomputed headers that must not be copied across the relay.
+SKIPPED_HEADERS = {
+    "host",
+    "connection",
+    "keep-alive",
+    "content-length",
+    "transfer-encoding",
+    "accept-encoding",
+    "proxy-connection",
+}
 FAKE_KEY = "sk-or-fake"
 EMPTY_COMPLETION_TOKENS = 32000
 STATUS_MESSAGES = {
@@ -174,9 +197,60 @@ class Handler(BaseHTTPRequestHandler):
             len(self.headers["Authorization"]) > len("Bearer ")
         )
 
+    forward_base: str | None = None
+
+    def relay_agent(self, body: bytes) -> None:
+        """Relay an agent Messages API request upstream and stream the reply back unchanged."""
+        path = self.path.split("?")[0]
+        if not self.forward_base or not path.startswith(AGENT_MESSAGES):
+            self.log_agent(404, 0)
+            return self.send_error_json(404, f"No agent route for {path}")
+        target = urlsplit(self.forward_base)
+        upstream_path = target.path.rstrip("/") + self.path[len(AGENT_PREFIX) :]
+        headers = {
+            name: value
+            for name, value in self.headers.items()
+            if name.lower() not in SKIPPED_HEADERS
+        }
+        headers["Host"] = target.netloc
+        headers["Content-Length"] = str(len(body))
+        connection = upstream_connection(target.hostname or "", target.port or 443)
+        try:
+            connection.request(self.command, upstream_path, body=body, headers=headers)
+            response = connection.getresponse()
+            self.send_response(response.status)
+            for name, value in response.getheaders():
+                if name.lower() not in SKIPPED_HEADERS:
+                    self.send_header(name, value)
+            self.send_header("Transfer-Encoding", "chunked")
+            self.end_headers()
+            sent = 0
+            while chunk := response.read1(65536):
+                self.wfile.write(f"{len(chunk):x}\r\n".encode() + chunk + b"\r\n")
+                self.wfile.flush()
+                sent += len(chunk)
+            self.wfile.write(b"0\r\n\r\n")
+            self.log_agent(response.status, sent)
+        finally:
+            connection.close()
+
+    def log_agent(self, status: int, size: int) -> None:
+        """Append one relayed (or refused) agent request to agent.log, never to calls.log."""
+        line = {
+            "ts": datetime.now(UTC).isoformat(timespec="milliseconds"),
+            "method": self.command,
+            "path": self.path,
+            "status": status,
+            "bytes": size,
+        }
+        with self.log_lock, (self.log_path.parent / "agent.log").open("a") as log:
+            log.write(json.dumps(line) + "\n")
+
     def do_GET(self) -> None:
         """Serve the model catalog and the credits balance."""
         path = self.path.split("?")[0]
+        if path.startswith(AGENT_PREFIX):
+            return self.relay_agent(b"")
         if path == f"{API}/models":
             self.record(200)
             self.send_json(200, {"data": self.scenario.models})
@@ -194,6 +268,8 @@ class Handler(BaseHTTPRequestHandler):
         """Validate a chat-completions request and answer it from the scenario."""
         length = int(self.headers.get("Content-Length") or 0)
         raw = self.rfile.read(length) if length else b""
+        if self.path.startswith(AGENT_PREFIX):
+            return self.relay_agent(raw)
         if self.path.split("?")[0] != f"{API}/chat/completions":
             self.record(404)
             return self.send_error_json(404, f"No route for {self.path}")
@@ -277,6 +353,26 @@ class Handler(BaseHTTPRequestHandler):
         )
 
 
+def upstream_connection(host: str, port: int) -> http.client.HTTPSConnection:
+    """An HTTPS connection to host, tunnelled through $HTTPS_PROXY when one is set.
+
+    The proxy resolves the host itself, so the guest's /etc/hosts block on openrouter.ai
+    doesn't stop the relay; certificates verify against the default trust (SSL_CERT_FILE).
+    """
+    context = ssl.create_default_context()
+    proxy = os.environ.get("HTTPS_PROXY") or os.environ.get("https_proxy")
+    if not proxy:
+        return http.client.HTTPSConnection(
+            host, port, timeout=AGENT_TIMEOUT_SECONDS, context=context
+        )
+    parts = urlsplit(proxy)
+    connection = http.client.HTTPSConnection(
+        parts.hostname or "", parts.port or 80, timeout=AGENT_TIMEOUT_SECONDS, context=context
+    )
+    connection.set_tunnel(host, port)
+    return connection
+
+
 def main(argv: list[str] | None = None) -> int:
     """CLI entry point: load the scenario and serve until interrupted; returns the exit code."""
     parser = argparse.ArgumentParser(description="Fake OpenRouter API for evals.")
@@ -284,6 +380,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--state", required=True, type=Path)
     parser.add_argument("--port", type=int, default=8787)
     parser.add_argument("--host", default="127.0.0.1")
+    parser.add_argument("--forward-agent", default=None, metavar="BASE_URL")
     args = parser.parse_args(argv)
     try:
         scenario = Scenario(json.loads(args.scenario.read_text()), args.scenario.resolve().parent)
@@ -294,6 +391,7 @@ def main(argv: list[str] | None = None) -> int:
     Handler.scenario = scenario
     Handler.log_path = args.state / "calls.log"
     Handler.log_path.touch()
+    Handler.forward_base = args.forward_agent
     server = ThreadingHTTPServer((args.host, args.port), Handler)
     server.daemon_threads = True
     try:

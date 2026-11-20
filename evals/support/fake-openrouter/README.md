@@ -34,6 +34,16 @@ money. `setup.sh` maps `openrouter.ai` to `127.0.0.1` in `/etc/hosts` and adds i
 "the key and base URL are in `./.env`" if an eval wants an explicit pointer; scripts accept
 `--base-url` too.
 
+## An agent on OpenRouter
+
+When the eval agent itself runs on OpenRouter (benchspec's `openrouter` provider, which gives the
+guest `ANTHROPIC_AUTH_TOKEN`), the openrouter.ai block would cut off its model. `setup.sh` then
+starts the fake with `--forward-agent https://openrouter.ai/api` and sets `ANTHROPIC_BASE_URL` to
+`http://127.0.0.1:<port>/agent` in `/root/.claude/settings.json` (settings env overrides the exec
+env). The fake relays `/agent/v1/messages*`, and nothing else, through `$HTTPS_PROXY` (the proxy
+resolves the host, so `/etc/hosts` doesn't apply), streams the reply back, and logs each relayed
+call to `agent.log`, never to `calls.log`. Scripts in the guest still reach only the fake.
+
 ## Scenario file
 
 ```json

@@ -26,11 +26,19 @@ print(sock.getsockname()[1])')}"
   # The scenario's own folder may hold content files its replies name.
   cp -n "$(dirname "$scenario")"/*.json "$(dirname "$scenario")"/*.txt "$FAKE_OPENROUTER_HOME/" 2>/dev/null || true
 
+  # An agent on OpenRouter (benchspec's openrouter provider hands it ANTHROPIC_AUTH_TOKEN) would
+  # lose its model to the openrouter.ai block below, so the fake relays its Messages API calls,
+  # and only those, through the egress proxy.
+  local forward=()
+  if [ -n "${ANTHROPIC_AUTH_TOKEN:-}" ]; then
+    forward=(--forward-agent https://openrouter.ai/api)
+  fi
+
   # setsid + nohup + closed fds: `docker exec` waits on the setup shell's pipes, so a daemon that
   # keeps them open would hang setup. The container's `sleep infinity` keeps the daemon alive.
   setsid nohup python3 "$FAKE_OPENROUTER_HOME/server.py" \
     --scenario "$FAKE_OPENROUTER_HOME/scenario.json" --state "$FAKE_OPENROUTER_STATE" \
-    --port "$FAKE_OPENROUTER_PORT" >/dev/null 2>&1 </dev/null &
+    --port "$FAKE_OPENROUTER_PORT" "${forward[@]}" >/dev/null 2>&1 </dev/null &
   local pid=$! i
   for i in $(seq 1 50); do
     python3 - "$FAKE_OPENROUTER_URL/models" <<'PY' 2>/dev/null && break
@@ -53,11 +61,14 @@ PY
 # openrouter.ai is made unreachable too: a guest's egress proxy may attach a real key to any
 # request for that host, so a script that misses the base URL would spend real money.
 _fake_openrouter_export_env() {
-  local url="$FAKE_OPENROUTER_URL" key=sk-or-fake
+  local url="$FAKE_OPENROUTER_URL" key=sk-or-fake agent_url=""
   local no_proxy="${NO_PROXY:-localhost,127.0.0.1},openrouter.ai"
+  if [ -n "${ANTHROPIC_AUTH_TOKEN:-}" ]; then
+    agent_url="http://127.0.0.1:$FAKE_OPENROUTER_PORT/agent"
+  fi
   echo "127.0.0.1 openrouter.ai" >>/etc/hosts
   mkdir -p /root/.claude
-  python3 - "$url" "$key" "$no_proxy" <<'PY'
+  python3 - "$url" "$key" "$no_proxy" "$agent_url" <<'PY'
 import json, os, sys
 path = "/root/.claude/settings.json"
 try:
@@ -72,6 +83,9 @@ settings.setdefault("env", {}).update(
         "no_proxy": sys.argv[3],
     }
 )
+# Settings env overrides the exec env, so the agent's own model calls go to the relay.
+if sys.argv[4]:
+    settings["env"]["ANTHROPIC_BASE_URL"] = sys.argv[4]
 json.dump(settings, open(path, "w"), indent=2)
 PY
   {
