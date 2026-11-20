@@ -2,16 +2,18 @@
 
 Shared fake OpenRouter HTTP API for evals of scripts that call OpenRouter (`run_critique.py` in
 `critiquing-designs`). The guest has no real key and should spend no money, so the fake serves
-`GET /api/v1/credits`, `GET /api/v1/models` and `POST /api/v1/chat/completions` on
-`127.0.0.1:8787` (stdlib `http.server`; `server.py` needs only python3). Replies are synthetic:
+`GET /api/v1/credits`, `GET /api/v1/models` and `POST /api/v1/chat/completions` on a free
+`127.0.0.1` port (stdlib `http.server`; `server.py` needs only python3). Replies are synthetic:
 valid critiques of a fictional dev-tool dashboard ("Pulse") plus scripted failures.
 
 Source `setup.sh` from a scenario's `setup.sh`, then:
 
 - `add_fake_openrouter <scenario.json>`: copies the server, fixtures and scenario to
   `/opt/fake-openrouter`, starts the daemon, waits until it answers, clears `calls.log`, and makes
-  the agent's shells see `OPENROUTER_BASE_URL=http://127.0.0.1:8787/api/v1` and
-  `OPENROUTER_API_KEY=sk-or-fake`. Set `FAKE_OPENROUTER_PORT` first to change the port.
+  the agent's shells see `OPENROUTER_BASE_URL=http://127.0.0.1:<port>/api/v1` and
+  `OPENROUTER_API_KEY=sk-or-fake`. The port is picked free per cell, because a Docker guest may
+  share the host's network (`--network host`) with parallel cells; set `FAKE_OPENROUTER_PORT`
+  first to pin it.
 
 ```sh
 SCENARIO="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/scenario.json"
@@ -23,7 +25,12 @@ add_fake_openrouter "$SCENARIO"
 
 `docker exec` setup env does not reach the agent turn, so `setup.sh` writes the two variables to
 `/root/.claude/settings.json` (`env`), `/root/.bashrc`, `/etc/profile.d/fake-openrouter.sh`,
-`/etc/environment` and `/workspace/.env` (`KEY=VALUE` lines). The scenario prompt can also say
+`/etc/environment` and `/workspace/.env` (`KEY=VALUE` lines).
+
+It also makes the real `openrouter.ai` unreachable: the host's egress proxy can attach a real
+OpenRouter key to any request for that host, so a script that missed the base URL would spend real
+money. `setup.sh` maps `openrouter.ai` to `127.0.0.1` in `/etc/hosts` and adds it to
+`NO_PROXY`/`no_proxy` in the same places, so a proxy-aware client connects directly and is refused. The scenario prompt can also say
 "the key and base URL are in `./.env`" if an eval wants an explicit pointer; scripts accept
 `--base-url` too.
 
