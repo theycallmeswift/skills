@@ -2,13 +2,17 @@
 
 Covers: cost gate (exit 3, no completion call), --estimate-only, request wire format
 (max_tokens, content order), records for success / bad JSON / empty reply / 402 / dropped
-connection / 5xx retry, --only reruns, run_stats.json, exit codes and usage errors.
+connection / 5xx, 408 and 429 retry, spend reservation under parallel workers, incremental
+record writes, cost summed across attempts, JSON extraction, --only / --force reruns,
+run_stats.json, exit codes and usage errors.
 """
 
 from __future__ import annotations
 
+import http.client
 import json
 import threading
+import time
 from dataclasses import dataclass
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
@@ -46,6 +50,7 @@ class FakeOpenRouter:
         """Start serving; script completion replies by assigning `on_completion`."""
         self.credits = credits
         self.prices = PRICES if prices is None else prices
+        self.models_payload: list[dict] | None = None
         self.completions: list[dict] = []
         self.paths: list[str] = []
         self.on_completion = lambda body: completion(json.dumps(GOOD_REPLY))
@@ -64,12 +69,11 @@ class FakeOpenRouter:
                 if self.path == "/v1/credits":
                     payload = {"data": {"total_credits": fake.credits, "total_usage": 0}}
                 else:
-                    payload = {
-                        "data": [
-                            {"id": slug, "pricing": {"prompt": prompt, "completion": output}}
-                            for slug, (prompt, output) in fake.prices.items()
-                        ]
-                    }
+                    listed = fake.models_payload or [
+                        {"id": slug, "pricing": {"prompt": prompt, "completion": output}}
+                        for slug, (prompt, output) in fake.prices.items()
+                    ]
+                    payload = {"data": listed}
                 self.send_json(200, payload)
 
             def do_POST(self):
@@ -106,6 +110,12 @@ class FakeOpenRouter:
         """Stop the server."""
         self.server.shutdown()
         self.server.server_close()
+
+
+@pytest.fixture(autouse=True)
+def no_retry_pause(monkeypatch):
+    """Make the pause between attempts instant."""
+    monkeypatch.setattr(run_critique, "RETRY_DELAY_SECONDS", 0)
 
 
 @pytest.fixture
@@ -466,4 +476,293 @@ def test_missing_manifest_exits_2(workspace, fake, capsys):
 
     assert exit_code == 2
     assert "manifest.json" in capsys.readouterr().err
+    assert fake.completions == []
+
+
+def read_stats(workspace):
+    """Load run_stats.json."""
+    return json.loads((workspace["out"] / "run_stats.json").read_text())
+
+
+def test_estimate_only_over_cap_exits_3_without_any_completion_call(workspace, fake, capsys):
+    exit_code = run(workspace, fake, "--estimate-only", cap="0.001")
+
+    assert exit_code == 3
+    assert fake.completions == []
+    assert "exceeds cap" in capsys.readouterr().out
+
+
+def test_estimate_only_over_balance_exits_3(workspace, capsys):
+    broke = FakeOpenRouter(credits=0.01)
+    try:
+        exit_code = run(workspace, broke, "--estimate-only", cap="50")
+    finally:
+        broke.close()
+
+    assert exit_code == 3
+    assert broke.completions == []
+
+
+def test_spend_reserves_estimates_before_dispatch():
+    spend = run_critique.Spend(limit=1.0)
+
+    assert spend.reserve(0.6)
+    assert not spend.reserve(0.6)
+    spend.settle(0.6, 0.1)
+    assert spend.reserve(0.85)
+    assert not spend.reserve(0.1)
+
+
+def test_parallel_reservations_never_exceed_the_limit():
+    spend = run_critique.Spend(limit=3.0)
+    granted = []
+
+    def worker():
+        granted.append(spend.reserve(1.0))
+
+    threads = [threading.Thread(target=worker) for _ in range(12)]
+    for thread in threads:
+        thread.start()
+    for thread in threads:
+        thread.join()
+
+    assert sum(granted) == 3
+
+
+def test_default_workers_do_not_retry_past_the_cap(workspace, fake):
+    first_attempts = threading.Barrier(4)
+    calls = []
+
+    def reply(body):
+        calls.append(body["model"])
+        if len(calls) <= 4:
+            first_attempts.wait(10)  # every pair reserves before any cost lands
+        return completion("", cost=10.0)
+
+    fake.on_completion = reply
+
+    exit_code = run(workspace, fake, runs="2", cap="5")
+
+    assert exit_code == 1
+    assert len(fake.completions) == 4
+    records = [
+        read_record(workspace, path.name) for path in (workspace["out"] / "records").iterdir()
+    ]
+    assert all(record["error"] == "empty reply" for record in records)
+    assert all(record["cost_usd"] == 10.0 for record in records)
+
+
+def test_each_record_is_written_when_its_pair_finishes(workspace, fake):
+    release = threading.Event()
+
+    def reply(body):
+        if body["model"] == "vendor-b/eye":
+            release.wait(10)
+        return completion(json.dumps(GOOD_REPLY))
+
+    fake.on_completion = reply
+    thread = threading.Thread(target=run, args=(workspace, fake), kwargs={"runs": "1"})
+    thread.start()
+    fast = workspace["out"] / "records" / "vendor-a__vision__run1.json"
+    deadline = time.monotonic() + 10
+    while not fast.exists() and time.monotonic() < deadline:
+        time.sleep(0.02)
+    finished_early = fast.exists()
+    release.set()
+    thread.join()
+
+    assert finished_early
+    assert (workspace["out"] / "records" / "vendor-b__eye__run1.json").exists()
+
+
+def test_truncated_body_becomes_an_error_record_and_the_batch_continues(
+    workspace, fake, monkeypatch
+):
+    real = run_critique.request_json
+
+    def flaky(url, api_key, body=None, timeout=60):
+        if body and body["model"] == "vendor-a/vision":
+            raise http.client.IncompleteRead(b"par")
+        return real(url, api_key, body, timeout)
+
+    monkeypatch.setattr(run_critique, "request_json", flaky)
+
+    exit_code = run(workspace, fake, runs="1")
+
+    broken = read_record(workspace, "vendor-a__vision__run1.json")
+    fine = read_record(workspace, "vendor-b__eye__run1.json")
+    assert exit_code == 1
+    assert broken["ok"] is False
+    assert "IncompleteRead" in broken["error"]
+    assert fine["ok"] is True
+
+
+def test_request_json_returns_http_exceptions_as_errors(monkeypatch):
+    def broken(*args, **kwargs):
+        raise http.client.BadStatusLine("garbage")
+
+    monkeypatch.setattr(run_critique.urllib.request, "urlopen", broken)
+
+    result = run_critique.request_json("http://127.0.0.1:1/x", "key")
+
+    assert result.status is None
+    assert result.error and "BadStatusLine" in result.error
+
+
+def test_unexpected_exception_in_a_pair_becomes_an_error_record(workspace, fake, monkeypatch):
+    def explode(*args, **kwargs):
+        raise RuntimeError("boom")
+
+    monkeypatch.setattr(run_critique, "attempt_with_retry", explode)
+
+    exit_code = run(workspace, fake, runs="1", models="vendor-a/vision")
+
+    record = read_record(workspace, "vendor-a__vision__run1.json")
+    assert exit_code == 1
+    assert record["error"] == "RuntimeError: boom"
+
+
+def test_cost_is_summed_across_retry_attempts(workspace, fake):
+    replies = [completion("", cost=0.25), completion(json.dumps(GOOD_REPLY), cost=0.5)]
+    fake.on_completion = lambda body: replies.pop(0)
+
+    run(workspace, fake, runs="1", models="vendor-a/vision")
+
+    record = read_record(workspace, "vendor-a__vision__run1.json")
+    assert record["cost_usd"] == 0.75
+    assert read_stats(workspace)["total_cost_usd"] == 0.75
+
+
+@pytest.mark.parametrize("status", [408, 429])
+def test_408_and_429_are_retried_after_a_pause(workspace, fake, monkeypatch, status):
+    pauses = []
+    monkeypatch.setattr(run_critique, "pause", pauses.append)
+    replies = [
+        Reply(status=status, body={"error": "slow down"}),
+        completion(json.dumps(GOOD_REPLY)),
+    ]
+    fake.on_completion = lambda body: replies.pop(0)
+
+    exit_code = run(workspace, fake, runs="1", models="vendor-a/vision")
+
+    assert exit_code == 0
+    assert len(fake.completions) == 2
+    assert pauses == [run_critique.RETRY_DELAY_SECONDS]
+
+
+def test_retries_only_once(workspace, fake):
+    fake.on_completion = lambda body: Reply(status=429, body={"error": "slow"})
+
+    run(workspace, fake, runs="1", models="vendor-a/vision")
+
+    assert len(fake.completions) == 2
+    assert read_record(workspace, "vendor-a__vision__run1.json")["status"] == 429
+
+
+@pytest.mark.parametrize(
+    ("text", "expected"),
+    [
+        ('Per {schema} here: {"issues": []}', {"issues": []}),
+        ('<think>use {x} and {"issues": [9]}</think>{"issues": [1]}', {"issues": [1]}),
+        ('<think>use {x}</think>{"a": 1}', {"a": 1}),
+        ('{} then {"issues": [1]}', {"issues": [1]}),
+        ('{"a": 1} {"b": 2}', {"a": 1}),
+        (
+            '```json\n{"issues": [2], "nested": {"issues": 3}}\n```',
+            {"issues": [2], "nested": {"issues": 3}},
+        ),
+        ("no braces", None),
+        ("{broken", None),
+        ("[1, 2]", None),
+    ],
+)
+def test_extract_json_finds_the_critique_object(text, expected):
+    assert run_critique.extract_json(text) == expected
+
+
+def test_existing_records_are_refused_without_only_or_force(workspace, fake, capsys):
+    run(workspace, fake, runs="1")
+    before = len(fake.completions)
+
+    exit_code = run(workspace, fake, runs="1")
+
+    assert exit_code == 2
+    assert len(fake.completions) == before
+    assert "--force" in capsys.readouterr().err
+
+
+def test_force_overwrites_existing_records(workspace, fake):
+    run(workspace, fake, runs="1")
+    fake.completions.clear()
+
+    exit_code = run(workspace, fake, "--force", runs="1")
+
+    assert exit_code == 0
+    assert len(fake.completions) == 2
+
+
+def test_stale_records_for_dropped_models_stay_out_of_the_summary(workspace, fake):
+    run(workspace, fake, runs="1")
+
+    exit_code = run(workspace, fake, "--force", runs="1", models="vendor-a/vision")
+
+    stats = read_stats(workspace)
+    assert exit_code == 0
+    assert stats["runs"] == 1
+    assert stats["total_cost_usd"] == 0.01
+
+
+def test_summary_covers_unrerun_pairs_from_earlier_records(workspace, fake):
+    run(workspace, fake, runs="1")
+    fake.completions.clear()
+
+    run(workspace, fake, "--only", "vendor-b/eye#1", runs="1")
+
+    assert fake.completion_models() == ["vendor-b/eye"]
+    assert read_stats(workspace)["runs"] == 2
+
+
+def test_failure_hint_names_failed_pairs_only_when_something_failed(workspace, fake, capsys):
+    run(workspace, fake, runs="1", models="vendor-a/vision")
+    assert "--only" not in capsys.readouterr().out
+
+    fake.on_completion = lambda body: Reply(status=402, body={})
+    run(workspace, fake, "--force", runs="1", models="vendor-a/vision")
+    out = capsys.readouterr().out
+    assert "rerun failures with --only vendor-a/vision#1" in out
+    assert "a#1" not in out
+
+
+def test_estimate_grows_with_text_size_and_images(workspace, fake, capsys):
+    run(workspace, fake, "--estimate-only", runs="1", models="vendor-a/vision")
+    base = capsys.readouterr().out
+    Path(workspace["package"], "tokens.json").write_text("x" * 800_000)
+
+    run(workspace, fake, "--estimate-only", runs="1", models="vendor-a/vision")
+
+    assert "estimate $0.06" in base
+    assert "estimate $0.22" in capsys.readouterr().out
+
+
+def test_estimate_prompt_tokens_floors_at_40k_and_counts_images():
+    small = [{"type": "text", "text": "hi"}]
+    images = [{"type": "image_url", "image_url": {"url": "data:x"}}] * 30
+    long_text = [{"type": "text", "text": "y" * 400_000}]
+
+    assert run_critique.estimate_prompt_tokens(small) == 40000
+    assert run_critique.estimate_prompt_tokens(small + images) == 30 * 1600
+    assert run_critique.estimate_prompt_tokens(images) == 48000
+    assert run_critique.estimate_prompt_tokens(long_text) == 100000
+
+
+@pytest.mark.parametrize("pricing", [None, {"prompt": "-1", "completion": "-1"}, {"prompt": None}])
+def test_null_or_negative_pricing_is_a_usage_error_naming_the_model(
+    workspace, fake, capsys, pricing
+):
+    fake.models_payload = [{"id": "vendor-a/vision", "pricing": pricing}]
+
+    exit_code = run(workspace, fake, runs="1", models="vendor-a/vision")
+
+    assert exit_code == 2
+    assert "vendor-a/vision" in capsys.readouterr().err
     assert fake.completions == []

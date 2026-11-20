@@ -21,9 +21,17 @@ Success: every applied change was approved by the user, survived verification, a
 | 8. Decision page | `decisions.md` | The user hasn't approved rows |
 | 9. Apply | The design files | A changed token pair fails contrast |
 
-## Paths and prerequisites
+## Workspace root
 
-- Script paths (`scripts/...`) are relative to this skill's directory; run them with `python3`. Other paths are relative to the project root.
+Paths are relative to the workspace root:
+
+- Interactive session: the current project directory.
+- Eval or scripted invocation: the root the prompt names; honor `PROJECT_ROOT` in the env for any script invocation.
+
+The skill's files live under `skills/critiquing-designs/`; run its scripts with `python3` from the workspace root.
+
+## Prerequisites
+
 - Each pass gets its own out dir in a git-ignored scratch area, e.g. `tmp/critique/<YYYY-MM-DD>-<slug>-<pass>/` (`OUT` below). If the project doesn't ignore `tmp/`, pick a dir it does ignore.
 - `run_critique.py` reads `OPENROUTER_API_KEY` from the environment. If it's unset, ask the user to set it; never ask them to paste it into chat.
 - `grid.py` and `contact_sheet.py` need Pillow. If either exits 2 asking for it, install it (`pip install pillow`) and rerun.
@@ -32,9 +40,9 @@ Success: every applied change was approved by the user, survived verification, a
 
 Pick the passes the ask needs, each with its own rubric template in `assets/`:
 
-- **Design system** (`assets/rubric-design-system.md`): tokens, scales, contrast, component states.
-- **Page** (`assets/rubric-page.md`): one screen or flow doing its job. When it grades brand fit against the design system, run the design-system pass first and feed its applied results in.
-- **Aesthetic** (`assets/rubric-aesthetic.md`): look and feel against REF images the user picked. Run it separately: correctness findings crowd out taste when both share a rubric.
+- **Design system** (`skills/critiquing-designs/assets/rubric-design-system.md`): tokens, scales, contrast, component states.
+- **Page** (`skills/critiquing-designs/assets/rubric-page.md`): one screen or flow doing its job. When it grades brand fit against the design system, run the design-system pass first and feed its applied results in.
+- **Aesthetic** (`skills/critiquing-designs/assets/rubric-aesthetic.md`): look and feel against REF images the user picked. Run it separately: correctness findings crowd out taste when both share a rubric.
 
 ## 1. Calibrate taste (optional)
 
@@ -58,10 +66,10 @@ Keep the template's issue rules, page-artifact warning and JSON reply schema unc
 Build `OUT/package/` with the gridded screenshots, the design system as text, and a manifest:
 
 ```
-python3 scripts/grid.py <screenshot> [<screenshot> ...] --out-dir OUT/package
+python3 skills/critiquing-designs/scripts/grid.py <screenshot> [<screenshot> ...] --out-dir OUT/package
 ```
 
-`grid.py` resizes to at most 1280px wide, splits into parts at most 2000px tall, and adds an A–H × 1–8 margin grid so models can cite cells like `C4`. It prints the output paths (`<stem>.png`, or `<stem>-part1.png`, `-part2.png`, ...).
+`grid.py` resizes to fit 1280px wide, splits into parts that fit 2000px tall (the 24px grid margin is inside both limits), and adds an A–H × 1–8 margin grid so models can cite cells like `C4`. It prints the output paths (`<stem>.png`, or `<stem>-part1.png`, `-part2.png`, ...). Inputs need distinct file names (stems); a duplicate exits 2.
 
 - Add the design system as one text file, e.g. `OUT/package/tokens.md` with every token's name and hex or px value. Tokens belong in text: models misread colours from pixels.
 - Aesthetic pass: add the REF images (gridding optional) with frames `REF1`, `REF2`, ...
@@ -78,30 +86,30 @@ Every other `.md`, `.txt` or `.json` file in the package is sent as text, so kee
 Pick 4–6 vision models (image input) from the top of OpenRouter's Design Arena ranking, one per vendor: agreement means something only when the models don't share training. Write their slugs one per line to `OUT/models.txt`. Propose a cap a little above the likely estimate, then run the estimate. It makes no completion call:
 
 ```
-python3 scripts/run_critique.py OUT/rubric.md OUT/package OUT --models OUT/models.txt --runs 2 --cap <usd> --estimate-only
+python3 skills/critiquing-designs/scripts/run_critique.py OUT/rubric.md OUT/package OUT --models OUT/models.txt --runs 2 --cap <usd> --estimate-only
 ```
 
-It prints the models, `estimate`, `cap` and `balance` (credits left on the key). Exit 2 names any unknown slug; replace it and rerun.
+It prints the models, `estimate`, `cap` and `balance` (credits left on the key), sized from the package contents. Exit 2 names an unknown slug or a model with null or negative pricing (such as `openrouter/auto`); replace it and rerun. Exit 3 means the estimate is over the cap or balance: cut models or runs, or raise the cap, then rerun.
 
 **Stop: show the models, estimate, cap and balance, and get approval before running.** The key may be shared and the spend is real. Never run past the cap or the balance: if the estimate exceeds either, cut models or runs, or ask the user to raise the cap or top up.
 
 ## 5. Run
 
 ```
-python3 scripts/run_critique.py OUT/rubric.md OUT/package OUT --models OUT/models.txt --runs 2 --cap <usd>
+python3 skills/critiquing-designs/scripts/run_critique.py OUT/rubric.md OUT/package OUT --models OUT/models.txt --runs 2 --cap <usd>
 ```
 
-Two runs per model, in parallel. It rechecks the cost gate (exit 3 if over the cap or balance; nothing spent), writes one record per model run to `OUT/records/`, writes `OUT/run_stats.json`, and prints `parsed X/Y runs, $cost, Ns`. Some models take 10+ minutes per call; let it finish.
+Two runs per model, in parallel. It rechecks the cost gate (exit 3 if over the cap or balance; nothing spent), reserves each call's estimate before sending it (a call that would pass the cap or balance is skipped and recorded), writes one record per model run to `OUT/records/` as each finishes, writes `OUT/run_stats.json`, and prints `parsed X/Y runs, $cost, Ns`. A `records/` dir that already holds records is refused (exit 2) unless you pass `--only` or `--force` (overwrite all). Some models take 10+ minutes per call; let it finish.
 
 Exit 1 means some runs failed or returned no parseable JSON; the records are still written.
 
 - **Parsed null with `raw_text`:** don't rerun. Synthesis extracts its findings by hand.
-- **Failed (timeout, connection, 5xx):** rerun just those with `--only <slug>#<run>,...`, passing `--cap` as the approved cap minus the spend so far (`total_cost_usd` in `run_stats.json`, summed over every earlier invocation). A rerun spends against the same approval.
+- **Failed (timeout, connection, 408, 429, 5xx; each already retried once):** rerun just those with `--only <slug>#<run>,...`, passing `--cap` as the approved cap minus the spend so far (`total_cost_usd` in `run_stats.json`, summed over every earlier invocation). A rerun spends against the same approval.
 - **402 (insufficient credits):** stop. Tell the user what ran and what didn't; continue only on what they decide.
 
 ## 6. Synthesize
 
-Hand synthesis to a fresh subagent if available, else do it yourself in a separate pass: a fresh reader checks claims instead of confirming what the rubric author expected. Brief it with `assets/synthesis-prompt.md`, its slots filled with the paths to `OUT/` and `scripts/contrast.py`. It writes `OUT/synthesis.md`.
+Hand synthesis to a fresh subagent if available, else do it yourself in a separate pass: a fresh reader checks claims instead of confirming what the rubric author expected. Brief it with `skills/critiquing-designs/assets/synthesis-prompt.md`, its slots filled with the paths to `OUT/` and `skills/critiquing-designs/scripts/contrast.py`. It writes `OUT/synthesis.md`.
 
 Spot-check before trusting it: rerun `contrast.py` on two of its contrast numbers and open the screenshot cell behind one visual claim. If either is wrong, send it back with the error.
 
@@ -136,7 +144,7 @@ Post the recommendations table in chat and ask one question: which rows to apply
 Apply only the approved rows, exactly as approved. Then recompute contrast for every foreground/background pair that uses a changed token:
 
 ```
-python3 scripts/contrast.py <fg> <bg> [<fg> <bg> ...]
+python3 skills/critiquing-designs/scripts/contrast.py <fg> <bg> [<fg> <bg> ...]
 ```
 
 If a pair fails AA, report it with the nearest passing value as a new row to approve; don't adjust it silently. Approved changes become settled decisions for any later pass. Report: rows applied, contrast results, rows skipped, and total spend.

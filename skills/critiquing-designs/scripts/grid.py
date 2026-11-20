@@ -2,16 +2,18 @@
 """
 Prepare screenshots for vision-model critique: fit, split tall pages, overlay a labelled grid.
 
-Each image is shrunk to at most --max-width (never enlarged), cut into parts at most
---max-height tall, and each part gets a margin on every side holding column labels (A-H)
+Each image is shrunk to fit --max-width (never enlarged), cut into parts that fit
+--max-height, and each part gets a margin on every side holding column labels (A-H)
 above and below and row labels (1-8) left and right. Thin translucent lines divide the
-content into cols x rows cells; nothing else is drawn over the content.
+content into cols x rows cells; nothing else is drawn over the content. The limits cover the
+finished file: the margin is reserved inside them, so outputs are at most --max-width wide
+and --max-height tall.
 
 Usage:
     grid.py IMAGE [IMAGE ...] --out-dir DIR [--max-width 1280] [--max-height 2000]
             [--cols 8] [--rows 8]
 Prints one output path per line: <stem>.png, or <stem>-part1.png, -part2.png ... when split.
-Exit codes: 0 ok; 2 bad input or Pillow missing.
+Exit codes: 0 ok; 2 bad input, duplicate output names or Pillow missing.
 """
 
 from __future__ import annotations
@@ -135,9 +137,9 @@ def add_grid(image: Image.Image, cols: int = 8, rows: int = 8, margin: int = MAR
 def process_image(path: Path, out_dir: Path, args: argparse.Namespace) -> list[Path]:
     """Fit, split and grid one image file; return the written paths."""
     with Image.open(path) as opened:
-        fitted = fit_width(opened.convert("RGB"), args.max_width)
+        fitted = fit_width(opened.convert("RGB"), args.max_width - 2 * MARGIN)
 
-    ranges = split_heights(fitted.height, args.max_height)
+    ranges = split_heights(fitted.height, args.max_height - 2 * MARGIN)
     written = []
     for number, (top, bottom) in enumerate(ranges, start=1):
         part = fitted.crop((0, top, fitted.width, bottom))
@@ -162,8 +164,17 @@ def main(argv: list[str] | None = None) -> int:
     if not 1 <= args.cols <= len(string.ascii_uppercase) or args.rows < 1:
         print("error: --cols must be 1-26 and --rows at least 1", file=sys.stderr)
         return 2
-    if args.max_width < 1 or args.max_height < 1:
-        print("error: --max-width and --max-height must be positive", file=sys.stderr)
+    if args.max_width <= 2 * MARGIN or args.max_height <= 2 * MARGIN:
+        print(f"error: --max-width and --max-height must exceed {2 * MARGIN}", file=sys.stderr)
+        return 2
+    stems = [path.stem for path in args.images]
+    duplicates = sorted({stem for stem in stems if stems.count(stem) > 1})
+    if duplicates:
+        print(
+            f"error: inputs share a file stem and would overwrite each other: "
+            f"{', '.join(duplicates)}; rename them",
+            file=sys.stderr,
+        )
         return 2
 
     args.out_dir.mkdir(parents=True, exist_ok=True)

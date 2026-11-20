@@ -43,6 +43,7 @@ class Scenario:
     """The scripted behaviour: balance, catalog and per-model reply queues."""
 
     def __init__(self, data: dict, base_dir: Path):
+        """Load credits, catalog and reply queues from scenario data; base_dir finds fixtures."""
         self.base_dir = base_dir
         credits = data.get("credits", {})
         self.total_credits = float(credits.get("total_credits", 100.0))
@@ -57,19 +58,23 @@ class Scenario:
         self.lock = threading.Lock()
 
     def model(self, slug: str) -> dict | None:
-        return next((m for m in self.models if m["id"] == slug), None)
+        """The catalog entry for slug, or None when the model is unknown."""
+        return next((entry for entry in self.models if entry["id"] == slug), None)
 
     def next_reply(self, slug: str) -> dict:
+        """Pop the model's next scripted reply, or the default once its queue is empty."""
         with self.lock:
             queue = self.replies.get(slug, [])
             return queue.pop(0) if queue else self.default_reply
 
     def credits(self) -> dict:
+        """The /credits payload: total credits and usage including spend charged so far."""
         with self.lock:
             usage = round(self.total_usage + self.spent, 8)
         return {"data": {"total_credits": self.total_credits, "total_usage": usage}}
 
     def charge(self, cost: float) -> None:
+        """Add one completion's cost to the running spend."""
         with self.lock:
             self.spent += cost
 
@@ -97,6 +102,7 @@ def render_content(reply: dict, scenario: Scenario) -> str | None:
 
 
 def count_images(messages: list) -> int:
+    """Count image_url parts across all chat messages."""
     total = 0
     for message in messages:
         content = message.get("content") if isinstance(message, dict) else None
@@ -106,6 +112,7 @@ def count_images(messages: list) -> int:
 
 
 def prompt_chars(messages: list) -> int:
+    """Count characters of text content across all chat messages."""
     total = 0
     for message in messages:
         content = message.get("content") if isinstance(message, dict) else None
@@ -118,13 +125,15 @@ def prompt_chars(messages: list) -> int:
 
 
 class Handler(BaseHTTPRequestHandler):
+    """Serves the fake API routes from the class-level scenario and call log."""
+
     scenario: Scenario
     log_path: Path
     log_lock = threading.Lock()
     protocol_version = "HTTP/1.1"
 
     def log_message(self, format: str, *args: object) -> None:
-        pass
+        """Silence the default per-request stderr logging; calls.log is the record."""
 
     def record(self, status: int, body: dict | None = None, reply: str | None = None) -> None:
         """Append one line to calls.log. `status` 0 means the socket was reset unanswered."""
@@ -146,6 +155,7 @@ class Handler(BaseHTTPRequestHandler):
             log.write(json.dumps(line) + "\n")
 
     def send_json(self, status: int, payload: dict) -> None:
+        """Write a JSON response with the given status."""
         data = json.dumps(payload).encode()
         self.send_response(status)
         self.send_header("Content-Type", "application/json")
@@ -154,15 +164,18 @@ class Handler(BaseHTTPRequestHandler):
         self.wfile.write(data)
 
     def send_error_json(self, status: int, message: str | None = None) -> None:
+        """Write an OpenRouter-shaped error body, with a stock message when none is given."""
         text = message or STATUS_MESSAGES.get(status, "Error")
         self.send_json(status, {"error": {"code": status, "message": text, "metadata": None}})
 
     def authorized(self) -> bool:
+        """Whether the request carries a non-empty Bearer token."""
         return self.headers.get("Authorization", "").startswith("Bearer ") and (
             len(self.headers["Authorization"]) > len("Bearer ")
         )
 
     def do_GET(self) -> None:
+        """Serve the model catalog and the credits balance."""
         path = self.path.split("?")[0]
         if path == f"{API}/models":
             self.record(200)
@@ -178,6 +191,7 @@ class Handler(BaseHTTPRequestHandler):
             self.send_error_json(404, f"No route for {path}")
 
     def do_POST(self) -> None:
+        """Validate a chat-completions request and answer it from the scenario."""
         length = int(self.headers.get("Content-Length") or 0)
         raw = self.rfile.read(length) if length else b""
         if self.path.split("?")[0] != f"{API}/chat/completions":
@@ -202,6 +216,7 @@ class Handler(BaseHTTPRequestHandler):
         self.respond(reply, body, model)
 
     def respond(self, reply: dict, body: dict, model: dict) -> None:
+        """Play one scripted reply: reset, error status, delay, or a billed completion."""
         if reply.get("reset"):
             self.record(0, body, "reset")
             self.close_connection = True
@@ -263,6 +278,7 @@ class Handler(BaseHTTPRequestHandler):
 
 
 def main(argv: list[str] | None = None) -> int:
+    """CLI entry point: load the scenario and serve until interrupted; returns the exit code."""
     parser = argparse.ArgumentParser(description="Fake OpenRouter API for evals.")
     parser.add_argument("--scenario", required=True, type=Path)
     parser.add_argument("--state", required=True, type=Path)

@@ -137,7 +137,7 @@ def test_cli_writes_single_part_and_prints_path(tmp_path, capsys):
     written = out_dir / "home.png"
     assert exit_code == 0
     assert capsys.readouterr().out.split() == [str(written)]
-    assert Image.open(written).size == (1280 + 48, 576 + 48)
+    assert Image.open(written).size == (1280, 554 + 48)
 
 
 def test_cli_splits_tall_pages_into_numbered_parts(tmp_path, capsys):
@@ -149,7 +149,7 @@ def test_cli_splits_tall_pages_into_numbered_parts(tmp_path, capsys):
 
     assert exit_code == 0
     assert sorted(path.name for path in out_dir.iterdir()) == ["long-part1.png", "long-part2.png"]
-    assert Image.open(out_dir / "long-part1.png").size == (1280 + 48, 2000 + 48)
+    assert Image.open(out_dir / "long-part1.png").size == (1280, 1925 + 48)
 
 
 def test_cli_missing_input_exits_2(tmp_path, capsys):
@@ -189,3 +189,40 @@ def test_contact_sheet_rejects_unreadable_image(tmp_path: Path, capsys):
     exit_code = contact_sheet.main([str(tmp_path / "sheet.png"), str(tmp_path / "missing.png")])
 
     assert exit_code == 2
+
+
+def test_cli_outputs_never_exceed_the_limits_including_the_margin(tmp_path):
+    source = tmp_path / "huge.png"
+    gray_image(2000, 5000).save(source)
+    out_dir = tmp_path / "out"
+
+    exit_code = grid.main([str(source), "--out-dir", str(out_dir)])
+
+    sizes = [Image.open(path).size for path in out_dir.iterdir()]
+    assert exit_code == 0
+    assert sizes and all(width <= 1280 and height <= 2000 for width, height in sizes)
+
+
+def test_cli_rejects_limits_smaller_than_the_margin(tmp_path, capsys):
+    source = tmp_path / "a.png"
+    gray_image(100, 100).save(source)
+
+    exit_code = grid.main([str(source), "--out-dir", str(tmp_path / "out"), "--max-width", "48"])
+
+    assert exit_code == 2
+    assert "exceed" in capsys.readouterr().err
+
+
+def test_cli_duplicate_stems_exit_2_and_write_nothing(tmp_path, capsys):
+    (tmp_path / "one").mkdir()
+    (tmp_path / "two").mkdir()
+    first, second = tmp_path / "one" / "home.png", tmp_path / "two" / "home.png"
+    gray_image(100, 100).save(first)
+    gray_image(100, 100).save(second)
+    out_dir = tmp_path / "out"
+
+    exit_code = grid.main([str(first), str(second), "--out-dir", str(out_dir)])
+
+    assert exit_code == 2
+    assert "home" in capsys.readouterr().err
+    assert not out_dir.exists() or not list(out_dir.iterdir())
