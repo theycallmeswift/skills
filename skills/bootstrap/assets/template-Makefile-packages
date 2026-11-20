@@ -30,14 +30,15 @@ format-<id>:
 	uv run ruff format <dir>
 
 # <id>: JavaScript or TypeScript package in <dir>.
+# npm ci needs a lockfile; until one is committed, install from package.json.
 install-<id>:
-	npm ci
+	if [ -f <dir>/package-lock.json ]; then npm ci --prefix <dir>; else npm install --prefix <dir>; fi
 
 test-<id>:
 	npm test --prefix <dir>
 
 lint-<id>:
-	npx biome check <paths>
+	npx --yes @biomejs/biome check <paths>
 
 format-<id>:
-	npx biome check --write <paths>
+	npx --yes @biomejs/biome check --write <paths>

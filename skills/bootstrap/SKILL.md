@@ -29,7 +29,8 @@ Code no package covers, such as loose scripts with tests, is a gap.
 | | `<install>` | `<test>` | `<lint>` | `<runtime>` |
 | --- | --- | --- | --- | --- |
 | Python | `make install` | `make test` | `make lint` | Python 3.13 and uv |
-| TypeScript, JavaScript | `npm ci` | `npm test` | `npm run lint` | Node 26 |
+| TypeScript | `npm ci` | `npm test` | `npm run lint` | Node 26 |
+| JavaScript | `npm ci`, or `npm install` with no lockfile | `npm test` | `npx --yes @biomejs/biome check <paths> && npx --yes markdownlint-cli2` | Node 26 |
 | Several packages | `make install` | `make test` | `make lint` | each language's |
 | Core only | — | — | `npx --yes markdownlint-cli2` | Node |
 
@@ -46,14 +47,15 @@ If the repo has a remote and the remote has no `main`, first push an empty root 
 | `template-AGENTS.md` | `AGENTS.md`; intro from the README and code; add the repo's top-level folders to Project structure | all |
 | — | `CLAUDE.md` as a symlink: `ln -s AGENTS.md CLAUDE.md` | all |
 | `template-style-development.md`, `template-style-markdown.md`, `template-style-testing.md` | `docs/style/development.md`, `markdown.md`, `testing.md` | all |
-| `template-style-python.md` or `template-style-typescript.md` | `docs/style/python.md` or `typescript.md` | Python, TypeScript |
+| `template-style-python.md` or `template-style-typescript.md` | `docs/style/python.md` or `typescript.md` | Python, TypeScript; JavaScript has no style doc, so report it as a gap |
 | `template-markdownlint-cli2.jsonc` | `.markdownlint-cli2.jsonc`; add `ignores` for Markdown that isn't documentation | all |
 | `template-claude-settings.json` | `.claude/settings.json` | all |
 | `template-claude-cloud-node26-path.sh` | `.claude/hooks/claude-cloud-node26-path.sh`, executable | all |
 | `template-cloud-agents.md` | `docs/cloud-agents.md`; drop the uv block outside Python | all |
 | `template-pull_request_template.md` | `.github/pull_request_template.md`, byte for byte | all |
-| `template-dependabot.yml` | `.github/dependabot.yml`, byte for byte | all |
-| `template-ci-python.yml` or `template-ci-typescript.yml` | `.github/workflows/ci.yml`, byte for byte | Python, TypeScript, JavaScript |
+| `template-dependabot.yml` | `.github/dependabot.yml`, byte for byte | with a CI workflow |
+| `template-ci-python.yml` or `template-ci-typescript.yml` | `.github/workflows/ci.yml`, byte for byte | Python, TypeScript |
+| `template-ci-javascript.yml` | `.github/workflows/ci.yml`; fill `<paths>` with the package's source folders | JavaScript |
 | `template-gitignore` | lines appended to `.gitignore`; Node adds `node_modules/` | all |
 | `template-Makefile`, `template-pyproject.toml` | `Makefile`, `pyproject.toml` | Python |
 | `template-package.json`, `template-tsconfig.json`, `template-biome.jsonc`, `template-vitest.config.ts` | the name without `template-` | TypeScript |
@@ -73,7 +75,7 @@ Then add the dev tools:
 
 Run `<test>` and `<lint>` and fix what you wrote until both pass. If a tool is missing, say so; never report a gate that didn't run as passing.
 
-**Tests run anywhere.** With git, also run `<test>` in a clean checkout (`git worktree add` to a temp dir outside the repo, then `<install>`). A test that fails only there reads git-ignored files or local secrets, though the docs you wrote say the gate needs none. Report each as a gap naming the file it needs, and write that need where the docs claim none. With several packages, keep that package in `<test>` but drop its Test step from CI until its tests pass clean; with one, say CI's tests will fail until then.
+**Tests run anywhere.** With git and at least one commit, also run `<test>` in a clean checkout (`git worktree add` to a temp dir outside the repo, then `<install>`). A test that fails only there reads git-ignored files or local secrets, though the docs you wrote say the gate needs none. Report each as a gap naming the file it needs, and write that need where the docs claim none. With several packages, keep that package in `<test>` but drop its Test step from CI until its tests pass clean; with one, say CI's tests will fail until then.
 
 **Existing code that fails a gate** gets a baseline and a ramp, never a red first CI run:
 

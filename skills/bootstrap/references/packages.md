@@ -19,14 +19,16 @@ These rows replace the main table's language rows; its core rows still apply.
 - **Package id:** the directory name, or a short name for the root package
   (`worker`). Use it in `PACKAGES`, the target names, and the CI job.
 - **Commands:** each package's targets call the tools it already uses: its
-  `test` script or runner, its lockfile. A JavaScript
-  package's `lint` runs Biome on its own source paths, never `tsc`.
+  `test` script or runner, its lockfile. A JavaScript package's `lint` runs
+  Biome on its own source paths, never `tsc`. A Node package with no
+  lockfile installs with `npm install` (the template checks), and its
+  missing lockfile is a gap.
 - **One Python package at the root** keeps `template-pyproject.toml` only when
   no `pyproject.toml` exists; never write a second root project beside a
   member's.
-- **npm workspaces** need a root `package.json` with `workspaces`. Write one
-  only when there are two or more Node packages and no root `package.json`;
-  a root `package.json` that exists is a gap.
+- **npm workspaces** need a root `package.json` with `workspaces`. With two
+  or more Node packages, report the missing workspace root as a gap; don't
+  write one.
 - **A member's own `uv.lock`** is superseded by the workspace lock once `uv
   sync` runs at the root. Report it, and anything that runs `uv` inside the
   member directory, so its owner can delete the old lock.

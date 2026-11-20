@@ -20,7 +20,9 @@ interactive user: finish end to end, then tell me what you did.
 - [ ] ./Makefile has a `test` target that runs both the tests under ./pipeline and the JavaScript tests under ./test
 - [ ] ./Makefile has a `lint` target that lints both the Python under ./pipeline and the JavaScript under ./src
 - [ ] ./.github/workflows/ci.yml has separate jobs for the ./pipeline package and the root JavaScript package, and its `CI passed` job needs both
-- [ ] ./pyproject.toml sets Ruff's `select` to a list that leaves out both `ANN` and `D`
+- [ ] ./pyproject.toml sets Ruff's `select` to a list that includes none of `ANN`, `D`, `F`, `PTH`, or `UP`
+- [ ] The `pipeline` job in ./.github/workflows/ci.yml has no step that runs the pipeline's tests
+- [ ] Neither ./Makefile nor ./.github/workflows/ci.yml installs the root JavaScript package with `npm ci` alone; each falls back to `npm install` when ./package-lock.json is missing
 - [ ] No file under ./pipeline, ./src or ./test contains a `noqa`, `biome-ignore`, or `eslint-disable` comment
 - [ ] ./.markdownlint-cli2.jsonc keeps ./prompts/summarize.md out of markdownlint's scope
 - [ ] The final message gives existing lint findings counted by tool or rule family, and names a later stage that turns on Ruff's `ANN` or `D` rules

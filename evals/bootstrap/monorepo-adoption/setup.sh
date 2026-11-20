@@ -3,10 +3,9 @@ set -euo pipefail
 
 # Provision uv for the Python gates, identically on both arms. Node stays out:
 # the judge reads every file under /workspace into one prompt, and npm would
-# fill it with node_modules. A missing tool is the agent's to report. Run this
-# eval with --env UV_PROJECT_ENVIRONMENT=/srv/relay-venv: a .venv under
-# /workspace holds a python symlink that dangles once the workdir is copied
-# out for grading, and fact collection crashes on it.
+# fill it with node_modules. A missing tool is the agent's to report. The eval
+# sets in pyproject.toml set UV_PROJECT_ENVIRONMENT, so uv's venv stays out of
+# /workspace too.
 export DEBIAN_FRONTEND=noninteractive
 apt-get update -qq >/dev/null || true
 apt-get install -y -qq git make curl ca-certificates >/dev/null || true

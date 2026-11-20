@@ -45,7 +45,7 @@ jobs:
           packages=(
             "<id>=<path regex>"
           )
-          shared='^(Makefile|pyproject\.toml|uv\.lock|package-lock\.json|\.github/workflows/)'
+          shared='^(Makefile|pyproject\.toml|uv\.lock|package(-lock)?\.json|biome\.jsonc|\.github/workflows/)'
           changed=""
           if [ "$EVENT" = pull_request ]; then
             changed=$(git diff --name-only --no-renames "$PR_BASE...$PR_HEAD")

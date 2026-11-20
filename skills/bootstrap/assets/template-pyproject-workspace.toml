@@ -11,5 +11,13 @@ line-length = 100
 # ["ANN", "B", "D", "E", "F", "I", "N", "PTH", "RUF", "SIM", "UP", "W"].
 select = [<stage>]
 
+[tool.ruff.lint.per-file-ignores]
+# A test's name states its behavior; a docstring would repeat it.
+"**/test/**" = ["D"]
+"**/tests/**" = ["D"]
+
 [tool.ruff.lint.pydocstyle]
 convention = "google"
+
+[tool.pytest.ini_options]
+addopts = "--strict-markers --import-mode=importlib"
