@@ -1,0 +1,81 @@
+{
+  "model": "gamma/lens-large",
+  "run": 1,
+  "ok": true,
+  "error": null,
+  "status": 200,
+  "raw_text": 0.11,
+  "parsed": {
+    "summary": "Good density; cells are small and the nav hides labels.",
+    "scores": [
+      {
+        "criterion": "Task clarity and hierarchy",
+        "score": 3,
+        "note": "Failures don't stand out."
+      },
+      {
+        "criterion": "Accessibility",
+        "score": 2,
+        "note": "Muted text and colour-only status."
+      },
+      {
+        "criterion": "Brand fit",
+        "score": 4,
+        "note": "On tokens."
+      }
+    ],
+    "issues": [
+      {
+        "id": "I1",
+        "element": "Timestamps and subtitle (--text-muted)",
+        "cell": "G3",
+        "frame": "test-matrix",
+        "problem": "Muted text #8B93A1 on the white page #FFFFFF is 3.09:1, under the 4.5:1 AA bar for 12-13px text.",
+        "why": "The last-run times are how people judge whether a failure is current.",
+        "fix": "--text-muted #8B93A1 -> #5F6673 (5.78:1 on #FFFFFF).",
+        "severity": "high",
+        "confidence": "high",
+        "evidence": "Tokens: --text-muted #8B93A1, --page #FFFFFF; WCAG 2.2 ratio 3.09:1."
+      },
+      {
+        "id": "I2",
+        "element": "Matrix cells",
+        "cell": "C3",
+        "frame": "test-matrix",
+        "problem": "Cells are 16x20px: small hover targets for the per-run tooltip.",
+        "why": "Hunting for one run's tooltip is slow on a trackpad.",
+        "fix": "Matrix cells 16px -> 24px wide, keep 4px gaps.",
+        "severity": "low",
+        "confidence": "medium",
+        "evidence": "Tokens: matrix cells 16x20px."
+      },
+      {
+        "id": "I3",
+        "element": "Left navigation",
+        "cell": "A2",
+        "frame": "test-matrix",
+        "problem": "The icon-only nav hides where each icon goes; new team members can't tell the pages apart.",
+        "why": "Navigation by guessing slows the people the page serves.",
+        "fix": "Show labels by default: expand the nav to 220px with icon + label.",
+        "severity": "medium",
+        "confidence": "high",
+        "evidence": "Five unlabelled grey squares in column A."
+      }
+    ],
+    "answers": [
+      {
+        "question": "Can someone find today's failing suites in five seconds?",
+        "answer": "Not quite: the four red cells are findable but small."
+      },
+      {
+        "question": "Does the note band read as part of the page header?",
+        "answer": "Barely; the band is too close to white."
+      }
+    ]
+  },
+  "cost_usd": 233.5,
+  "prompt_tokens": 38420,
+  "completion_tokens": 6120,
+  "seconds": 140.0,
+  "finish_reason": "stop"
+}

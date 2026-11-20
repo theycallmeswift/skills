@@ -1,0 +1,8 @@
+[
+  {
+    "file": "test-matrix.png",
+    "frame": "test-matrix",
+    "theme": "light",
+    "description": "Test matrix: header with run summary, note band, 7 suites x last 31 runs, last-run column"
+  }
+]

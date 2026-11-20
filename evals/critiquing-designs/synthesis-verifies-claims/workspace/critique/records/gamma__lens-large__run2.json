@@ -1,0 +1,69 @@
+{
+  "model": "gamma/lens-large",
+  "run": 2,
+  "ok": true,
+  "error": null,
+  "status": 200,
+  "raw_text": 0.1,
+  "parsed": {
+    "summary": "Small cells and an unlabelled nav are the main problems.",
+    "scores": [
+      {
+        "criterion": "Task clarity and hierarchy",
+        "score": 3,
+        "note": "Failures don't stand out."
+      },
+      {
+        "criterion": "Accessibility",
+        "score": 2,
+        "note": "Muted text and colour-only status."
+      },
+      {
+        "criterion": "Brand fit",
+        "score": 4,
+        "note": "On tokens."
+      }
+    ],
+    "issues": [
+      {
+        "id": "I1",
+        "element": "Matrix cells",
+        "cell": "C3",
+        "frame": "test-matrix",
+        "problem": "Cells are 16x20px: small hover targets for the per-run tooltip.",
+        "why": "Hunting for one run's tooltip is slow on a trackpad.",
+        "fix": "Matrix cells 16px -> 24px wide, keep 4px gaps.",
+        "severity": "low",
+        "confidence": "medium",
+        "evidence": "Tokens: matrix cells 16x20px."
+      },
+      {
+        "id": "I2",
+        "element": "Left navigation",
+        "cell": "A2",
+        "frame": "test-matrix",
+        "problem": "The icon-only nav hides where each icon goes; new team members can't tell the pages apart.",
+        "why": "Navigation by guessing slows the people the page serves.",
+        "fix": "Show labels by default: expand the nav to 220px with icon + label.",
+        "severity": "medium",
+        "confidence": "high",
+        "evidence": "Five unlabelled grey squares in column A."
+      }
+    ],
+    "answers": [
+      {
+        "question": "Can someone find today's failing suites in five seconds?",
+        "answer": "Not quite: the four red cells are findable but small."
+      },
+      {
+        "question": "Does the note band read as part of the page header?",
+        "answer": "Barely; the band is too close to white."
+      }
+    ]
+  },
+  "cost_usd": 241.8,
+  "prompt_tokens": 38420,
+  "completion_tokens": 6120,
+  "seconds": 140.0,
+  "finish_reason": "stop"
+}

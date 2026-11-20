@@ -1,0 +1,69 @@
+{
+  "model": "alpha/vision-pro",
+  "run": 1,
+  "ok": true,
+  "error": null,
+  "status": 200,
+  "raw_text": 0.24,
+  "parsed": {
+    "summary": "Clear matrix; muted text fails contrast and the note band is too faint.",
+    "scores": [
+      {
+        "criterion": "Task clarity and hierarchy",
+        "score": 3,
+        "note": "Failures don't stand out."
+      },
+      {
+        "criterion": "Accessibility",
+        "score": 2,
+        "note": "Muted text and colour-only status."
+      },
+      {
+        "criterion": "Brand fit",
+        "score": 4,
+        "note": "On tokens."
+      }
+    ],
+    "issues": [
+      {
+        "id": "I1",
+        "element": "Timestamps and subtitle (--text-muted)",
+        "cell": "G3",
+        "frame": "test-matrix",
+        "problem": "Muted text #8B93A1 on the white page #FFFFFF is 3.09:1, under the 4.5:1 AA bar for 12-13px text.",
+        "why": "The last-run times are how people judge whether a failure is current.",
+        "fix": "--text-muted #8B93A1 -> #5F6673 (5.78:1 on #FFFFFF).",
+        "severity": "high",
+        "confidence": "high",
+        "evidence": "Tokens: --text-muted #8B93A1, --page #FFFFFF; WCAG 2.2 ratio 3.09:1."
+      },
+      {
+        "id": "I2",
+        "element": "Note band (--band)",
+        "cell": "B2",
+        "frame": "test-matrix",
+        "problem": "The band #F7F8FB is nearly invisible against the white page, so the note floats loose under the header.",
+        "why": "The note explains retries; it should read as part of the header, not stray text.",
+        "fix": "--band #F7F8FB -> #E0E3EC. The note text #5E677B still passes AA on it at 4.9:1.",
+        "severity": "medium",
+        "confidence": "high",
+        "evidence": "Computed 4.9:1 for --text-note #5E677B on #E0E3EC, above the 4.5:1 AA bar."
+      }
+    ],
+    "answers": [
+      {
+        "question": "Can someone find today's failing suites in five seconds?",
+        "answer": "Not quite: the four red cells are findable but small."
+      },
+      {
+        "question": "Does the note band read as part of the page header?",
+        "answer": "Barely; the band is too close to white."
+      }
+    ]
+  },
+  "cost_usd": 162.4,
+  "prompt_tokens": 38420,
+  "completion_tokens": 6120,
+  "seconds": 140.0,
+  "finish_reason": "stop"
+}

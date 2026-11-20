@@ -1,0 +1,14 @@
+[
+  {
+    "file": "dashboard-dark.png",
+    "frame": "dashboard-dark",
+    "theme": "dark",
+    "description": "Deploys dashboard: header, four stat cards, recent deploys table"
+  },
+  {
+    "file": "incidents-empty.png",
+    "frame": "incidents-empty",
+    "theme": "dark",
+    "description": "Incidents page with no incidents (empty state)"
+  }
+]
