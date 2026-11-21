@@ -11,9 +11,13 @@ acceptable trade.
 
 | Tier | Proves | Lives in |
 | --- | --- | --- |
-| E2e | A user's flow works against the real thing | `test/e2e/` at the root |
-| Integration | The same flow works fast, edges stubbed, localhost only | `test/integration/` at the root |
-| Unit | Pure logic handles its many inputs | Each package's `test/unit/` |
+| E2e | A user's flow works against the real thing | `test/e2e/` |
+| Integration | The same flow works fast, edges stubbed, localhost only | `test/integration/` |
+| Unit | Pure logic handles its many inputs | `test/unit/` |
+
+Each tier folder sits in the package it covers; in a single-package repo that
+is the root. A root `test/e2e/` in a multi-package repo holds only flows that
+cross packages.
 
 - **E2e tests script the flow like a user:** run the real entry point with
   real input and assert on what the user sees.

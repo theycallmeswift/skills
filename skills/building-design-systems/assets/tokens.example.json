@@ -1,0 +1,64 @@
+{
+  "themes": ["dark", "light"],
+  "brand": {
+    "ink": {
+      "value": "#0B1220",
+      "source": "assets/logo.svg (wordmark fill)",
+      "usage": "Logo ink and the dark-theme ground. Brand colour: never change it to fix contrast."
+    },
+    "signal": {
+      "value": "#F26B21",
+      "source": "assets/logo.svg (mark fill)",
+      "usage": "The logo mark. In UI, reach it only through the accent role."
+    },
+    "paper": {
+      "value": "#F7F5F0",
+      "source": "src/styles/app.css (--paper)",
+      "usage": "Light-theme ground behind the logo on social images."
+    }
+  },
+  "color": {
+    "bg": { "dark": "{brand.ink}", "light": "#FFFFFF", "usage": "Page background. Nothing sits below it." },
+    "surface": { "dark": "#141C2B", "light": "#F7F5F0", "usage": "Cards, panels and menus on bg." },
+    "fg": { "dark": "#E6EAF2", "light": "#141C2B", "usage": "Body text and icons." },
+    "muted": { "dark": "#9AA4B5", "light": "#5B6474", "usage": "Secondary text: timestamps, hints, captions." },
+    "accent": { "dark": "{brand.signal}", "light": "#C2410C", "usage": "Primary actions, links and the focus ring." },
+    "accent-hover": { "dark": "#F58A4F", "light": "#9A3412", "usage": "Accent fills and links under the pointer." },
+    "on-accent": { "dark": "{brand.ink}", "light": "#FFFFFF", "usage": "Labels and icons on accent fills." },
+    "danger": { "dark": "#F87171", "light": "#B91C1C", "usage": "Destructive actions and error text." },
+    "status-ok": { "dark": "#4ADE80", "light": "#15803D", "usage": "Passed checks and healthy states." }
+  },
+  "space": {
+    "usage": "Every gap, margin and padding. Use these steps only.",
+    "steps": { "1": "4px", "2": "8px", "3": "12px", "4": "16px", "6": "24px", "8": "32px" }
+  },
+  "radius": {
+    "usage": "Corner radii: sm for inputs and badges, md for cards, full for pills.",
+    "steps": { "sm": "4px", "md": "8px", "full": "999px" }
+  },
+  "type": {
+    "fonts": [
+      { "family": "Inter", "weight": "400 700", "style": "normal", "file": "/fonts/inter-var.woff2", "licence": "OFL-1.1" },
+      { "family": "JetBrains Mono", "weight": "400", "style": "normal", "file": "/fonts/jetbrains-mono-400.woff2", "licence": "OFL-1.1" }
+    ],
+    "family": {
+      "sans": { "value": "\"Inter\", system-ui, sans-serif", "usage": "All UI text." },
+      "mono": { "value": "\"JetBrains Mono\", ui-monospace, monospace", "usage": "Code, IDs and numbers in tables." }
+    },
+    "scale": {
+      "usage": "Font sizes. Body is md; nothing smaller than sm.",
+      "steps": { "sm": "13px", "md": "15px", "lg": "18px", "xl": "24px" }
+    }
+  },
+  "pairings": [
+    { "fg": "fg", "bg": "bg", "kind": "text" },
+    { "fg": "fg", "bg": "surface", "kind": "text" },
+    { "fg": "muted", "bg": "bg", "kind": "text" },
+    { "fg": "muted", "bg": "surface", "kind": "text" },
+    { "fg": "accent", "bg": "bg", "kind": "text" },
+    { "fg": "on-accent", "bg": "accent", "kind": "text" },
+    { "fg": "on-accent", "bg": "accent-hover", "kind": "text" },
+    { "fg": "danger", "bg": "surface", "kind": "text" },
+    { "fg": "status-ok", "bg": "surface", "kind": "mark" }
+  ]
+}

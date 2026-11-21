@@ -19,6 +19,10 @@ to end, then tell me what you did.
 - [ ] ./docs/style/testing.md says e2e and integration tests carry most of the coverage
 - [ ] ./AGENTS.md says every PR lands on `main` as one squash commit and that a branch may update by merging `main` into it
 - [ ] ./.claude/settings.json sets `attribution.commit` and `attribution.pr` to empty strings
+- [ ] ./.node-version pins Node 26
+- [ ] ./.github/workflows/ci.yml sets up Node from `.node-version` rather than a hard-coded version
+- [ ] ./docs/cloud-agents.md activates Node through nvm from `.node-version` and does not download Node into `/opt/node26`
+- [ ] No file under ./.claude/ puts `/opt/node26` on `PATH`
 - [ ] ./.github/workflows/ci.yml runs lint and tests in its one job, named `CI passed`
 - [ ] ./.github/workflows/ci.yml skips the test step when a pull request changes only files under `docs/`
 - [ ] The final message says branch protection on `main` should require the `CI passed` check

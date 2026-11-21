@@ -13,8 +13,8 @@ user: finish end to end, then tell me what you did.
 - [ ] Skill `bootstrap` invoked
   - if: {BENCHSPEC_ARM} != "baseline"
 - [ ] ./AGENTS.md does not say that lint runs markdownlint through `npx`
-- [ ] ./docs/cloud-agents.md does not contain the phrase "the language's package hosts"
-- [ ] ./docs/cloud-agents.md has no uv bullet and no uv install block
+- [ ] ./docs/cloud-agents.md has no Python line
+- [ ] ./docs/cloud-agents.md's setup script installs the `core@mechaswift` plugin
 - [ ] ./tsconfig.json excludes `tmp`
 - [ ] ./test/unit/hello.test.ts holds a vitest test
 - [ ] No file in the workspace sets vitest's `passWithNoTests`
