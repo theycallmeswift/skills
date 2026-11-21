@@ -50,8 +50,8 @@ If the repo has a remote and the remote has no `main`, first push an empty root 
 | `template-style-python.md` or `template-style-typescript.md` | `docs/style/python.md` or `typescript.md` | Python, TypeScript; JavaScript has no style doc, so report it as a gap |
 | `template-markdownlint-cli2.jsonc` | `.markdownlint-cli2.jsonc`; add `ignores` for Markdown that isn't documentation | all |
 | `template-claude-settings.json` | `.claude/settings.json` | all |
-| `template-claude-cloud-node26-path.sh` | `.claude/hooks/claude-cloud-node26-path.sh`, executable | all |
-| `template-cloud-agents.md` | `docs/cloud-agents.md`; drop the uv block outside Python | all |
+| `template-node-version` | `.node-version` | all |
+| `template-cloud-agents.md` | `docs/cloud-agents.md`; `<repo>` is the checkout's directory name; drop the Python line outside Python | all |
 | `template-pull_request_template.md` | `.github/pull_request_template.md`, byte for byte | all |
 | `template-dependabot.yml` | `.github/dependabot.yml`, byte for byte | with a CI workflow |
 | `template-ci-python.yml` or `template-ci-typescript.yml` | `.github/workflows/ci.yml`, byte for byte | Python, TypeScript |
@@ -96,7 +96,7 @@ Check every existing file that has an asset against it:
 - `AGENTS.md`: each template section it lacks, with the text you'd add, and each repo path it names that doesn't exist.
 - `CLAUDE.md`: not a symlink to `AGENTS.md`.
 - `README.md`: missing at the root; `AGENTS.md` names it as the docs index.
-- `.claude/settings.json`: missing attribution, deny rules, or the SessionStart hook.
+- `.claude/settings.json`: missing attribution or deny rules, or a SessionStart hook that puts `/opt/node26` on `PATH`; cloud environments now activate the `.node-version` pin through nvm.
 - Gate file: each missing `install`, `test`, `lint`, or `format` target or script.
 - `.github/workflows/ci.yml`: no docs-only skip for the tests, or no `CI passed` job for branch protection to require.
 - Style docs: each asset rule they lack or contradict.
