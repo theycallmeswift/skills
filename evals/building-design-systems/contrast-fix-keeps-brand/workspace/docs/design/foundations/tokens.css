@@ -1,0 +1,38 @@
+/* Generated from tokens.json by the token build. Do not edit; regenerate. */
+
+:root {
+  --brand-night: #0E1424;
+  --brand-flare: #F26B21;
+  --brand-haze: #727A8C;
+  --brand-mist: #FAFAF7;
+  --bg: var(--brand-night);
+  --surface: #161D2B;
+  --fg: #E8ECF3;
+  --muted: var(--brand-haze);
+  --accent: var(--brand-flare);
+  --on-accent: #FFFFFF;
+  --danger: #F87171;
+  --status-ok: #4ADE80;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-6: 24px;
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --font-sans: system-ui, sans-serif;
+  --text-sm: 13px;
+  --text-md: 15px;
+  --text-lg: 18px;
+}
+
+[data-theme="light"] {
+  --bg: var(--brand-mist);
+  --surface: #FFFFFF;
+  --fg: #161D2B;
+  --muted: #5E6676;
+  --accent: var(--brand-flare);
+  --on-accent: #FFFFFF;
+  --danger: #E12A2A;
+  --status-ok: #22C55E;
+}
