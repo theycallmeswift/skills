@@ -9,9 +9,9 @@ Set a repo up to the house setup in `assets/`. The assets are the canonical copi
 
 ## Rules
 
-- **Never edit a file that exists.** Two exceptions: append missing `.gitignore` lines, and add dev dependencies through the package manager. Whatever an existing file lacks is a gap to report, not a fix: its content is someone's decision.
+- **Never edit a file that exists.** Three exceptions: append missing `.gitignore` lines, add dev dependencies through the package manager, and add the CI badge to `README.md`. Whatever an existing file lacks is a gap to report, not a fix: its content is someone's decision.
 - **Never move a file or directory.** Schedulers and deploy hosts reach code by its path. Write around the layout you find.
-- **Write only what the table lists.** No starter code, sample tests, or empty directories.
+- **Write only what the table lists.** No starter code or empty directories. The only test is the TypeScript hello world test, so `npm test` has one to run.
 - **Never suppress a finding** with a `noqa`, `biome-ignore`, or per-file ignore. Stage the rules instead (Verify).
 - **Fill every `<placeholder>`** from the repo, and wrap filled prose at 80 columns.
 
@@ -44,21 +44,24 @@ If the repo has a remote and the remote has no `main`, first push an empty root 
 
 | Asset | Destination | For |
 | --- | --- | --- |
-| `template-AGENTS.md` | `AGENTS.md`; intro from the README and code; add the repo's top-level folders to Project structure | all |
+| `template-AGENTS.md` | `AGENTS.md`; intro from the README and code; add the repo's top-level folders to Project structure; TypeScript drops the line about markdownlint through `npx` | all |
 | — | `CLAUDE.md` as a symlink: `ln -s AGENTS.md CLAUDE.md` | all |
 | `template-style-development.md`, `template-style-markdown.md`, `template-style-testing.md` | `docs/style/development.md`, `markdown.md`, `testing.md` | all |
 | `template-style-python.md` or `template-style-typescript.md` | `docs/style/python.md` or `typescript.md` | Python, TypeScript; JavaScript has no style doc, so report it as a gap |
 | `template-markdownlint-cli2.jsonc` | `.markdownlint-cli2.jsonc`; add `ignores` for Markdown that isn't documentation | all |
 | `template-claude-settings.json` | `.claude/settings.json` | all |
-| `template-node-version` | `.node-version` | all |
+| `template-node-version` | `.node-version`, which every CI template and the cloud environment read | all |
 | `template-cloud-agents.md` | `docs/cloud-agents.md`; `<repo>` is the checkout's directory name; drop the Python line outside Python | all |
 | `template-pull_request_template.md` | `.github/pull_request_template.md`, byte for byte | all |
 | `template-dependabot.yml` | `.github/dependabot.yml`, byte for byte | with a CI workflow |
 | `template-ci-python.yml` or `template-ci-typescript.yml` | `.github/workflows/ci.yml`, byte for byte | Python, TypeScript |
 | `template-ci-javascript.yml` | `.github/workflows/ci.yml`; fill `<paths>` with the package's source folders | JavaScript |
+| — | `README.md`: on the line under its title, `[![CI](https://github.com/<owner>/<repo>/actions/workflows/ci.yml/badge.svg)](https://github.com/<owner>/<repo>/actions/workflows/ci.yml)`, with `<owner>/<repo>` from the GitHub remote. No README, no GitHub remote, or a badge already there: skip it | with a CI workflow |
+| — | `.env.example`: every environment variable the code, docs, or `.env` names, each with an empty value under a one-line comment on what it's for. Never copy a value from `.env` | when any are known |
 | `template-gitignore` | lines appended to `.gitignore`; Node adds `node_modules/` | all |
 | `template-Makefile`, `template-pyproject.toml` | `Makefile`, `pyproject.toml` | Python |
-| `template-package.json`, `template-tsconfig.json`, `template-biome.jsonc`, `template-vitest.config.ts` | the name without `template-` | TypeScript |
+| `template-package.json`, `template-tsconfig.json`, `template-biome.jsonc` | the name without `template-` | TypeScript |
+| `template-hello.test.ts` | `test/unit/hello.test.ts` | TypeScript |
 | `template-biome.jsonc` | `biome.jsonc` | JavaScript |
 
 Markdown that isn't documentation (LLM prompts and their variants, raw notes, generated output) changes meaning when rewrapped. Find it by path and contents; ask when a folder is unclear and someone can answer.
@@ -96,9 +99,11 @@ Check every existing file that has an asset against it:
 - `AGENTS.md`: each template section it lacks, with the text you'd add, and each repo path it names that doesn't exist.
 - `CLAUDE.md`: not a symlink to `AGENTS.md`.
 - `README.md`: missing at the root; `AGENTS.md` names it as the docs index.
-- `.claude/settings.json`: missing attribution or deny rules, or a SessionStart hook that puts `/opt/node26` on `PATH`; cloud environments now activate the `.node-version` pin through nvm.
+- `.claude/settings.json`: missing attribution, allow or deny rules, or the `core@mechaswift` plugin, or a SessionStart hook that puts `/opt/node26` on `PATH`; cloud environments now activate the `.node-version` pin through nvm.
 - Gate file: each missing `install`, `test`, `lint`, or `format` target or script.
 - `.github/workflows/ci.yml`: no docs-only skip for the tests, or no `CI passed` job for branch protection to require.
+- `README.md`: no CI badge because the repo has no GitHub remote.
+- `.env.example`: each known variable it lacks.
 - Style docs: each asset rule they lack or contradict.
 
 Then check existing practice against the house rules, and list each clash with its options:

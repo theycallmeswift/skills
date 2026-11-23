@@ -32,16 +32,24 @@ echo "export PATH=\"$NVM_BIN:\$PATH\"" >> "$CLAUDE_ENV_FILE"
 ## Setup script
 
 The setup script runs as root from the directory above the checkouts, before
-the session starts. Install the repo's dependencies there:
+the session starts. Install the repo's dependencies there, and the
+`core@mechaswift` plugin that `.claude/settings.json` enables, since enabling
+a plugin doesn't install it:
 
 ```bash
 if [ -d <repo> ]; then (cd <repo> && <install>); fi
+claude plugin marketplace list 2>/dev/null | grep -q mechaswift ||
+  claude plugin marketplace add theycallmeswift/skills
+claude plugin install core@mechaswift
 ```
+
+The environment caches the script's result, so a newer `core@mechaswift`
+installs only after the script changes; edit it (a comment will do) to rerun.
 
 ## Network and secrets
 
-- **Network:** the package registries, plus `nodejs.org` only when nvm has to
-  download a Node version.
+- **Network:** the package registries, `github.com` for the skills plugin, and
+  `nodejs.org` only when nvm has to download a Node version.
 - **Secrets:** none. `<test>` and `<lint>` need no credentials. Save any API
   key a task needs as a network secret on the environment, never as an
   environment variable.

@@ -23,6 +23,6 @@ to end, then tell me what you did.
 - [ ] ./.github/workflows/ci.yml sets up Node from `.node-version` rather than a hard-coded version
 - [ ] ./docs/cloud-agents.md activates Node through nvm from `.node-version` and does not download Node into `/opt/node26`
 - [ ] No file under ./.claude/ puts `/opt/node26` on `PATH`
-- [ ] ./.github/workflows/ci.yml has a job named `CI passed` that needs every other job
-- [ ] ./.github/workflows/ci.yml skips the test job when a pull request changes only files under `docs/`
+- [ ] ./.github/workflows/ci.yml runs lint and tests in its one job, named `CI passed`
+- [ ] ./.github/workflows/ci.yml skips the test step when a pull request changes only files under `docs/`
 - [ ] The final message says branch protection on `main` should require the `CI passed` check
