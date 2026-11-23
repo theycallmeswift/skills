@@ -7,8 +7,14 @@ set -euo pipefail
 # sets in pyproject.toml set UV_PROJECT_ENVIRONMENT, so uv's venv stays out of
 # /workspace too.
 export DEBIAN_FRONTEND=noninteractive
-apt-get update -qq >/dev/null || true
-apt-get install -y -qq git make curl ca-certificates >/dev/null || true
+need=()
+for tool in git make curl; do
+  command -v "$tool" >/dev/null || need+=("$tool")
+done
+if [ ${#need[@]} -gt 0 ]; then
+  apt-get update -qq >/dev/null || true
+  apt-get install -y -qq "${need[@]}" ca-certificates >/dev/null || true
+fi
 if ! command -v git >/dev/null; then
   printf 'unexpected monorepo-adoption fixture: no git\n' >&2
   exit 1
